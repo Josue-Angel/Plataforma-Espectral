@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Plataforma Espectral Dermatoscópica</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+      <!-- Logo lupa + lunar -->
+      <div class="logo-icon" aria-hidden="true">
+        <span class="logo-lens"></span>
+        <span class="logo-handle"></span>
+        <span class="logo-dot"></span>
+      </div>
+      <span class="logo-text">Proyecto Espectral</span>
+    </div>
+    <nav class="nav">
+      <ul id="nav-links">
+        <li><a href="#" data-view="inicio" data-roles="admin,voluntario">Inicio de Sesión</a></li>
+        <li><a href="#" data-view="equipo" data-roles="admin,voluntario">Equipo y proyecto</a></li>
+        <li><a href="#" data-view="base-datos" data-roles="admin">Base de datos espectral</a></li>
+        <li><a href="#" data-view="formularios" data-roles="admin,voluntario">Formularios</a></li>
+        <li><a href="#" data-view="modelo-ia" data-roles="admin">Modelo IA (Colab)</a></li>
+        <li><a href="#" data-view="archivos" data-roles="admin,voluntario">Tesis y artículos</a></li>
+        <li><a href="#" data-view="dashboard" data-roles="admin">Dashboard</a></li>
+      </ul>
+    </nav>
+    <div class="user-info">
+      <span id="user-label" class="user-label">No has iniciado sesión</span>
+      <button id="logout-btn" class="btn btn-outline btn-small hidden">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- INICIO / AUTH -->
+    <section id="inicio" class="view active">
+      <div class="hero">
+        <div class="hero-text">
+          <h1>Plataforma de Análisis Espectral de Lesiones Cutáneas</h1>
+          <p>
+            Aplicación web para apoyar la investigación clínica mediante el uso de 
+            imágenes espectrales, datos de voluntarios y modelos de inteligencia artificial.
+          </p>
+          <ul class="hero-list">
+            <li>Visualización de la base de datos espectral.</li>
+            <li>Integración con formularios de captación de voluntarios.</li>
+            <li>Acceso al modelo de IA desarrollado en Google Colab.</li>
+            <li>Dashboard con estadísticas clave (edad, sexo, tipo de piel).</li>
+          </ul>
+        </div>
+        <div class="hero-card">
+          <h2>Acceso a la plataforma</h2>
+
+          <div class="tabs-auth">
+            <button type="button" class="tab-auth active" data-target="login-panel">
+              Iniciar sesión
+            </button>
+            <button type="button" class="tab-auth" data-target="register-panel">
+              Crear cuenta (voluntario)
+            </button>
+          </div>
+
+          <!-- LOGIN -->
+          <div id="login-panel" class="auth-panel">
+            <form id="login-form" class="form">
+              <label>
+                Correo electrónico
+                <input type="email" id="login-email" required placeholder="tu.correo@ejemplo.com" />
+              </label>
+              <label>
+                Contraseña
+                <input type="password" id="login-password" required placeholder="••••••••" />
+              </label>
+              <button type="submit" class="btn btn-primary full-width">Entrar</button>
+              <p id="login-error" class="error-msg small hidden"></p>
+            </form>
+          </div>
+
+          <!-- REGISTRO -->
+          <div id="register-panel" class="auth-panel hidden">
+            <form id="register-form" class="form">
+              <label>
+                Nombre completo
+                <input type="text" id="reg-name" required placeholder="Nombre del voluntario" />
+              </label>
+              <label>
+                Correo electrónico
+                <input type="email" id="reg-email" required placeholder="voluntario@ejemplo.com" />
+              </label>
+              <label>
+                Contraseña
+                <input type="password" id="reg-password" required minlength="6" />
+              </label>
+              <label>
+                Repetir contraseña
+                <input type="password" id="reg-password2" required minlength="6" />
+              </label>
+              <button type="submit" class="btn btn-primary full-width">
+                Crear cuenta
+              </button>
+              <p id="register-error" class="error-msg small hidden"></p>
+              <p id="register-success" class="small muted hidden">
+                Cuenta creada. Revisa tu correo si se requiere confirmación y luego inicia sesión.
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EQUIPO Y PROYECTO -->
+<section id="equipo" class="view equipo-section">
+  <h2>Equipo de trabajo y descripción del proyecto</h2>
+
+  <!-- Bloque ancho completo -->
+  <article class="card clean-card full-width-card">
+    <h3>¿Quiénes somos?</h3>
+    <p>
+      Somos un equipo multidisciplinario integrado por profesores investigadores, ingenieros y estudiantes de la Universidad Politécnica de Tulancingo, enfocados en el diagnóstico temprano del melanoma cutáneo mediante técnicas espectrales e inteligencia artificial.
+    </p>
+    <p>
+      Esta plataforma sirve como entorno de trabajo para facilitar el desarrollo del Proyecto de Investigación que dirige la profesora Dra. Margarita Cunill Rodríguez, u otro Administrador designado,  permitiendo reclutar  voluntarios,  visualizar espectros e imágenes de lunares, consultar artículos de investigación, entre otros.
+    </p>
+  </article>
+
+  <!-- Grid del equipo -->
+  <div class="team-grid">
+    <div class="card clean-card">
+      <h3>Responsable</h3>
+      <p><strong>Nombre:</strong> Dra. Margarita Cunill Rodríguez</p>
+      <p><strong>Rol:</strong> Investigadora a cargo y Coordinadora del Proyecto.</p>
+    </div>
+
+    <div class="card clean-card">
+      <h3>Área de Ingeniería</h3>
+      <p>
+        Desarrollo de la aplicación web para la base de datos espectral
+        y del modelo de IA en Google Colab a cargo de:
+      </p>
+      <p>
+        <strong>Banelly Sánchez Soto, Josue Angel Gomez Zamorano y Enrique Cázares Garrido.</strong>
+      </p>
+    </div>
+
+    <div class="card clean-card">
+      <h3>Voluntarios</h3>
+      <p>Participantes que aportan sus datos e imágenes para avanzar en la investigación.</p>
+    </div>
+  </div>
+</section>
+
+    <!-- BASE DE DATOS ESPECTRAL -->
+    <section id="base-datos" class="view">
+      <h2>Base de datos espectral de voluntarios</h2>
+      <p class="muted">
+        Información de voluntarios ligada a sus espectros (<strong>archivos .txt</strong>)
+        y a sus imágenes (<strong>archivos .png</strong>). Todos los datos se guardan en Supabase.
+      </p>
+
+      <div class="card">
+        <h3>Voluntarios registrados</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Identificador</th>
+                <th>Sexo</th>
+                <th>Edad</th>
+                <th>Carrera</th>
+                <th>Correo</th>
+                <th>Fototipo</th>
+                <th>Fecha</th>
+                <th>Espectros</th>
+                <th>Imágenes</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-voluntarios"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card hidden" id="detalle-archivos">
+        <h3 id="detalle-titulo">Archivos del voluntario</h3>
+        <ul id="detalle-lista" class="link-list"></ul>
+      </div>
+
+      <div class="card">
+        <h3>Registrar / editar voluntario (solo Doctora/Administrador)</h3>
+        <form id="form-voluntario" class="form">
+          <input type="hidden" id="vol-id" />
+
+          <div class="grid-two">
+            <label>
+              Identificador (matrícula / código)
+              <input type="text" id="vol-identificador" required />
+            </label>
+
+            <label>
+              Sexo
+              <select id="vol-sexo" required>
+                <option value="">Selecciona</option>
+                <option value="F">Femenino</option>
+                <option value="M">Masculino</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="grid-three">
+            <label>
+              Edad
+              <input type="number" id="vol-edad" min="0" required />
+            </label>
+            <label>
+              Carrera
+              <input type="text" id="vol-carrera" required />
+            </label>
+            <label>
+              Correo
+              <input type="email" id="vol-correo" required />
+            </label>
+          </div>
+
+          <div class="grid-three">
+            <label>
+              Fototipo de piel
+              <select id="vol-fototipo" required>
+                <option value="">Selecciona</option>
+                <option value="I">I</option>
+                <option value="II">II</option>
+                <option value="III">III</option>
+                <option value="IV">IV</option>
+                <option value="V y VI">V y VI</option>
+              </select>
+            </label>
+
+            <label>
+              Fecha de registro
+              <input type="date" id="vol-fecha" required />
+            </label>
+          </div>
+
+          <div class="grid-two">
+            <label>
+              Espectros (.txt) — puedes subir varios
+              <input type="file" id="vol-espectros" accept=".txt" multiple />
+              <span class="small muted">Se guardan en el bucket <code>espectros</code>.</span>
+            </label>
+
+            <label>
+              Imágenes (jpg / png) — puedes subir varias
+              <input type="file" id="vol-imagenes" accept=".jpg,.jpeg,.png" multiple />
+              <span class="small muted">Se guardan en el bucket <code>imagenes</code>.</span>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="btn-guardar-vol">
+              Guardar voluntario
+            </button>
+            <button type="button" class="btn btn-outline hidden" id="btn-cancelar-edicion">
+              Cancelar edición
+            </button>
+          </div>
+
+          <p class="muted small">
+            El <strong>ID</strong> lo genera Supabase automáticamente.
+          </p>
+        </form>
+      </div>
+    </section>
+
+    <!-- FORMULARIOS -->
+    <section id="formularios" class="view">
+      <h2>Formularios para voluntarios (Preliminares)</h2>
+      <p>
+        Desde esta sección las personas voluntarias pueden responder los formularios creados en Google Forms
+        para registrar sus datos clínicos, consentimientos informados, etc.
+      </p>
+
+      <div class="grid-two">
+        <article class="card">
+          <h3>Registro de voluntarios y consentimiento informado</h3>
+          <p class="muted small">
+          </p>
+          <div class="iframe-wrapper">
+            <iframe
+              src="https://forms.gle/jAPZzUQRcMH2A3ni6"
+              width="100%"
+              height="500"
+              frameborder="0"
+            ></iframe>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>Cuestionario para la determinación del fototipo de piel (clasificación tipo Fitzpatrick)
+</h3>
+          <p class="muted small">
+          </p>
+          <div class="iframe-wrapper">
+            <iframe
+              src="https://forms.gle/nG8pEnqwh8EfppaK7"
+              width="100%"
+              height="500"
+              frameborder="0"
+            ></iframe>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- MODELO IA -->
+<section id="modelo-ia" class="view">
+  <h2>Modelo de Inteligencia Artificial (Hugging Face Space)</h2>
+  <p>
+    Aquí se mostrará la interfaz web del modelo.
+  </p>
+
+  <div class="card">
+    <h3>Interfaz de predicción</h3>
+    <div class="iframe-wrapper">
+      
+      <!-- SCRIPT DE GRADIO -->
+      <script
+        type="module"
+        src="https://gradio.s3-us-west-2.amazonaws.com/6.0.2/gradio.js">
+      </script>
+
+      <!-- TU SPACE -->
+      <gradio-app 
+        src="https://yeahboiiiiiiiiiii-clasificador-de-lesiones-de-piel.hf.space">
+      </gradio-app>
+
+    </div>
+  </div>
+</section>
+
+
+
+    <!-- ARCHIVOS -->
+<section id="archivos" class="view scientific-section">
+  <h2 class="section-title">Tesis, artículos y archivos relevantes</h2>
+  <p class="section-subtitle">
+    Repositorio de documentos clave del proyecto y material de referencia científica.
+  </p>
+
+  <div class="grid-two">
+
+    <!-- ============ PRODUCCIÓN PROPIA ============ -->
+    <article class="card scientific-card">
+      <h3 class="card-title">Producción propia</h3>
+      <ul class="doc-list">
+        <li class="doc-item">
+          <strong class="doc-label">Artículo:</strong>
+          <a href="https://www.milenio.com/opinion/varios-autores/universidad-politecnica-de-tulancingo/tratamiento-y-diagnostico-optico_2" target="_blank" class="doc-link">
+            Tratamiento y diagnóstico óptico
+          </a>
+        </li>
+        <li class="doc-item">
+          <strong class="doc-label">Artículo:</strong>
+          <a href="https://www.milenio.com/opinion/varios-autores/universidad-politecnica-de-tulancingo/caracterizar-el-melanoma-cutaneo" target="_blank" class="doc-link">
+            Caracterizar el melanoma cutáneo
+          </a>
+        </li>
+        <li class="doc-item">
+          <strong class="doc-label">Artículo:</strong>
+          <a href="https://www.milenio.com/opinion/varios-autores/universidad-politecnica-de-tulancingo/simulacion-esparcimiento-particulas-usadas-fabricacion-imitadores-melanoma-cutaneo" target="_blank" class="doc-link">
+            Simulación de esparcimiento de partículas en imitadores de melanoma cutáneo
+          </a>
+        </li>
+      </ul>
+    </article>
+
+    <!-- ============ REFERENCIAS DE OTROS AUTORES ============ -->
+    <article class="card scientific-card">
+      <h3 class="card-title">Referencias de otros autores</h3>
+      <ul class="reference-list">
+
+        <!-- Referencia 1 -->
+        <li class="reference-item">
+          <p class="reference-apa">
+            <strong>Tschandl, P., Rosendahl, C., & Kittler, H.</strong> (2018).  
+            <em>The HAM10000 dataset: A large collection of multi-source dermatoscopic images of common pigmented skin lesions.</em>  
+            <span>Scientific Data, 5, 180161.</span>  
+            <br>
+            <a href="https://doi.org/10.1038/sdata.2018.161" target="_blank" class="doi-link">https://doi.org/10.1038/sdata.2018.161</a>
+          </p>
+
+          <div class="reference-links">
+            <a href="https://www.nature.com/articles/sdata2018161" target="_blank" class="ref-btn">Artículo</a>
+            <a href="https://www.isic-archive.com/" target="_blank" class="ref-btn">Dataset</a>
+          </div>
+        </li>
+
+        <!-- Referencia 2 -->
+        <li class="reference-item">
+          <p class="reference-apa">
+            <strong>Codella, N., Rotemberg, V., Tschandl, P., Celebi, M. E., Dusza, S., Gutman, D., Helba, B., … Halpern, A.</strong> (2019).  
+            <em>Skin Lesion Analysis Toward Melanoma Detection 2018: A Challenge Hosted by the International Skin Imaging Collaboration (ISIC).</em>  
+            <br>
+            <a href="https://arxiv.org/abs/1902.03368" target="_blank" class="doi-link">https://arxiv.org/abs/1902.03368</a>
+          </p>
+
+          <div class="reference-links">
+            <a href="https://arxiv.org/abs/1902.03368" target="_blank" class="ref-btn">Artículo</a>
+          </div>
+        </li>
+
+      </ul>
+    </article>
+  </div>
+</section>
+
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="view">
+      <h2>Dashboard de estadísticas de voluntarios</h2>
+      <p class="muted">
+        Los datos se calculan a partir de la base de datos almacenada en Supabase.
+      </p>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total de voluntarios</h3>
+          <p id="stat-total" class="stat-value">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Edad promedio</h3>
+          <p id="stat-edad-promedio" class="stat-value">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>% Femenino / Masculino</h3>
+          <p id="stat-sexo" class="stat-value small"></p>
+        </div>
+        <div class="stat-card">
+          <h3>Tipos de piel presentes</h3>
+          <p id="stat-tipos-piel" class="stat-value small"></p>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Distribución por sexo</h3>
+          <div id="chart-sexo" class="bar-chart"></div>
+        </div>
+        <div class="chart-card">
+          <h3>Distribución por tipo de piel</h3>
+          <div id="chart-piel" class="bar-chart"></div>
+        </div>
+        <div class="chart-card">
+          <h3>Distribución por grupos de edad</h3>
+          <div id="chart-edad" class="bar-chart"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Proyecto Espectral · Laboratorio de Óptica Biomedica UPT</p>
+  </footer>
+
+  <!-- Supabase + app -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // REEMPLAZA con los datos de tu proyecto
+    const SUPABASE_URL = 'https://bwszeozmxzwuajrywqns.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3c3plb3pteHp3dWFqcnl3cW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODU2ODAsImV4cCI6MjA3OTg2MTY4MH0.XAj13G3Bwl3iy7gfnVyHddA6LMH4Yc9dnx9Im6Dx8xI';
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
