@@ -276,6 +276,37 @@
       
 
       <!-- FORMULARIOS -->
+    <section id="consentimiento" class="view active">
+
+  <div class="form-skin-wrapper">
+    <div class="skin-form">
+
+      <h2>Consentimiento Informado</h2>
+
+      <p>
+        La información proporcionada será utilizada únicamente con fines académicos y de investigación.
+        Sus datos serán tratados de manera confidencial.
+      </p>
+
+      <div class="form-group">
+        <input type="text" id="nombreCompleto" placeholder="Nombre completo" required>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="aceptaConsentimiento">
+          Acepto participar y autorizo el uso de mis datos.
+        </label>
+      </div>
+
+      <button type="button" onclick="validarConsentimiento()">
+        Continuar al formulario
+      </button>
+
+    </div>
+  </div>
+
+    </section>
 <section id="formularios" class="view">
 
   <div class="form-skin-wrapper">
@@ -691,6 +722,7 @@
   <script src="app.js"></script>
 </body>
 </html>
+
 
 
 
