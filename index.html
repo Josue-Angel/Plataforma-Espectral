@@ -276,91 +276,139 @@
 
     <!-- FORMULARIOS -->
     <section id="formularios" class="view">
-      <div id="consentimiento">
+      <div class="container">
 
-<h2>Consentimiento Informado</h2>
+    <!-- SECCIÓN 1: DATOS -->
+    <section class="step active" id="step1">
+        <h2>Datos del Voluntario</h2>
 
-<p>
-El presente cuestionario forma parte del estudio de caracterización
-de nevos mediante espectroscopía de reflexión difusa.
-Los datos serán utilizados exclusivamente con fines académicos.
-</p>
+        <input type="text" id="identificador" placeholder="Matrícula" required>
+        <input type="number" id="edad" placeholder="Edad" required>
 
-<label>
-<input type="checkbox" id="aceptarConsentimiento">
- Acepto participar voluntariamente.
-</label>
+        <select id="sexo" required>
+            <option value="">Seleccione género</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Masculino">Masculino</option>
+        </select>
 
-<button onclick="continuarCuestionario()">Continuar</button>
+        <input type="email" id="correo" placeholder="Correo institucional">
 
-</div>
+        <button onclick="nextStep(2)">Continuar</button>
+    </section>
 
-<div id="cuestionario" style="display:none;">
 
-<h2>Cuestionario Fototipo de Piel (Escala Fitzpatrick)</h2>
+    <!-- SECCIÓN 2: DISPOSICIÓN GENÉTICA -->
+    <section class="step" id="step2">
+        <h2>Disposición Genética</h2>
 
-<input type="text" id="identificador" placeholder="Matrícula" required>
-<input type="number" id="edad" placeholder="Edad" required>
+        <div class="question">
+            <p>1. ¿Cuál es el color de tus ojos?</p>
+            <label><input type="radio" name="ojos" value="0"> Azul claro, gris o verde</label>
+            <label><input type="radio" name="ojos" value="1"> Azul, gris o verde</label>
+            <label><input type="radio" name="ojos" value="2"> Azul</label>
+            <label><input type="radio" name="ojos" value="3"> Café claro</label>
+            <label><input type="radio" name="ojos" value="4"> Café oscuro o Negro</label>
+        </div>
 
-<select id="sexo">
-<option value="">Sexo</option>
-<option value="F">Femenino</option>
-<option value="M">Masculino</option>
-</select>
+        <div class="question">
+            <p>2. ¿Cuál es el color natural de tu cabello?</p>
+            <label><input type="radio" name="cabello" value="0"> Rojo castaño / Rojo cobrizo</label>
+            <label><input type="radio" name="cabello" value="1"> Rubio</label>
+            <label><input type="radio" name="cabello" value="2"> Café claro / Rubio oscuro</label>
+            <label><input type="radio" name="cabello" value="3"> Café oscuro</label>
+            <label><input type="radio" name="cabello" value="4"> Negro</label>
+        </div>
 
-<select id="carrera">
-<option value="">Carrera</option>
-<option value="MCO">MCO</option>
-</select>
+        <div class="question">
+            <p>3. ¿Cuál es el color de tu piel cuando no está bronceada (zonas no expuestas a radiación solar)?</p>
+            <label><input type="radio" name="piel_base" value="0"> Rojiza</label>
+            <label><input type="radio" name="piel_base" value="1"> Muy pálida</label>
+            <label><input type="radio" name="piel_base" value="2"> Pálida con tinte beige/durazno</label>
+            <label><input type="radio" name="piel_base" value="3"> Café claro</label>
+            <label><input type="radio" name="piel_base" value="4"> Café oscuro</label>
+        </div>
 
-<input type="email" id="correo" placeholder="Correo institucional">
+        <div class="question">
+            <p>4. ¿Cuántas pecas tienes en tu piel de manera natural en zonas no expuestas a radiación solar?</p>
+            <label><input type="radio" name="pecas" value="0"> Muchas</label>
+            <label><input type="radio" name="pecas" value="1"> Varias</label>
+            <label><input type="radio" name="pecas" value="2"> Pocas</label>
+            <label><input type="radio" name="pecas" value="3"> Algunas</label>
+            <label><input type="radio" name="pecas" value="4"> Ninguna</label>
+        </div>
 
-<hr>
+        <button onclick="nextStep(3)">Continuar</button>
+    </section>
 
-<h3>1. Color de ojos</h3>
-<label><input type="radio" name="ojos" value="0"> Azul claro / gris / verde</label>
-<label><input type="radio" name="ojos" value="1"> Azul / gris / verde</label>
-<label><input type="radio" name="ojos" value="2"> Azul</label>
-<label><input type="radio" name="ojos" value="3"> Café claro</label>
-<label><input type="radio" name="ojos" value="4"> Café oscuro / negro</label>
 
-<h3>2. Color natural del cabello</h3>
-<label><input type="radio" name="cabello" value="0"> Rojo</label>
-<label><input type="radio" name="cabello" value="1"> Rubio</label>
-<label><input type="radio" name="cabello" value="2"> Café claro</label>
-<label><input type="radio" name="cabello" value="3"> Café oscuro</label>
-<label><input type="radio" name="cabello" value="4"> Negro</label>
+    <!-- SECCIÓN 3: REACCIÓN A LA EXPOSICIÓN SOLAR -->
+    <section class="step" id="step3">
+        <h2>Reacción a la Exposición Solar</h2>
 
-<h3>3. Color de piel sin bronceado</h3>
-<label><input type="radio" name="piel" value="0"> Rojiza</label>
-<label><input type="radio" name="piel" value="1"> Muy pálida</label>
-<label><input type="radio" name="piel" value="2"> Pálida beige</label>
-<label><input type="radio" name="piel" value="3"> Café claro</label>
-<label><input type="radio" name="piel" value="4"> Café oscuro</label>
+        <div class="question">
+            <p>5. ¿Qué sucede cuando tu piel se expone por demasiado tiempo al sol/ (categoría que describe mejor su potencial de quemadura después de exponerse al sol)?</p>
+            <label><input type="radio" name="quemadura" value="0"> Enrojecimiento doloroso, ampollas y descamación</label>
+            <label><input type="radio" name="quemadura" value="1"> Ampollas seguidas de descamación</label>
+            <label><input type="radio" name="quemadura" value="2"> Quemaduras y a veces descamación</label>
+            <label><input type="radio" name="quemadura" value="3"> Rara vez se quema</label>
+            <label><input type="radio" name="quemadura" value="4"> Nunca se quema</label>
+        </div>
 
-<h3>4. Pecas naturales</h3>
-<label><input type="radio" name="pecas" value="0"> Muchas</label>
-<label><input type="radio" name="pecas" value="1"> Varias</label>
-<label><input type="radio" name="pecas" value="2"> Pocas</label>
-<label><input type="radio" name="pecas" value="3"> Algunas</label>
-<label><input type="radio" name="pecas" value="4"> Ninguna</label>
+        <div class="question">
+            <p>6. ¿En qué medida su piel se broncea/ (potencial de bronceado de tu piel)?</p>
+            <label><input type="radio" name="bronceado" value="0"> Apenas o nada en absoluto</label>
+            <label><input type="radio" name="bronceado" value="1"> Poco, un bronceado muy claro</label>
+            <label><input type="radio" name="bronceado" value="2"> Bronceado razonable</label>
+            <label><input type="radio" name="bronceado" value="3"> Bronceado muy fácil</label>
+            <label><input type="radio" name="bronceado" value="4"> Se vuelve café oscuro rápidamente</label>
+        </div>
 
-<h3>5. Reacción al sol</h3>
-<label><input type="radio" name="quemadura" value="0"> Siempre se quema</label>
-<label><input type="radio" name="quemadura" value="1"> Ampollas</label>
-<label><input type="radio" name="quemadura" value="2"> Quemaduras leves</label>
-<label><input type="radio" name="quemadura" value="3"> Rara vez</label>
-<label><input type="radio" name="quemadura" value="4"> Nunca</label>
+        <div class="question">
+            <p>7. ¿Se broncea después de varias horas de exposición solar?</p>
+            <label><input type="radio" name="horas_sol" value="0"> Nunca</label>
+            <label><input type="radio" name="horas_sol" value="1"> Raramente</label>
+            <label><input type="radio" name="horas_sol" value="2"> A veces</label>
+            <label><input type="radio" name="horas_sol" value="3"> Frecuentemente</label>
+            <label><input type="radio" name="horas_sol" value="4"> Siempre</label>
+        </div>
 
-<h3>6. Capacidad de bronceado</h3>
-<label><input type="radio" name="bronceado" value="0"> Nunca</label>
-<label><input type="radio" name="bronceado" value="1"> Poco</label>
-<label><input type="radio" name="bronceado" value="2"> Moderado</label>
-<label><input type="radio" name="bronceado" value="3"> Fácil</label>
-<label><input type="radio" name="bronceado" value="4"> Muy rápido</label>
+        <div class="question">
+            <p>8. ¿Cómo reacciona la piel de tu rostro a la exposición solar?</p>
+            <label><input type="radio" name="rostro" value="0"> Muy sensible</label>
+            <label><input type="radio" name="rostro" value="1"> Sensible</label>
+            <label><input type="radio" name="rostro" value="2"> Normal</label>
+            <label><input type="radio" name="rostro" value="3"> Muy resistente</label>
+            <label><input type="radio" name="rostro" value="4"> Nunca tuve algún problema</label>
+        </div>
 
-<br><br>
-<button onclick="guardarVoluntario()">Guardar</button>
+        <button onclick="nextStep(4)">Continuar</button>
+    </section>
+
+
+    <!-- SECCIÓN 4: HÁBITOS DE BRONCEADO -->
+    <section class="step" id="step4">
+        <h2>Hábitos de Bronceado</h2>
+
+        <div class="question">
+            <p>9. ¿Cuándo fue la última vez que se bronceó (naturalmente / artificailmente con lámpara solar / crema bronceadora)?</p>
+            <label><input type="radio" name="ultima_vez" value="0"> Hace más de 3 meses</label>
+            <label><input type="radio" name="ultima_vez" value="1"> Hace 2-3 meses</label>
+            <label><input type="radio" name="ultima_vez" value="2"> Hace 1-2 meses</label>
+            <label><input type="radio" name="ultima_vez" value="3"> Hace menos de un mes</label>
+            <label><input type="radio" name="ultima_vez" value="4"> Hace menos de 2 semanas</label>
+        </div>
+
+        <div class="question">
+            <p>10. ¿Se broncea al sol de manera regular?</p>
+            <label><input type="radio" name="regular" value="0"> Nunca</label>
+            <label><input type="radio" name="regular" value="1"> Casi nunca</label>
+            <label><input type="radio" name="regular" value="2"> Algunas veces</label>
+            <label><input type="radio" name="regular" value="3"> Frecuentemente</label>
+            <label><input type="radio" name="regular" value="4"> Siempre</label>
+        </div>
+
+        <button onclick="guardarVoluntario()">Finalizar</button>
+    </section>
 
 </div>
     </section>
@@ -525,4 +573,5 @@ Los datos serán utilizados exclusivamente con fines académicos.
   <script src="app.js"></script>
 </body>
 </html>
+
 
