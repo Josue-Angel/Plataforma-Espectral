@@ -550,6 +550,39 @@ function nextStep(stepNumber) {
   }
 }
 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const btnConsentimiento = document.getElementById("btnContinuarConsentimiento");
+  const nombreInput = document.getElementById("nombreConsentimiento");
+  const checkbox = document.getElementById("aceptaConsentimiento");
+
+  const consentimientoSection = document.getElementById("consentimientoSection");
+  const step1 = document.getElementById("step1");
+
+  consentimientoSection.style.display = "block";
+  step1.style.display = "none";
+
+  btnConsentimiento.addEventListener("click", function () {
+
+    if (nombreInput.value.trim() === "") {
+      alert("Por favor ingrese su nombre completo.");
+      return;
+    }
+
+    if (!checkbox.checked) {
+      alert("Debe aceptar el tratamiento de datos para continuar.");
+      return;
+    }
+
+    consentimientoSection.style.display = "none";
+    step1.style.display = "block";
+    step1.classList.add("active");
+  });
+
+});
+</script>
+
 
 /* ============================
    CALCULAR FOTOTIPO
@@ -1016,6 +1049,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
