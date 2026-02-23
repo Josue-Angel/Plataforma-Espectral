@@ -448,64 +448,76 @@ function calcularFototipo(total) {
    FUNCIÓN FINAL
 ============================ */
 
-function guardarVoluntario() {
+async function guardarVoluntario() {
 
-  // Datos básicos
-  const identificador = document.getElementById("identificador").value.trim();
-  const edad = document.getElementById("edad").value.trim();
-  const sexo = document.getElementById("sexo").value;
-  const correo = document.getElementById("correo").value.trim();
+  // Evita que el form recargue la página
+  event.preventDefault();
 
-  if (!identificador || !edad || !sexo) {
-    alert("Completa los datos del voluntario.");
+  const radios = document.querySelectorAll("input[type='radio']:checked");
+
+  if (radios.length !== 10) {
+    alert("Debes responder todas las preguntas.");
     return;
   }
 
-  // Obtener respuestas seleccionadas
-  const respuestas = [
-    "ojos",
-    "cabello",
-    "piel_base",
-    "pecas",
-    "quemadura",
-    "bronceado",
-    "horas_sol",
-    "rostro",
-    "ultima_vez",
-    "regular"
-  ];
-
   let total = 0;
 
-  for (let name of respuestas) {
-    const seleccionada = document.querySelector(`input[name="${name}"]:checked`);
-
-    if (!seleccionada) {
-      alert("Responde todas las preguntas antes de finalizar.");
-      return;
-    }
-
-    total += parseInt(seleccionada.value);
-  }
-
-  const fototipo = calcularFototipo(total);
-
-  console.log("TOTAL:", total);
-  console.log("FOTOTIPO:", fototipo);
-
-  // Aquí llamas tu función existente de envío a BD
-  // Ejemplo:
-  enviarDatos({
-    identificador,
-    edad,
-    sexo,
-    correo,
-    total,
-    fototipo
+  radios.forEach(radio => {
+    total += parseInt(radio.value);
   });
 
+  let fototipo = "";
+
+  if (total <= 6) fototipo = "Fototipo I";
+  else if (total <= 13) fototipo = "Fototipo II";
+  else if (total <= 20) fototipo = "Fototipo III";
+  else if (total <= 27) fototipo = "Fototipo IV";
+  else if (total <= 34) fototipo = "Fototipo V";
+  else fototipo = "Fototipo VI";
+
+  alert("Tu resultado es: " + fototipo);
+
+  // 🔹 ENVÍO A SUPABASE
+  const { data, error } = await supabase
+    .from("voluntarios")
+    .insert([
+      {
+        nombre_completo: localStorage.getItem("nombreConsentimiento"),
+        puntaje_total: total,
+        fototipo: fototipo
+      }
+    ]);
+
+  if (error) {
+    console.error(error);
+    alert("Error al guardar en la base de datos");
+  } else {
+    alert("Datos guardados correctamente");
+  }
 }
 
+function validarConsentimiento() {
+
+  const nombre = document.getElementById("nombreCompleto").value.trim();
+  const acepta = document.getElementById("aceptaConsentimiento").checked;
+
+  if (!nombre) {
+    alert("Debes ingresar tu nombre completo.");
+    return;
+  }
+
+  if (!acepta) {
+    alert("Debes aceptar el consentimiento.");
+    return;
+  }
+
+  // Guardamos nombre temporalmente
+  localStorage.setItem("nombreConsentimiento", nombre);
+
+  // Cambiar vista
+  document.getElementById("consentimiento").classList.remove("active");
+  document.getElementById("formularios").classList.add("active");
+}
 
 
 function cargarEnFormulario(vol) {
@@ -753,6 +765,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
