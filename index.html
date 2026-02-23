@@ -276,37 +276,31 @@
       
 
       <!-- FORMULARIOS -->
-    <section id="consentimiento" class="view active">
+    <section id="consentimientoSection">
+  <div class="consentimiento-card">
+    <h2>Consentimiento Informado</h2>
+    <p>
+      Autorizo el uso de mis datos personales con fines clínicos y de análisis
+      dermatológico dentro de la Plataforma Espectral.
+    </p>
 
-  <div class="form-skin-wrapper">
-    <div class="skin-form">
+    <label>Nombre Completo</label>
+    <input type="text" id="nombreConsentimiento" required>
 
-      <h2>Consentimiento Informado</h2>
-
-      <p>
-        La información proporcionada será utilizada únicamente con fines académicos y de investigación.
-        Sus datos serán tratados de manera confidencial.
-      </p>
-
-      <div class="form-group">
-        <input type="text" id="nombreCompleto" placeholder="Nombre completo" required>
-      </div>
-
-      <div class="form-group">
-        <label>
-          <input type="checkbox" id="aceptaConsentimiento">
-          Acepto participar y autorizo el uso de mis datos.
-        </label>
-      </div>
-
-      <button type="button" onclick="validarConsentimiento()">
-        Continuar al formulario
-      </button>
-
+    <div class="checkbox-container">
+      <input type="checkbox" id="aceptaConsentimiento">
+      <label for="aceptaConsentimiento">
+        Acepto el tratamiento confidencial de mis datos.
+      </label>
     </div>
-  </div>
 
-    </section>
+    <button id="btnContinuarConsentimiento">
+      Continuar al Formulario
+    </button>
+  </div>
+</section>
+    
+  
 <section id="formularios" class="view">
 
   <div class="form-skin-wrapper">
@@ -429,11 +423,21 @@
 
         <button type="button" onclick="guardarVoluntario()">Finalizar</button>
       </section>
-
+<div id="resultadoFototipo" class="resultado-container hidden">
+  <div class="resultado-card">
+    <h2>Resultado de tu Análisis</h2>
+    <h3 id="tipoFototipo"></h3>
+    <p id="descripcionFototipo"></p>
+    <div class="recomendacion-box">
+      <h4>Recomendación Espectral</h4>
+      <p id="recomendacionFototipo"></p>
+    </div>
+  </div>
+</div>
     </form>
   </div>
 
-</sectio
+</section>
 
     <!-- MODELO IA -->
 <section id="modelo-ia" class="view">
@@ -722,6 +726,7 @@
   <script src="app.js"></script>
 </body>
 </html>
+
 
 
 
