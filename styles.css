@@ -731,6 +731,21 @@ td img {
 .skin-form button:hover {
     background: #132c5a;
 }
+.step {
+  display: none;
+  animation: fade 0.3s ease-in-out;
+}
+
+.step.active {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+@keyframes fade {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
 
 /* Grid responsiva */
 .grid-two {
@@ -744,6 +759,7 @@ td img {
     grid-template-columns: 1fr;
   }
 }
+
 
 
 
