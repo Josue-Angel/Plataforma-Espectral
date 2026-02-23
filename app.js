@@ -411,6 +411,129 @@ tablaVoluntarios.addEventListener("click", (e) => {
   }
 });
 
+app.post("/guardar-fototipo", async (req, res) => {
+  const { userId, respuestas, resultadoFinal } = req.body;
+
+  const usuario = await db.query(
+    "SELECT test_fototipo_completado FROM usuarios WHERE id = ?",
+    [userId]
+  );
+
+  if (usuario[0].test_fototipo_completado) {
+    return res.status(403).json({
+      mensaje: "Este test solo puede realizarse una vez."
+    });
+  }
+
+  if (resultadoFinal) {
+    await db.query(
+      "UPDATE usuarios SET test_fototipo_completado = TRUE WHERE id = ?",
+      [userId]
+    );
+  }
+
+  await db.query(
+    "INSERT INTO resultados_fototipo (usuario_id, progreso_guardado, resultado) VALUES (?, ?, ?)",
+    [userId, JSON.stringify(respuestas), resultadoFinal]
+  );
+
+  res.json({ mensaje: "Guardado correctamente" });
+});
+
+app.post("/guardar-consentimiento", async (req, res) => {
+  const { userId, nombreCompleto } = req.body;
+
+  await db.query(
+    "UPDATE usuarios SET nombre_completo = ?, consentimiento = TRUE WHERE id = ?",
+    [nombreCompleto, userId]
+  );
+
+  res.json({ ok: true });
+});
+
+async function finalizarTest() {
+  const resultado = calcularFototipo();
+
+  await fetch("/guardar-fototipo", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: usuarioId,
+      respuestas,
+      resultadoFinal: resultado
+    })
+  });
+
+  mostrarResultadoBonito(resultado);
+}
+
+function soloAdmin(req, res, next) {
+  if (req.user.rol !== "admin") {
+    return res.status(403).json({ mensaje: "Acceso restringido" });
+  }
+  next();
+}
+
+app.get("/admin/voluntarios", soloAdmin, async (req, res) => {
+  const data = await db.query(`
+    SELECT u.id, u.nombre_completo, r.resultado, r.fecha
+    FROM usuarios u
+    LEFT JOIN resultados_fototipo r
+    ON u.id = r.usuario_id
+  `);
+
+  res.json(data);
+});
+
+fetch("/admin/voluntarios")
+.then(res => res.json())
+.then(data => {
+
+  const tabla = document.getElementById("tablaVoluntarios");
+
+  data.forEach(v => {
+    tabla.innerHTML += `
+      <tr>
+        <td>${v.nombre_completo}</td>
+        <td>${v.resultado || "Pendiente"}</td>
+        <td>${v.fecha || "-"}</td>
+        <td>
+          <button onclick="resetear(${v.id})">
+            Resetear
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+});
+
+app.post("/admin/resetear", soloAdmin, async (req, res) => {
+  const { userId } = req.body;
+
+  await db.query(
+    "UPDATE usuarios SET test_fototipo_completado = FALSE WHERE id = ?",
+    [userId]
+  );
+
+  await db.query(
+    "DELETE FROM resultados_fototipo WHERE usuario_id = ?",
+    [userId]
+  );
+
+  res.json({ mensaje: "Formulario reseteado" });
+});
+
+function resetear(id) {
+  fetch("/admin/resetear", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: id })
+  })
+  .then(() => location.reload());
+}
+
+
+
 // ===============================
 // CONTROL DE PASOS
 // ===============================
@@ -519,6 +642,108 @@ function validarConsentimiento() {
   document.getElementById("formularios").classList.add("active");
 }
 
+let respuestas = JSON.parse(localStorage.getItem("fototipo_progreso")) || {};
+let pasoActual = parseInt(localStorage.getItem("fototipo_paso")) || 0;
+
+function guardarProgreso() {
+  localStorage.setItem("fototipo_progreso", JSON.stringify(respuestas));
+  localStorage.setItem("fototipo_paso", pasoActual);
+}
+
+opciones.forEach(opcion => {
+  opcion.addEventListener("click", () => {
+    respuestas[pasoActual] = opcion.value;
+    guardarProgreso();
+    siguientePaso();
+  });
+});
+
+function finalizarTest() {
+  const resultado = calcularFototipo();
+
+  fetch("/guardar-fototipo", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      userId: usuarioId,
+      respuestas,
+      resultadoFinal: resultado
+    })
+  });
+
+  mostrarResultadoBonito(resultado);
+
+  localStorage.removeItem("fototipo_progreso");
+  localStorage.removeItem("fototipo_paso");
+}
+
+function mostrarResultadoBonito(tipo) {
+  const resultadoDiv = document.getElementById("resultadoFototipo");
+  const titulo = document.getElementById("tipoFototipo");
+  const descripcion = document.getElementById("descripcionFototipo");
+  const recomendacion = document.getElementById("recomendacionFototipo");
+
+  resultadoDiv.classList.remove("hidden");
+
+  titulo.textContent = `Tu fototipo es: ${tipo}`;
+
+  const info = obtenerInfoFototipo(tipo);
+
+  descripcion.textContent = info.descripcion;
+  recomendacion.textContent = info.recomendacion;
+
+  resultadoDiv.scrollIntoView({ behavior: "smooth" });
+}
+
+function obtenerInfoFototipo(tipo) {
+  const data = {
+    I: {
+      descripcion: "Piel muy clara...",
+      recomendacion: "Protección solar SPF 50 obligatoria..."
+    },
+    II: {
+      descripcion: "Piel clara...",
+      recomendacion: "Usar protector SPF 30+..."
+    },
+    III: {
+      descripcion: "Piel intermedia...",
+      recomendacion: "Protección solar moderada..."
+    },
+    IV: {
+      descripcion: "Piel morena...",
+      recomendacion: "SPF 30 recomendado..."
+    },
+    V: {
+      descripcion: "Piel morena oscura...",
+      recomendacion: "Protección básica diaria..."
+    },
+    VI: {
+      descripcion: "Piel muy oscura...",
+      recomendacion: "Protección preventiva..."
+    }
+  };
+
+  return data[tipo];
+}
+
+fetch("/verificar-test", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ userId: usuarioId })
+})
+.then(res => res.json())
+.then(data => {
+  if (data.completado) {
+    document.getElementById("formularioFototipo").innerHTML = `
+      <div class="mensaje-bloqueado">
+        <h2>Ya realizaste este análisis</h2>
+        <p>Solo puede realizarse una vez por cuenta.</p>
+      </div>
+    `;
+  }
+});
 
 function cargarEnFormulario(vol) {
   if (!vol) return;
@@ -659,6 +884,32 @@ formVoluntario.addEventListener("submit", async (e) => {
   await cargarVoluntarios();
 });
 
+document.getElementById("btnContinuarConsentimiento")
+.addEventListener("click", async () => {
+
+  const nombre = document.getElementById("nombreConsentimiento").value;
+  const acepta = document.getElementById("aceptaConsentimiento").checked;
+
+  if (!nombre || !acepta) {
+    alert("Debes completar el nombre y aceptar el consentimiento.");
+    return;
+  }
+
+  await fetch("/guardar-consentimiento", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: usuarioId,
+      nombreCompleto: nombre
+    })
+  });
+
+  document.getElementById("consentimientoSection").style.display = "none";
+  document.getElementById("formularioFototipo").style.display = "block";
+});
+
+
+
 // ===============================
 // DASHBOARD (usa voluntariosCache)
 // ===============================
@@ -765,6 +1016,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
