@@ -411,19 +411,42 @@ tablaVoluntarios.addEventListener("click", (e) => {
   }
 });
 
-// Formulario en modo edición
-function continuarCuestionario(){
-    if(!document.getElementById("aceptarConsentimiento").checked){
-        alert("Debe aceptar el consentimiento.");
-        return;
+// ===============================
+// CONTROL DE PASOS
+// ===============================
+
+function nextStep(step){
+
+    // Validar que todas las preguntas del paso actual estén contestadas
+    const current = document.querySelector(".step.active");
+    const radios = current.querySelectorAll("input[type=radio]");
+
+    const names = [...new Set([...radios].map(r => r.name))];
+
+    for(let name of names){
+        if(!current.querySelector(`input[name="${name}"]:checked`)){
+            alert("Debe contestar todas las preguntas antes de continuar.");
+            return;
+        }
     }
 
-    document.getElementById("consentimiento").style.display = "none";
-    document.getElementById("cuestionario").style.display = "block";
+    document.querySelectorAll(".step")
+        .forEach(s => s.classList.remove("active"));
+
+    document.getElementById("step"+step)
+        .classList.add("active");
 }
 
+
+
+// ===============================
+// CÁLCULO FITZPATRICK
+// ===============================
+
 function calcularPuntaje(){
+
     let total = 0;
+
     const radios = document.querySelectorAll("input[type=radio]:checked");
 
     radios.forEach(radio => {
@@ -433,45 +456,71 @@ function calcularPuntaje(){
     return total;
 }
 
+
+
 function determinarFototipo(puntos){
-    if(puntos <= 7) return "I";
-    if(puntos <= 16) return "II";
-    if(puntos <= 25) return "III";
-    if(puntos <= 30) return "IV";
-    return "V y VI";
+
+    if(puntos >= 0 && puntos <= 7) return "I";
+    if(puntos >= 8 && puntos <= 16) return "II";
+    if(puntos >= 17 && puntos <= 25) return "III";
+    if(puntos >= 26 && puntos <= 30) return "IV";
+    if(puntos > 30) return "V-VI";
+
+    return "No determinado";
 }
 
+
+
+// ===============================
+// GUARDAR EN SUPABASE
+// ===============================
+
 async function guardarVoluntario(){
+
+    // Validar última sección
+    const current = document.querySelector(".step.active");
+    const radios = current.querySelectorAll("input[type=radio]");
+
+    const names = [...new Set([...radios].map(r => r.name))];
+
+    for(let name of names){
+        if(!current.querySelector(`input[name="${name}"]:checked`)){
+            alert("Debe contestar todas las preguntas.");
+            return;
+        }
+    }
 
     const puntaje = calcularPuntaje();
     const fototipo = determinarFototipo(puntaje);
 
     const respuestas = {};
     document.querySelectorAll("input[type=radio]:checked")
-      .forEach(r => respuestas[r.name] = r.value);
+        .forEach(r => respuestas[r.name] = r.value);
 
-    const { data, error } = await supabase
-      .from("voluntarios")
-      .insert([{
-        identificador: document.getElementById("identificador").value,
-        sexo: document.getElementById("sexo").value,
-        edad: parseInt(document.getElementById("edad").value),
-        carrera: document.getElementById("carrera").value,
-        correo: document.getElementById("correo").value,
-        fototipo_de_piel: fototipo,
-        puntaje_fitzpatrick: puntaje,
-        respuestas_fitzpatrick: respuestas,
-        consentimiento: true,
-        fecha: new Date().toISOString().split("T")[0]
-      }]);
+    const { error } = await supabase
+        .from("voluntarios")
+        .insert([{
+            identificador: document.getElementById("identificador").value,
+            sexo: document.getElementById("sexo").value,
+            edad: parseInt(document.getElementById("edad").value),
+            correo: document.getElementById("correo").value,
+            fototipo_de_piel: fototipo,
+            puntaje_fitzpatrick: puntaje,
+            respuestas_fitzpatrick: respuestas,
+            consentimiento: true,
+            fecha: new Date().toISOString().split("T")[0]
+        }]);
 
     if(error){
-        alert("Error al guardar");
+        alert("Error al guardar los datos.");
         console.log(error);
         return;
     }
 
-    alert("Fototipo determinado: " + fototipo);
+    alert("Fototipo determinado: " + fototipo + 
+          "\nPuntaje total: " + puntaje);
+
+    location.reload();
 }
 
 function cargarEnFormulario(vol) {
@@ -719,4 +768,5 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
