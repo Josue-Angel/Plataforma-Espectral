@@ -484,51 +484,99 @@ function determinarFototipo(puntos){
 // ===============================
 
 async function guardarVoluntario(){
+/* ============================
+   CONTROL DE STEPS
+============================ */
 
-    // Validar última sección
-    const current = document.querySelector(".step.active");
-    const radios = current.querySelectorAll("input[type=radio]");
+function nextStep(stepNumber) {
 
-    const names = [...new Set([...radios].map(r => r.name))];
+  const steps = document.querySelectorAll(".step");
 
-    for(let name of names){
-        if(!current.querySelector(`input[name="${name}"]:checked`)){
-            alert("Debe contestar todas las preguntas.");
-            return;
-        }
+  steps.forEach(step => step.classList.remove("active"));
+
+  const next = document.getElementById("step" + stepNumber);
+  if (next) {
+    next.classList.add("active");
+  }
+}
+
+
+/* ============================
+   CALCULAR FOTOTIPO
+============================ */
+
+function calcularFototipo(total) {
+
+  if (total <= 6) return "Fototipo I";
+  if (total <= 13) return "Fototipo II";
+  if (total <= 20) return "Fototipo III";
+  if (total <= 27) return "Fototipo IV";
+  if (total <= 34) return "Fototipo V";
+  return "Fototipo VI";
+
+}
+
+
+/* ============================
+   FUNCIÓN FINAL
+============================ */
+
+function guardarVoluntario() {
+
+  // Datos básicos
+  const identificador = document.getElementById("identificador").value.trim();
+  const edad = document.getElementById("edad").value.trim();
+  const sexo = document.getElementById("sexo").value;
+  const correo = document.getElementById("correo").value.trim();
+
+  if (!identificador || !edad || !sexo) {
+    alert("Completa los datos del voluntario.");
+    return;
+  }
+
+  // Obtener respuestas seleccionadas
+  const respuestas = [
+    "ojos",
+    "cabello",
+    "piel_base",
+    "pecas",
+    "quemadura",
+    "bronceado",
+    "horas_sol",
+    "rostro",
+    "ultima_vez",
+    "regular"
+  ];
+
+  let total = 0;
+
+  for (let name of respuestas) {
+    const seleccionada = document.querySelector(`input[name="${name}"]:checked`);
+
+    if (!seleccionada) {
+      alert("Responde todas las preguntas antes de finalizar.");
+      return;
     }
 
-    const puntaje = calcularPuntaje();
-    const fototipo = determinarFototipo(puntaje);
+    total += parseInt(seleccionada.value);
+  }
 
-    const respuestas = {};
-    document.querySelectorAll("input[type=radio]:checked")
-        .forEach(r => respuestas[r.name] = r.value);
+  const fototipo = calcularFototipo(total);
 
-    const { error } = await supabase
-        .from("voluntarios")
-        .insert([{
-            identificador: document.getElementById("identificador").value,
-            sexo: document.getElementById("sexo").value,
-            edad: parseInt(document.getElementById("edad").value),
-            correo: document.getElementById("correo").value,
-            fototipo_de_piel: fototipo,
-            puntaje_fitzpatrick: puntaje,
-            respuestas_fitzpatrick: respuestas,
-            consentimiento: true,
-            fecha: new Date().toISOString().split("T")[0]
-        }]);
+  console.log("TOTAL:", total);
+  console.log("FOTOTIPO:", fototipo);
 
-    if(error){
-        alert("Error al guardar los datos.");
-        console.log(error);
-        return;
-    }
+  // Aquí llamas tu función existente de envío a BD
+  // Ejemplo:
+  enviarDatos({
+    identificador,
+    edad,
+    sexo,
+    correo,
+    total,
+    fototipo
+  });
 
-    alert("Fototipo determinado: " + fototipo + 
-          "\nPuntaje total: " + puntaje);
-
-    location.reload();
 }
 
 function cargarEnFormulario(vol) {
@@ -776,6 +824,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
