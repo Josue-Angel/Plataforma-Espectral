@@ -412,6 +412,68 @@ tablaVoluntarios.addEventListener("click", (e) => {
 });
 
 // Formulario en modo edición
+function continuarCuestionario(){
+    if(!document.getElementById("aceptarConsentimiento").checked){
+        alert("Debe aceptar el consentimiento.");
+        return;
+    }
+
+    document.getElementById("consentimiento").style.display = "none";
+    document.getElementById("cuestionario").style.display = "block";
+}
+
+function calcularPuntaje(){
+    let total = 0;
+    const radios = document.querySelectorAll("input[type=radio]:checked");
+
+    radios.forEach(radio => {
+        total += parseInt(radio.value);
+    });
+
+    return total;
+}
+
+function determinarFototipo(puntos){
+    if(puntos <= 7) return "I";
+    if(puntos <= 16) return "II";
+    if(puntos <= 25) return "III";
+    if(puntos <= 30) return "IV";
+    return "V y VI";
+}
+
+async function guardarVoluntario(){
+
+    const puntaje = calcularPuntaje();
+    const fototipo = determinarFototipo(puntaje);
+
+    const respuestas = {};
+    document.querySelectorAll("input[type=radio]:checked")
+      .forEach(r => respuestas[r.name] = r.value);
+
+    const { data, error } = await supabase
+      .from("voluntarios")
+      .insert([{
+        identificador: document.getElementById("identificador").value,
+        sexo: document.getElementById("sexo").value,
+        edad: parseInt(document.getElementById("edad").value),
+        carrera: document.getElementById("carrera").value,
+        correo: document.getElementById("correo").value,
+        fototipo_de_piel: fototipo,
+        puntaje_fitzpatrick: puntaje,
+        respuestas_fitzpatrick: respuestas,
+        consentimiento: true,
+        fecha: new Date().toISOString().split("T")[0]
+      }]);
+
+    if(error){
+        alert("Error al guardar");
+        console.log(error);
+        return;
+    }
+
+    alert("Fototipo determinado: " + fototipo);
+}
+
 function cargarEnFormulario(vol) {
   if (!vol) return;
 
@@ -657,3 +719,4 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
