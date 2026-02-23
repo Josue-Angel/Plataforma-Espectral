@@ -435,32 +435,7 @@
             <div class="radio-group">
               <label><input type="radio" name="ultima_vez" value="0"> Hace más de 3 meses</label>
               <label><input type="radio" name="ultima_vez" value="1"> Hace 2-3 meses</label>
-              <label><input type="radio" name="ultima_vez" value="2"> Hace 1-2 meses</label>
-              <label><input type="radio" name="ultima_vez" value="3"> Hace menos de un mes</label>
-              <label><input type="radio" name="ultima_vez" value="4"> Hace menos de 2 semanas</label>
-            </div>
-          </div>
 
-          <div class="form-group question">
-            <p>10. ¿Se broncea al sol de manera regular?</p>
-            <div class="radio-group">
-              <label><input type="radio" name="regular" value="0"> Nunca</label>
-              <label><input type="radio" name="regular" value="1"> Casi nunca</label>
-              <label><input type="radio" name="regular" value="2"> Algunas veces</label>
-              <label><input type="radio" name="regular" value="3"> Frecuentemente</label>
-              <label><input type="radio" name="regular" value="4"> Siempre</label>
-            </div>
-          </div>
-
-        </div>
-
-        <button type="button" onclick="guardarVoluntario()">Finalizar</button>
-      </section>
-
-    </form>
-  </div>
-
-</section>
 
     <!-- MODELO IA -->
 <section id="modelo-ia" class="view">
@@ -501,7 +476,134 @@
 
     <!-- ============ PRODUCCIÓN PROPIA ============ -->
     <article class="card scientific-card">
-      <h3 class="card-title">Producción propia</h3>
+      <h3 clas<!-- FORMULARIOS -->
+<section id="formularios" class="view">
+
+  <div class="form-skin-wrapper">
+    <form class="skin-form" onsubmit="return false;">
+
+      <!-- SECCIÓN 1 -->
+      <section class="step active" id="step1">
+        <h2>Datos del Voluntario</h2>
+
+        <div class="form-group">
+          <input type="text" id="identificador" placeholder="Matrícula" required>
+        </div>
+
+        <div class="form-group">
+          <input type="number" id="edad" placeholder="Edad" required>
+        </div>
+
+        <div class="form-group">
+          <select id="sexo" required>
+            <option value="">Seleccione género</option>
+            <option value="F">Femenino</option>
+            <option value="M">Masculino</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <input type="email" id="correo" placeholder="Correo institucional">
+        </div>
+
+        <button type="button" onclick="nextStep(2)">Continuar</button>
+      </section>
+
+      <!-- SECCIÓN 2 -->
+      <section class="step" id="step2">
+        <h2>Disposición Genética</h2>
+
+        <p>1. ¿Cuál es el color de tus ojos?</p>
+        <label><input type="radio" name="ojos" value="0"> Azul claro, gris o verde</label>
+        <label><input type="radio" name="ojos" value="1"> Azul, gris o verde</label>
+        <label><input type="radio" name="ojos" value="2"> Azul</label>
+        <label><input type="radio" name="ojos" value="3"> Café claro</label>
+        <label><input type="radio" name="ojos" value="4"> Café oscuro o Negro</label>
+
+        <p>2. ¿Cuál es el color natural de tu cabello?</p>
+        <label><input type="radio" name="cabello" value="0"> Rojo castaño / Rojo cobrizo</label>
+        <label><input type="radio" name="cabello" value="1"> Rubio</label>
+        <label><input type="radio" name="cabello" value="2"> Café claro / Rubio oscuro</label>
+        <label><input type="radio" name="cabello" value="3"> Café oscuro</label>
+        <label><input type="radio" name="cabello" value="4"> Negro</label>
+
+        <p>3. ¿Cuál es el color de tu piel cuando no está bronceada?</p>
+        <label><input type="radio" name="piel_base" value="0"> Rojiza</label>
+        <label><input type="radio" name="piel_base" value="1"> Muy pálida</label>
+        <label><input type="radio" name="piel_base" value="2"> Pálida con tinte beige/durazno</label>
+        <label><input type="radio" name="piel_base" value="3"> Café claro</label>
+        <label><input type="radio" name="piel_base" value="4"> Café oscuro</label>
+
+        <p>4. ¿Cuántas pecas tienes?</p>
+        <label><input type="radio" name="pecas" value="0"> Muchas</label>
+        <label><input type="radio" name="pecas" value="1"> Varias</label>
+        <label><input type="radio" name="pecas" value="2"> Pocas</label>
+        <label><input type="radio" name="pecas" value="3"> Algunas</label>
+        <label><input type="radio" name="pecas" value="4"> Ninguna</label>
+
+        <button type="button" onclick="nextStep(3)">Continuar</button>
+      </section>
+
+      <!-- SECCIÓN 3 -->
+      <section class="step" id="step3">
+        <h2>Reacción a la Exposición Solar</h2>
+
+        <p>5. ¿Qué sucede cuando tu piel se expone demasiado al sol?</p>
+        <label><input type="radio" name="quemadura" value="0"> Enrojecimiento doloroso, ampollas y descamación</label>
+        <label><input type="radio" name="quemadura" value="1"> Ampollas seguidas de descamación</label>
+        <label><input type="radio" name="quemadura" value="2"> Quemaduras y a veces descamación</label>
+        <label><input type="radio" name="quemadura" value="3"> Rara vez se quema</label>
+        <label><input type="radio" name="quemadura" value="4"> Nunca se quema</label>
+
+        <p>6. ¿En qué medida se broncea?</p>
+        <label><input type="radio" name="bronceado" value="0"> Apenas o nada</label>
+        <label><input type="radio" name="bronceado" value="1"> Poco</label>
+        <label><input type="radio" name="bronceado" value="2"> Razonable</label>
+        <label><input type="radio" name="bronceado" value="3"> Muy fácil</label>
+        <label><input type="radio" name="bronceado" value="4"> Oscuro rápidamente</label>
+
+        <p>7. ¿Se broncea después de varias horas?</p>
+        <label><input type="radio" name="horas_sol" value="0"> Nunca</label>
+        <label><input type="radio" name="horas_sol" value="1"> Raramente</label>
+        <label><input type="radio" name="horas_sol" value="2"> A veces</label>
+        <label><input type="radio" name="horas_sol" value="3"> Frecuentemente</label>
+        <label><input type="radio" name="horas_sol" value="4"> Siempre</label>
+
+        <p>8. ¿Cómo reacciona la piel del rostro?</p>
+        <label><input type="radio" name="rostro" value="0"> Muy sensible</label>
+        <label><input type="radio" name="rostro" value="1"> Sensible</label>
+        <label><input type="radio" name="rostro" value="2"> Normal</label>
+        <label><input type="radio" name="rostro" value="3"> Muy resistente</label>
+        <label><input type="radio" name="rostro" value="4"> Nunca tuve problema</label>
+
+        <button type="button" onclick="nextStep(4)">Continuar</button>
+      </section>
+
+      <!-- SECCIÓN 4 -->
+      <section class="step" id="step4">
+        <h2>Hábitos de Bronceado</h2>
+
+        <p>9. ¿Cuándo fue la última vez que se bronceó?</p>
+        <label><input type="radio" name="ultima_vez" value="0"> Hace más de 3 meses</label>
+        <label><input type="radio" name="ultima_vez" value="1"> Hace 2-3 meses</label>
+        <label><input type="radio" name="ultima_vez" value="2"> Hace 1-2 meses</label>
+        <label><input type="radio" name="ultima_vez" value="3"> Hace menos de un mes</label>
+        <label><input type="radio" name="ultima_vez" value="4"> Hace menos de 2 semanas</label>
+
+        <p>10. ¿Se broncea al sol regularmente?</p>
+        <label><input type="radio" name="regular" value="0"> Nunca</label>
+        <label><input type="radio" name="regular" value="1"> Casi nunca</label>
+        <label><input type="radio" name="regular" value="2"> Algunas veces</label>
+        <label><input type="radio" name="regular" value="3"> Frecuentemente</label>
+        <label><input type="radio" name="regular" value="4"> Siempre</label>
+
+        <button type="button" onclick="guardarVoluntario()">Finalizar</button>
+      </section>
+
+    </form>
+  </div>
+
+</section>s="card-title">Producción propia</h3>
       <ul class="doc-list">
         <li class="doc-item">
           <strong class="doc-label">Artículo:</strong>
@@ -622,6 +724,7 @@
   <script src="app.js"></script>
 </body>
 </html>
+
 
 
 
