@@ -414,9 +414,6 @@ tablaVoluntarios.addEventListener("click", (e) => {
 // ===============================
 // CONTROL DE PASOS
 // ===============================
-/* ============================
-   CONTROL DE STEPS
-============================ */
 
 function nextStep(stepNumber) {
 
@@ -756,6 +753,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
