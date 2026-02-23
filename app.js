@@ -414,76 +414,6 @@ tablaVoluntarios.addEventListener("click", (e) => {
 // ===============================
 // CONTROL DE PASOS
 // ===============================
-
-function nextStep(step){
-
-    // Validar que todas las preguntas del paso actual estén contestadas
-    const current = document.querySelector(".step.active");
-    const radios = current.querySelectorAll("input[type=radio]");
-
-    const names = [...new Set([...radios].map(r => r.name))];
-
-    for(let name of names){
-        if(!current.querySelector(`input[name="${name}"]:checked`)){
-            alert("Debe contestar todas las preguntas antes de continuar.");
-            return;
-        }
-    }
-
-    document.querySelectorAll(".step")
-        .forEach(s => s.classList.remove("active"));
-
-    document.getElementById("step"+step)
-        .classList.add("active");
-}
-
-let currentStep = 0;
-const steps = document.querySelectorAll(".step");
-
-function nextQuestion() {
-  steps[currentStep].classList.remove("active");
-  currentStep++;
-  steps[currentStep].classList.add("active");
-}
-
-
-// ===============================
-// CÁLCULO FITZPATRICK
-// ===============================
-
-function calcularPuntaje(){
-
-    let total = 0;
-
-    const radios = document.querySelectorAll("input[type=radio]:checked");
-
-    radios.forEach(radio => {
-        total += parseInt(radio.value);
-    });
-
-    return total;
-}
-
-
-
-function determinarFototipo(puntos){
-
-    if(puntos >= 0 && puntos <= 7) return "I";
-    if(puntos >= 8 && puntos <= 16) return "II";
-    if(puntos >= 17 && puntos <= 25) return "III";
-    if(puntos >= 26 && puntos <= 30) return "IV";
-    if(puntos > 30) return "V-VI";
-
-    return "No determinado";
-}
-
-
-
-// ===============================
-// GUARDAR EN SUPABASE
-// ===============================
-
-async function guardarVoluntario(){
 /* ============================
    CONTROL DE STEPS
 ============================ */
@@ -578,6 +508,8 @@ function guardarVoluntario() {
   });
 
 }
+
+
 
 function cargarEnFormulario(vol) {
   if (!vol) return;
@@ -824,6 +756,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
