@@ -276,42 +276,93 @@
 
     <!-- FORMULARIOS -->
     <section id="formularios" class="view">
-      <h2>Formularios para voluntarios (Preliminares)</h2>
-      <p>
-        Desde esta sección las personas voluntarias pueden responder los formularios creados en Google Forms
-        para registrar sus datos clínicos, consentimientos informados, etc.
-      </p>
+      <div id="consentimiento">
 
-      <div class="grid-two">
-        <article class="card">
-          <h3>Registro de voluntarios y consentimiento informado</h3>
-          <p class="muted small">
-          </p>
-          <div class="iframe-wrapper">
-            <iframe
-              src="https://forms.gle/jAPZzUQRcMH2A3ni6"
-              width="100%"
-              height="500"
-              frameborder="0"
-            ></iframe>
-          </div>
-        </article>
+<h2>Consentimiento Informado</h2>
 
-        <article class="card">
-          <h3>Cuestionario para la determinación del fototipo de piel (clasificación tipo Fitzpatrick)
-</h3>
-          <p class="muted small">
-          </p>
-          <div class="iframe-wrapper">
-            <iframe
-              src="https://forms.gle/nG8pEnqwh8EfppaK7"
-              width="100%"
-              height="500"
-              frameborder="0"
-            ></iframe>
-          </div>
-        </article>
-      </div>
+<p>
+El presente cuestionario forma parte del estudio de caracterización
+de nevos mediante espectroscopía de reflexión difusa.
+Los datos serán utilizados exclusivamente con fines académicos.
+</p>
+
+<label>
+<input type="checkbox" id="aceptarConsentimiento">
+ Acepto participar voluntariamente.
+</label>
+
+<button onclick="continuarCuestionario()">Continuar</button>
+
+</div>
+
+<div id="cuestionario" style="display:none;">
+
+<h2>Cuestionario Fototipo de Piel (Escala Fitzpatrick)</h2>
+
+<input type="text" id="identificador" placeholder="Matrícula" required>
+<input type="number" id="edad" placeholder="Edad" required>
+
+<select id="sexo">
+<option value="">Sexo</option>
+<option value="F">Femenino</option>
+<option value="M">Masculino</option>
+</select>
+
+<select id="carrera">
+<option value="">Carrera</option>
+<option value="MCO">MCO</option>
+</select>
+
+<input type="email" id="correo" placeholder="Correo institucional">
+
+<hr>
+
+<h3>1. Color de ojos</h3>
+<label><input type="radio" name="ojos" value="0"> Azul claro / gris / verde</label>
+<label><input type="radio" name="ojos" value="1"> Azul / gris / verde</label>
+<label><input type="radio" name="ojos" value="2"> Azul</label>
+<label><input type="radio" name="ojos" value="3"> Café claro</label>
+<label><input type="radio" name="ojos" value="4"> Café oscuro / negro</label>
+
+<h3>2. Color natural del cabello</h3>
+<label><input type="radio" name="cabello" value="0"> Rojo</label>
+<label><input type="radio" name="cabello" value="1"> Rubio</label>
+<label><input type="radio" name="cabello" value="2"> Café claro</label>
+<label><input type="radio" name="cabello" value="3"> Café oscuro</label>
+<label><input type="radio" name="cabello" value="4"> Negro</label>
+
+<h3>3. Color de piel sin bronceado</h3>
+<label><input type="radio" name="piel" value="0"> Rojiza</label>
+<label><input type="radio" name="piel" value="1"> Muy pálida</label>
+<label><input type="radio" name="piel" value="2"> Pálida beige</label>
+<label><input type="radio" name="piel" value="3"> Café claro</label>
+<label><input type="radio" name="piel" value="4"> Café oscuro</label>
+
+<h3>4. Pecas naturales</h3>
+<label><input type="radio" name="pecas" value="0"> Muchas</label>
+<label><input type="radio" name="pecas" value="1"> Varias</label>
+<label><input type="radio" name="pecas" value="2"> Pocas</label>
+<label><input type="radio" name="pecas" value="3"> Algunas</label>
+<label><input type="radio" name="pecas" value="4"> Ninguna</label>
+
+<h3>5. Reacción al sol</h3>
+<label><input type="radio" name="quemadura" value="0"> Siempre se quema</label>
+<label><input type="radio" name="quemadura" value="1"> Ampollas</label>
+<label><input type="radio" name="quemadura" value="2"> Quemaduras leves</label>
+<label><input type="radio" name="quemadura" value="3"> Rara vez</label>
+<label><input type="radio" name="quemadura" value="4"> Nunca</label>
+
+<h3>6. Capacidad de bronceado</h3>
+<label><input type="radio" name="bronceado" value="0"> Nunca</label>
+<label><input type="radio" name="bronceado" value="1"> Poco</label>
+<label><input type="radio" name="bronceado" value="2"> Moderado</label>
+<label><input type="radio" name="bronceado" value="3"> Fácil</label>
+<label><input type="radio" name="bronceado" value="4"> Muy rápido</label>
+
+<br><br>
+<button onclick="guardarVoluntario()">Guardar</button>
+
+</div>
     </section>
 
     <!-- MODELO IA -->
@@ -474,3 +525,4 @@
   <script src="app.js"></script>
 </body>
 </html>
+
