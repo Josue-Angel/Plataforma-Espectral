@@ -655,6 +655,65 @@ td img {
   background: #1e3d63;
 }
 
+body{
+    font-family: 'Segoe UI', sans-serif;
+    background: #0a1f44;
+    color: white;
+}
+
+.container{
+    max-width: 800px;
+    margin: auto;
+    padding: 40px;
+}
+
+.step{
+    display: none;
+    animation: fade 0.4s ease-in-out;
+}
+
+.step.active{
+    display: block;
+}
+
+h2{
+    border-bottom: 2px solid #1e3a8a;
+    padding-bottom: 10px;
+}
+
+.question{
+    background: #102a5c;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 12px;
+}
+
+label{
+    display: block;
+    margin: 8px 0;
+    cursor: pointer;
+}
+
+button{
+    background: #1e40af;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover{
+    background: #2563eb;
+}
+
+@keyframes fade{
+    from{opacity:0}
+    to{opacity:1}
+}
+
 /* Grid responsiva */
 .grid-two {
   display: grid;
@@ -667,3 +726,4 @@ td img {
     grid-template-columns: 1fr;
   }
 }
+
