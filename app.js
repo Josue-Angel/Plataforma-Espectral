@@ -437,6 +437,14 @@ function nextStep(step){
         .classList.add("active");
 }
 
+let currentStep = 0;
+const steps = document.querySelectorAll(".step");
+
+function nextQuestion() {
+  steps[currentStep].classList.remove("active");
+  currentStep++;
+  steps[currentStep].classList.add("active");
+}
 
 
 // ===============================
@@ -768,5 +776,6 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
