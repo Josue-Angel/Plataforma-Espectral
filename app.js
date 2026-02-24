@@ -221,11 +221,19 @@ async function initSession(user) {
   currentUserEmail = user.email || "";
 
   // Obtener perfil para saber rol
-  const { data: perfil, error } = await supabaseClient
-    .from("perfiles")
-    .select("nombre, role, test_fototipo_completado") // Traemos también el estado del test
-    .eq("id", user.id)
-    .single();
+ const { data, error } = await supabaseClient
+  .from("perfiles")
+  .select("nombre, role")
+  .eq("id", user.id);
+
+if (data && data.length > 0) {
+  const perfil = data[0];
+  currentRole = perfil.role;
+  currentUserName = perfil.nombre;
+} else {
+  console.error("Usuario autenticado pero no encontrado en tabla perfiles. ID:", user.id);
+  currentRole = "voluntario"; 
+}
 
   if (error) {
     console.error("Error cargando perfil:", error);
@@ -1173,6 +1181,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
