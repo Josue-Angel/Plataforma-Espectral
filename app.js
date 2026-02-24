@@ -38,9 +38,10 @@ function showView(viewId) {
       return;
     }
   } else {
+    // Si NO está logueado, forzamos que solo vea la sección de Login
+    // aunque intente navegar a otra parte
     if (viewId !== "inicio") {
-      alert("Debes iniciar sesión primero.");
-      viewId = "inicio";
+      viewId = "inicio"; 
     }
   }
 
@@ -1172,6 +1173,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
