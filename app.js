@@ -220,36 +220,37 @@ async function initSession(user) {
   isLoggedIn = true;
   currentUserEmail = user.email || "";
 
-  // 1. Obtenemos el perfil
-  const { data: perfilData, error } = await supabaseClient
+  // 1. Consultamos el perfil
+  const { data: perfil, error } = await supabaseClient
     .from("perfiles")
     .select("nombre, role")
     .eq("id", user.id)
     .single();
 
-  // 2. Verificamos si hubo error o si no hay datos
-  if (error || !perfilData) {
-    console.warn("No se encontró perfil, asignando rol voluntario por defecto.");
+  // 2. Manejo de errores para que la app NO se rompa
+  if (error) {
+    console.warn("No se encontró el perfil en la tabla, usando rol voluntario.");
     currentRole = "voluntario";
     currentUserName = currentUserEmail;
   } else {
-    // Aquí definimos las variables correctamente
-    currentRole = perfilData.role || "voluntario";
-    currentUserName = perfilData.nombre || currentUserEmail;
+    // Aquí perfil ya existe porque lo definimos arriba en la desestructuración
+    currentRole = perfil.role || "voluntario";
+    currentUserName = perfil.nombre || currentUserEmail;
   }
 
-  // 3. Actualizamos la interfaz
+  // 3. Actualizar interfaz
   userLabel.textContent = `${currentUserName} (${
     currentRole === "admin" ? "Doctora/Administrador" : "Voluntario"
   })`;
   
-  logoutBtn.classList.remove("hidden");
-  updateNavForRole(currentRole);
-
-  // Redireccionamos al inicio
-  showView("inicio");
+  if (logoutBtn) logoutBtn.classList.remove("hidden");
   
-  if (currentRole === "admin") {
+  // Activar navegación y redirigir
+  updateNavForRole(currentRole);
+  showView("inicio");
+
+  // Cargar datos si es admin
+  if (currentRole === "admin" && typeof cargarVoluntarios === "function") {
     await cargarVoluntarios();
   }
 }
@@ -273,41 +274,52 @@ async function restoreSession() {
 }
 
 // Reemplazo para la lógica de consentimiento
-document.getElementById("btnContinuarConsentimiento").addEventListener("click", async () => {
-    const nombre = document.getElementById("nombreConsentimiento").value.trim();
-    const acepta = document.getElementById("aceptaConsentimiento").checked;
+// MODIFICACIÓN PARA EVITAR EL ERROR "NULL"
+const btnConsentimiento = document.getElementById("btnContinuarConsentimiento");
 
-    if (!nombre || !acepta) {
-        alert("Debes completar el nombre y aceptar el consentimiento.");
-        return;
-    }
+if (btnConsentimiento) {
+    btnConsentimiento.addEventListener("click", async () => {
+        const nombreInput = document.getElementById("nombreConsentimiento");
+        const aceptaInput = document.getElementById("aceptaConsentimiento");
 
-    // Obtenemos el usuario actual de la sesión de Supabase
-    const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!nombreInput || !aceptaInput) return; // Seguridad extra
 
-    if (!user) {
-        alert("Debes estar logueado para guardar el consentimiento.");
-        return;
-    }
+        const nombre = nombreInput.value.trim();
+        const acepta = aceptaInput.checked;
 
-    // Actualizamos la tabla 'perfiles' o 'usuarios' según tu estructura
-    const { error } = await supabaseClient
-        .from("perfiles") // Asegúrate que tu tabla se llame así
-        .update({ 
-            nombre_completo: nombre, 
-            consentimiento: true 
-        })
-        .eq("id", user.id);
+        if (!nombre || !acepta) {
+            alert("Debes completar el nombre y aceptar el consentimiento.");
+            return;
+        }
 
-    if (error) {
-        console.error("Error al guardar consentimiento:", error);
-        alert("Error al guardar en la base de datos.");
-    } else {
-        localStorage.setItem("nombreConsentimiento", nombre);
-        document.getElementById("consentimientoSection").style.display = "none";
-        document.getElementById("formularioFototipo").style.display = "block";
-    }
-});
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
+        if (!user) {
+            alert("Debes estar logueado para guardar el consentimiento.");
+            return;
+        }
+
+        const { error } = await supabaseClient
+            .from("perfiles")
+            .update({ 
+                nombre_completo: nombre, 
+                consentimiento: true 
+            })
+            .eq("id", user.id);
+
+        if (error) {
+            console.error("Error al guardar consentimiento:", error);
+            alert("Error al guardar en la base de datos.");
+        } else {
+            localStorage.setItem("nombreConsentimiento", nombre);
+            // Verifica que estos IDs existan en tu HTML
+            const seccionCons = document.getElementById("consentimientoSection");
+            const seccionFoto = document.getElementById("formularioFototipo");
+            if(seccionCons) seccionCons.style.display = "none";
+            if(seccionFoto) seccionFoto.style.display = "block";
+        }
+    });
+}
 
 async function finalizarTest() {
     const resultado = calcularFototipo(); // Asegúrate que esta función devuelva el texto (ej: "Fototipo II")
@@ -1169,6 +1181,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
