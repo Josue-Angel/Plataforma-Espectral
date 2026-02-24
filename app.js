@@ -456,20 +456,34 @@ let idEnEdicion = null;
 
 // Cargar voluntarios + espectros + imagenes
 async function cargarVoluntarios() {
+  console.log("Intentando cargar voluntarios..."); // Debug para ver si se ejecuta
+
   const { data, error } = await supabaseClient
     .from("voluntarios")
-    .select(
-      "id,identificador,sexo,edad,carrera,correo,fototipo_de_piel,fecha,espectros(id,espectro_path),imagenes(id,imagen_path)"
-    )
+    .select(`
+      id,
+      identificador,
+      sexo,
+      edad,
+      carrera,
+      correo,
+      fototipo_de_piel,
+      fecha,
+      espectros(id, espectro_path),
+      imagenes(id, imagen_path)
+    `)
     .order("id", { ascending: true });
 
   if (error) {
-    console.error("Error cargando voluntarios:", error);
-    alert("Error al cargar voluntarios desde Supabase.");
+    console.error("Error crítico en Supabase:", error.message, error.details);
+    alert("Error al cargar datos. Revisa la consola.");
     return;
   }
 
+  console.log("Datos recibidos:", data); // Verifica que 'data' sea un array con objetos
   voluntariosCache = data || [];
+  
+  // Llamamos a las funciones que pintan la pantalla
   renderVoluntarios();
   actualizarDashboard();
 }
@@ -1181,6 +1195,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
