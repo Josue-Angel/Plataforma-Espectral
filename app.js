@@ -945,7 +945,13 @@ const chartSexo = document.getElementById("chart-sexo");
 const chartPiel = document.getElementById("chart-piel");
 const chartEdad = document.getElementById("chart-edad");
 
+let voluntariosCache = [];
+
 function actualizarDashboard() {
+  if (!window.voluntariosCache) {
+    console.warn("voluntariosCache aún no definido");
+    return;
+  }
   const total = voluntariosCache.length;
   statTotal.textContent = total;
 
@@ -1039,6 +1045,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
