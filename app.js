@@ -222,7 +222,7 @@ async function initSession(user) {
   // Obtener perfil para saber rol
   const { data: perfil, error } = await supabaseClient
     .from("perfiles")
-    .select("nombre, role")
+    .select("nombre, role, test_fototipo_completado") // Traemos también el estado del test
     .eq("id", user.id)
     .single();
 
@@ -233,19 +233,27 @@ async function initSession(user) {
   } else {
     currentRole = perfil.role || "voluntario";
     currentUserName = perfil.nombre || currentUserEmail;
+    // Guardamos si ya completó el test para usarlo luego
+    window.testCompletado = perfil.test_fototipo_completado; 
   }
 
   userLabel.textContent = `${currentUserName} (${
     currentRole === "admin" ? "Doctora/Administrador" : "Voluntario"
   })`;
+  
   logoutBtn.classList.remove("hidden");
+  
+  // 1. Esto activará el menú (con la lógica de nav-active que vimos antes)
   updateNavForRole(currentRole);
 
+  // 2. REDIRECCIÓN AUTOMÁTICA
+  // Si es admin, quizás quieras mandarlo directo al Dashboard o Equipo
   if (currentRole === "admin") {
     await cargarVoluntarios();
-    showView("equipo");
+    showView("inicio"); // O "dashboard"
   } else {
-    showView("equipo");
+    // Si es voluntario, lo mandamos al inicio para que vea las instrucciones
+    showView("inicio");
   }
 }
 
@@ -1164,6 +1172,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
