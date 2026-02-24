@@ -28,3 +28,17 @@ body { font-family: 'Segoe UI', sans-serif; background: #f3f4f6; margin: 0; }
 
 .btn-primary { background: var(--blue-light); color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; }
 .btn-small { padding: 5px 10px; font-size: 0.8rem; background: #444; color: white; border: none; border-radius: 4px; cursor: pointer; }
+
+/* Esto asegura que lo que no es active no se vea */
+.view {
+    display: none;
+}
+
+.view.active {
+    display: block !important;
+}
+
+.hidden {
+    display: none !important;
+}
+
