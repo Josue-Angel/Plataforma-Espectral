@@ -567,14 +567,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Pasar al Step 1 correctamente
-    const steps = document.querySelectorAll(".step");
-    steps.forEach(step => step.classList.remove("active"));
-
-    const step1 = document.getElementById("step1");
-    if (step1) {
-      step1.classList.add("active");
-    }
+    nextStep(1); // 👈 usa tu función correctamente
 
   });
 
@@ -1046,6 +1039,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
