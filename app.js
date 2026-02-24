@@ -727,23 +727,26 @@ function iniciarFormulario() {
 }
 
 async function guardarVoluntario() {
-  // 1. Capturar los datos básicos de la Sección 1
+  // 1. Capturar los datos de la Sección 1 (Identificación)
   const identificador = document.getElementById("identificador").value.trim();
   const edad = document.getElementById("edad").value;
   const sexo = document.getElementById("sexo").value;
   const correo = document.getElementById("correo").value.trim();
+  
+  // Agregamos la captura de 'carrera' para evitar el error de restricción NOT NULL
+  const carreraInput = document.getElementById("carrera");
+  const carrera = carreraInput ? carreraInput.value.trim() : "No especificada";
 
-  // Validación rápida: Si el usuario se saltó el paso 1, no lo dejamos finalizar
+  // Validación: La matrícula/identificador es clave primaria emocional aquí
   if (!identificador) {
-    alert("La matrícula es obligatoria. Por favor, regresa al primer paso.");
-    showStep(1); // Función para volver a la sección 1 si la tienes
+    alert("La matrícula es obligatoria para guardar tus resultados.");
     return;
   }
 
-  // 2. Calcular el Fototipo (Suma de los radios seleccionados)
+  // 2. Calcular el Fototipo (Suma de los 10 radios)
   const seleccionados = document.querySelectorAll('input[type="radio"]:checked');
   if (seleccionados.length < 10) {
-    alert("Por favor, responde las 10 preguntas de las secciones anteriores.");
+    alert("Por favor, responde las 10 preguntas antes de finalizar.");
     return;
   }
 
@@ -754,13 +757,13 @@ async function guardarVoluntario() {
 
   const fototipoFinal = calcularFototipo(puntajeTotal);
 
-  // 3. Enviar a Supabase
-  // Asegúrate de que los nombres de las columnas coincidan con tu tabla 'voluntarios'
+  // 3. Enviar a Supabase (Insertar en la tabla 'voluntarios')
   const { data, error } = await supabaseClient
     .from("voluntarios")
     .insert([
       {
-        identificador: identificador, // Aquí va la matrícula
+        identificador: identificador,
+        carrera: carrera, // <-- Ya no enviamos NULL
         edad: edad ? parseInt(edad) : null,
         sexo: sexo,
         correo: correo,
@@ -769,19 +772,51 @@ async function guardarVoluntario() {
       }
     ]);
 
+  // 4. Manejo del resultado
   if (error) {
-    console.error("Error al guardar:", error);
+    console.error("Error al guardar en voluntarios:", error);
     alert("Hubo un error al guardar: " + error.message);
   } else {
-    // 4. Mostrar el resultado en la UI
-    document.getElementById("tipoFototipo").textContent = fototipoFinal;
-    document.getElementById("resultadoFototipo").classList.remove("hidden");
+    // ÉXITO: Actualizamos la pantalla de resultados
+    const tipoLabel = document.getElementById("tipoFototipo");
+    const resultadoContainer = document.getElementById("resultadoFototipo");
     
-    // Ocultar el botón de finalizar para evitar duplicados
-    event.target.style.display = 'none';
-    
-    alert("¡Análisis completado exitosamente!");
+    if (tipoLabel) tipoLabel.textContent = fototipoFinal;
+    if (resultadoContainer) resultadoContainer.classList.remove("hidden");
+
+    // Llenamos la descripción según el fototipo (opcional pero recomendado)
+    llenarInfoFototipo(fototipoFinal);
+
+    alert("¡Datos guardados correctamente!");
+
+    // Si es administrador, refrescamos la tabla de la base de datos automáticamente
+    if (currentRole === "admin" && typeof cargarVoluntarios === "function") {
+      await cargarVoluntarios();
+    }
+
+    // Scroll suave hacia el resultado
+    resultadoContainer.scrollIntoView({ behavior: 'smooth' });
   }
+}
+
+// Función auxiliar para las descripciones (puedes pegarla debajo)
+function llenarInfoFototipo(tipo) {
+    const desc = document.getElementById("descripcionFototipo");
+    const rec = document.getElementById("recomendacionFototipo");
+    
+    const info = {
+        "Fototipo I": { d: "Piel muy clara, pelirrojos, siempre se queman.", r: "Protección solar SPF 50+ obligatoria." },
+        "Fototipo II": { d: "Piel clara, ojos claros, se queman fácilmente.", r: "Protección muy alta y evitar sol directo." },
+        "Fototipo III": { d: "Piel blanca a aceitunada, bronceado gradual.", r: "SPF 30-50 y moderación solar." },
+        "Fototipo IV": { d: "Piel morena clara, se broncean rápido.", r: "SPF 30 y cuidado en horas pico." },
+        "Fototipo V": { d: "Piel morena oscura, raramente se queman.", r: "SPF 15-30 para prevenir manchas." },
+        "Fototipo VI": { d: "Piel negra, nunca se queman.", r: "SPF 15 para protección contra fotoenvejecimiento." }
+    };
+
+    if (desc && rec && info[tipo]) {
+        desc.textContent = info[tipo].d;
+        rec.textContent = info[tipo].r;
+    }
 }
 
 function validarConsentimiento() {
@@ -1185,6 +1220,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
