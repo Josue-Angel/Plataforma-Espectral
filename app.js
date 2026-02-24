@@ -1,6 +1,6 @@
 // 1. CONFIGURACIÓN (Solo una vez)
 const URL_PROYECTO = 'https://bwszeozmxzwuajrywqns.supabase.co';
-const KEY_ANONIMA = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3c3plb3ptend1YWpyeXdxbnMiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczMjk3MjU0MCwiZXhwIjoyMDQ4NTQ4NTQwfQ.8Y_U_N_Y_Z_I_D_E_A_T_O_K_E_N';
+const KEY_ANONIMA = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3c3plb3pteHp3dWFqcnl3cW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODU2ODAsImV4cCI6MjA3OTg2MTY4MH0.XAj13G3Bwl3iy7gfnVyHddA6LMH4Yc9dnx9Im6Dx8xI';
 
 // Usamos un nombre único para evitar el error "already declared"
 const clientSupabase = window.supabase.createClient(URL_PROYECTO, KEY_ANONIMA);
@@ -105,3 +105,4 @@ async function verificarSesion() {
     if (session) entrarALaApp(session.user);
 }
 verificarSesion();
+
