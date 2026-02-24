@@ -7,39 +7,6 @@ if (typeof supabaseProyecto === 'undefined') {
     var supabaseProyecto = window.supabase.createClient(PROJECT_URL, ANON_KEY);
 }
 
-// Registro de usuario
-const formReg = document.getElementById('register-form');
-if(formReg) {
-    formReg.onsubmit = async (e) => {
-        e.preventDefault();
-        
-        const email = document.getElementById('reg-email').value;
-        const password = document.getElementById('reg-pass').value;
-        const nombre = document.getElementById('reg-name').value;
-
-        // Limpiar errores previos
-        document.getElementById('auth-error').textContent = "Registrando...";
-
-        const { data, error } = await supabaseProyecto.auth.signUp({
-            email: email,
-            password: password,
-            options: {
-                data: {
-                    full_name: nombre
-                }
-            }
-        });
-
-        if (error) {
-            console.error("Error de Supabase:", error);
-            document.getElementById('auth-error').textContent = "Error: " + error.message;
-        } else {
-            alert("¡Registro exitoso! Ahora intenta iniciar sesión.");
-            // Cambiar a la pestaña de login automáticamente
-            document.getElementById('btn-tab-login').click();
-        }
-    };
-}
 
 let userSesion = null;
 
@@ -141,5 +108,6 @@ async function verificarSesion() {
     if (session) entrarALaApp(session.user);
 }
 verificarSesion();
+
 
 
