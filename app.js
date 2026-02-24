@@ -727,51 +727,63 @@ function iniciarFormulario() {
 }
 
 async function guardarVoluntario() {
-    if (event) event.preventDefault();
+  // 1. Capturar los datos básicos de la Sección 1
+  const identificador = document.getElementById("identificador").value.trim();
+  const edad = document.getElementById("edad").value;
+  const sexo = document.getElementById("sexo").value;
+  const correo = document.getElementById("correo").value.trim();
 
-    // 1. CAPTURAR LA MATRÍCULA (Identificador)
-    // Supongamos que tu input de matrícula tiene id="matriculaInput"
-    const matriculaElement = document.getElementById("matriculaInput"); 
-    const matricula = matriculaElement ? matriculaElement.value.trim() : null;
+  // Validación rápida: Si el usuario se saltó el paso 1, no lo dejamos finalizar
+  if (!identificador) {
+    alert("La matrícula es obligatoria. Por favor, regresa al primer paso.");
+    showStep(1); // Función para volver a la sección 1 si la tienes
+    return;
+  }
 
-    // 2. Si no hay matrícula, buscar el nombre del consentimiento como respaldo
-    const identificadorFinal = matricula || localStorage.getItem("nombreConsentimiento");
+  // 2. Calcular el Fototipo (Suma de los radios seleccionados)
+  const seleccionados = document.querySelectorAll('input[type="radio"]:checked');
+  if (seleccionados.length < 10) {
+    alert("Por favor, responde las 10 preguntas de las secciones anteriores.");
+    return;
+  }
 
-    if (!identificadorFinal) {
-        alert("Por favor, ingresa tu matrícula o nombre antes de finalizar.");
-        return;
-    }
+  let puntajeTotal = 0;
+  seleccionados.forEach(radio => {
+    puntajeTotal += parseInt(radio.value);
+  });
 
-    // 3. Calcular puntaje y fototipo
-    const radios = document.querySelectorAll("input[type='radio']:checked");
-    if (radios.length < 10) {
-        alert("Debes responder todas las preguntas.");
-        return;
-    }
+  const fototipoFinal = calcularFototipo(puntajeTotal);
 
-    let total = 0;
-    radios.forEach(radio => total += parseInt(radio.value));
-    const fototipoFinal = calcularFototipo(total);
+  // 3. Enviar a Supabase
+  // Asegúrate de que los nombres de las columnas coincidan con tu tabla 'voluntarios'
+  const { data, error } = await supabaseClient
+    .from("voluntarios")
+    .insert([
+      {
+        identificador: identificador, // Aquí va la matrícula
+        edad: edad ? parseInt(edad) : null,
+        sexo: sexo,
+        correo: correo,
+        fototipo_de_piel: fototipoFinal,
+        fecha: new Date().toISOString().split('T')[0]
+      }
+    ]);
 
-    // 4. ENVÍO A SUPABASE
-    const { data, error } = await supabaseClient
-        .from("voluntarios")
-        .insert([
-            {
-                identificador: identificadorFinal, // Ya no será null
-                fototipo_de_piel: fototipoFinal,
-                fecha: new Date().toISOString().split('T')[0]
-            }
-        ]);
-
-    if (error) {
-        console.error("Detalle del error:", error);
-        alert("Error al guardar: " + error.message);
-    } else {
-        alert("¡Cuestionario finalizado con éxito! Fototipo: " + fototipoFinal);
-        showView("inicio");
-    }
+  if (error) {
+    console.error("Error al guardar:", error);
+    alert("Hubo un error al guardar: " + error.message);
+  } else {
+    // 4. Mostrar el resultado en la UI
+    document.getElementById("tipoFototipo").textContent = fototipoFinal;
+    document.getElementById("resultadoFototipo").classList.remove("hidden");
+    
+    // Ocultar el botón de finalizar para evitar duplicados
+    event.target.style.display = 'none';
+    
+    alert("¡Análisis completado exitosamente!");
+  }
 }
+
 function validarConsentimiento() {
 
   const nombre = document.getElementById("nombreCompleto").value.trim();
@@ -1173,6 +1185,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
