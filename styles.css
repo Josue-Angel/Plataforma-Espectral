@@ -747,6 +747,14 @@ td img {
   to { opacity: 1; transform: translateX(0); }
 }
 
+.step {
+  display: none;
+}
+
+.step.active {
+  display: block;
+}
+
 /* Grid responsiva */
 .grid-two {
   display: grid;
@@ -759,6 +767,7 @@ td img {
     grid-template-columns: 1fr;
   }
 }
+
 
 
 
