@@ -1,9 +1,45 @@
-// 1. CONFIGURACIÓN (Solo una vez)
-const URL_PROYECTO = 'https://bwszeozmxzwuajrywqns.supabase.co';
-const KEY_ANONIMA = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3c3plb3pteHp3dWFqcnl3cW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODU2ODAsImV4cCI6MjA3OTg2MTY4MH0.XAj13G3Bwl3iy7gfnVyHddA6LMH4Yc9dnx9Im6Dx8xI';
+// USA ESTA CONFIGURACIÓN ÚNICA
+const PROJECT_URL = 'https://bwszeozmxzwuajrywqns.supabase.co';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3c3plb3pteHp3dWFqcnl3cW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODU2ODAsImV4cCI6MjA3OTg2MTY4MH0.XAj13G3Bwl3iy7gfnVyHddA6LMH4Yc9dnx9Im6Dx8xI'; // Asegúrate que no falte ningún caracter
 
-// Usamos un nombre único para evitar el error "already declared"
-const clientSupabase = window.supabase.createClient(URL_PROYECTO, KEY_ANONIMA);
+// Evitamos el error de duplicidad usando un nombre de variable único
+if (typeof supabaseProyecto === 'undefined') {
+    var supabaseProyecto = window.supabase.createClient(PROJECT_URL, ANON_KEY);
+}
+
+// Registro de usuario
+const formReg = document.getElementById('register-form');
+if(formReg) {
+    formReg.onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-pass').value;
+        const nombre = document.getElementById('reg-name').value;
+
+        // Limpiar errores previos
+        document.getElementById('auth-error').textContent = "Registrando...";
+
+        const { data, error } = await supabaseProyecto.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    full_name: nombre
+                }
+            }
+        });
+
+        if (error) {
+            console.error("Error de Supabase:", error);
+            document.getElementById('auth-error').textContent = "Error: " + error.message;
+        } else {
+            alert("¡Registro exitoso! Ahora intenta iniciar sesión.");
+            // Cambiar a la pestaña de login automáticamente
+            document.getElementById('btn-tab-login').click();
+        }
+    };
+}
 
 let userSesion = null;
 
@@ -105,4 +141,5 @@ async function verificarSesion() {
     if (session) entrarALaApp(session.user);
 }
 verificarSesion();
+
 
