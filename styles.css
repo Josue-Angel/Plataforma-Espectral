@@ -774,6 +774,41 @@ td img {
     cursor: pointer;
 }
 
+/* Espaciado para las secciones del formulario */
+.step {
+  display: none; /* Se controla con la clase active */
+  padding: 20px;
+}
+
+.step.active {
+  display: block;
+}
+
+/* Espaciado para las preguntas y radios */
+.step p {
+  font-weight: bold;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  color: #1a2a44;
+}
+
+.step label {
+  display: block; /* Cada opción en una línea nueva */
+  margin-bottom: 8px;
+  cursor: pointer;
+  padding: 5px;
+  transition: background 0.3s;
+}
+
+.step label:hover {
+  background-color: #f0f4f8;
+  border-radius: 4px;
+}
+
+.step input[type="radio"] {
+  margin-right: 10px;
+}
+
 /* Grid responsiva */
 .grid-two {
   display: grid;
@@ -786,5 +821,6 @@ td img {
     grid-template-columns: 1fr;
   }
 }
+
 
 
