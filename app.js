@@ -220,49 +220,37 @@ async function initSession(user) {
   isLoggedIn = true;
   currentUserEmail = user.email || "";
 
-  // Obtener perfil para saber rol
- const { data, error } = await supabaseClient
-  .from("perfiles")
-  .select("nombre, role")
-  .eq("id", user.id);
+  // 1. Obtenemos el perfil
+  const { data: perfilData, error } = await supabaseClient
+    .from("perfiles")
+    .select("nombre, role")
+    .eq("id", user.id)
+    .single();
 
-if (data && data.length > 0) {
-  const perfil = data[0];
-  currentRole = perfil.role;
-  currentUserName = perfil.nombre;
-} else {
-  console.error("Usuario autenticado pero no encontrado en tabla perfiles. ID:", user.id);
-  currentRole = "voluntario"; 
-}
-
-  if (error) {
-    console.error("Error cargando perfil:", error);
+  // 2. Verificamos si hubo error o si no hay datos
+  if (error || !perfilData) {
+    console.warn("No se encontró perfil, asignando rol voluntario por defecto.");
     currentRole = "voluntario";
     currentUserName = currentUserEmail;
   } else {
-    currentRole = perfil.role || "voluntario";
-    currentUserName = perfil.nombre || currentUserEmail;
-    // Guardamos si ya completó el test para usarlo luego
-    window.testCompletado = perfil.test_fototipo_completado; 
+    // Aquí definimos las variables correctamente
+    currentRole = perfilData.role || "voluntario";
+    currentUserName = perfilData.nombre || currentUserEmail;
   }
 
+  // 3. Actualizamos la interfaz
   userLabel.textContent = `${currentUserName} (${
     currentRole === "admin" ? "Doctora/Administrador" : "Voluntario"
   })`;
   
   logoutBtn.classList.remove("hidden");
-  
-  // 1. Esto activará el menú (con la lógica de nav-active que vimos antes)
   updateNavForRole(currentRole);
 
-  // 2. REDIRECCIÓN AUTOMÁTICA
-  // Si es admin, quizás quieras mandarlo directo al Dashboard o Equipo
+  // Redireccionamos al inicio
+  showView("inicio");
+  
   if (currentRole === "admin") {
     await cargarVoluntarios();
-    showView("inicio"); // O "dashboard"
-  } else {
-    // Si es voluntario, lo mandamos al inicio para que vea las instrucciones
-    showView("inicio");
   }
 }
 
@@ -1181,6 +1169,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
