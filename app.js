@@ -539,7 +539,6 @@ function resetear(id) {
 // ===============================
 
 function nextStep(stepNumber) {
-
   const steps = document.querySelectorAll(".step");
 
   steps.forEach(step => step.classList.remove("active"));
@@ -556,12 +555,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const nombreInput = document.getElementById("nombreConsentimiento");
   const checkbox = document.getElementById("aceptaConsentimiento");
 
-  const consentimientoSection = document.getElementById("consentimientoSection");
-  const step1 = document.getElementById("step1");
-
-  consentimientoSection.style.display = "block";
-  step1.style.display = "none";
-
   btnConsentimiento.addEventListener("click", function () {
 
     if (nombreInput.value.trim() === "") {
@@ -574,9 +567,15 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    consentimientoSection.style.display = "none";
-    step1.style.display = "block";
-    step1.classList.add("active");
+    // Pasar al Step 1 correctamente
+    const steps = document.querySelectorAll(".step");
+    steps.forEach(step => step.classList.remove("active"));
+
+    const step1 = document.getElementById("step1");
+    if (step1) {
+      step1.classList.add("active");
+    }
+
   });
 
 });
@@ -1047,6 +1046,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
