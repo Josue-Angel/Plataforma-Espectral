@@ -410,45 +410,7 @@ tablaVoluntarios.addEventListener("click", (e) => {
   }
 });
 
-app.post("/guardar-fototipo", async (req, res) => {
-  const { userId, respuestas, resultadoFinal } = req.body;
 
-  const usuario = await db.query(
-    "SELECT test_fototipo_completado FROM usuarios WHERE id = ?",
-    [userId]
-  );
-
-  if (usuario[0].test_fototipo_completado) {
-    return res.status(403).json({
-      mensaje: "Este test solo puede realizarse una vez."
-    });
-  }
-
-  if (resultadoFinal) {
-    await db.query(
-      "UPDATE usuarios SET test_fototipo_completado = TRUE WHERE id = ?",
-      [userId]
-    );
-  }
-
-  await db.query(
-    "INSERT INTO resultados_fototipo (usuario_id, progreso_guardado, resultado) VALUES (?, ?, ?)",
-    [userId, JSON.stringify(respuestas), resultadoFinal]
-  );
-
-  res.json({ mensaje: "Guardado correctamente" });
-});
-
-app.post("/guardar-consentimiento", async (req, res) => {
-  const { userId, nombreCompleto } = req.body;
-
-  await db.query(
-    "UPDATE usuarios SET nombre_completo = ?, consentimiento = TRUE WHERE id = ?",
-    [nombreCompleto, userId]
-  );
-
-  res.json({ ok: true });
-});
 
 async function finalizarTest() {
   const resultado = calcularFototipo();
@@ -473,17 +435,6 @@ function soloAdmin(req, res, next) {
   next();
 }
 
-app.get("/admin/voluntarios", soloAdmin, async (req, res) => {
-  const data = await db.query(`
-    SELECT u.id, u.nombre_completo, r.resultado, r.fecha
-    FROM usuarios u
-    LEFT JOIN resultados_fototipo r
-    ON u.id = r.usuario_id
-  `);
-
-  res.json(data);
-});
-
 fetch("/admin/voluntarios")
 .then(res => res.json())
 .then(data => {
@@ -506,21 +457,6 @@ fetch("/admin/voluntarios")
   });
 });
 
-app.post("/admin/resetear", soloAdmin, async (req, res) => {
-  const { userId } = req.body;
-
-  await db.query(
-    "UPDATE usuarios SET test_fototipo_completado = FALSE WHERE id = ?",
-    [userId]
-  );
-
-  await db.query(
-    "DELETE FROM resultados_fototipo WHERE usuario_id = ?",
-    [userId]
-  );
-
-  res.json({ mensaje: "Formulario reseteado" });
-});
 
 function resetear(id) {
   fetch("/admin/resetear", {
@@ -1044,4 +980,5 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
