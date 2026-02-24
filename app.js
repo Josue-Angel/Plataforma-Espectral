@@ -1,166 +1,171 @@
+// ===============================
 // CONFIGURACIÓN SUPABASE
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ===============================
+const SUPABASE_URL = 'TU_URL_AQUÍ';
+const SUPABASE_ANON_KEY = 'TU_KEY_AQUÍ';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let currentRole = null;
 let currentStep = 0;
 let pointsTotal = 0;
 
-// PREGUNTAS (Basadas en la Escala de Fitzpatrick - 10 preguntas)
+// PREGUNTAS FITZPATRICK (Basado en 10 preguntas estándar)
 const questions = [
-    { q: "¿Color de ojos?", opts: ["Celestes/Grises (0)", "Verdes (1)", "Azul claro (2)", "Castaños (3)", "Negros (4)"], values: [0, 1, 2, 3, 4] },
-    { q: "¿Color de cabello natural?", opts: ["Pelirrojo (0)", "Rubio (1)", "Castaño (2)", "Castaño Oscuro (3)", "Negro (4)"], values: [0, 1, 2, 3, 4] },
-    // ... añade las otras 8 preguntas siguiendo este mismo patrón ...
+    { q: "¿Color de ojos?", opts: ["Celestes/Grises", "Verdes", "Azul claro", "Castaños", "Negros"], pts: [0,1,2,3,4] },
+    { q: "¿Color de cabello natural?", opts: ["Pelirrojo", "Rubio", "Castaño", "Castaño Oscuro", "Negro"], pts: [0,1,2,3,4] },
+    { q: "¿Color de piel (no expuesta)?", opts: ["Rojiza", "Blanca", "Blanca-dorada", "Trigueña", "Oscura"], pts: [0,1,2,3,4] },
+    // Agrega las demás aquí siguiendo el formato...
 ];
 
 // ===============================
-// CONTROL DE ACCESO Y NAVEGACIÓN
+// INICIO DE SESIÓN Y VISTAS
 // ===============================
 
-async function checkSession() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
+async function checkAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
     if (session) {
-        handlePostLogin(session.user);
-    } else {
-        showView('vista-auth');
+        setupApp(session.user);
     }
 }
 
-async function handlePostLogin(user) {
+async function setupApp(user) {
     currentUser = user;
-    
-    // Obtener perfil para saber el ROL
-    const { data: profile } = await supabaseClient.from('perfiles').select('*').eq('id', user.id).single();
+    // Obtener rol (aquí puedes consultar una tabla 'perfiles' o usar lógica simple)
+    const { data: profile } = await supabase.from('perfiles').select('*').eq('id', user.id).single();
     currentRole = profile ? profile.role : 'voluntario';
 
-    // Mostrar UI
-    document.getElementById('main-header').style.display = 'flex';
-    document.getElementById('user-label').textContent = `${profile.nombre || user.email} (${currentRole})`;
-    
-    // Filtrar menú por rol
-    if (currentRole === 'voluntario') {
+    // UI Updates
+    document.getElementById('vista-login').classList.add('hidden');
+    document.getElementById('app-content').classList.remove('hidden');
+    document.getElementById('main-footer').classList.remove('hidden');
+    document.getElementById('user-label').textContent = `${profile?.nombre || user.email} (${currentRole})`;
+
+    if (currentRole !== 'admin') {
         document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
     }
 
     showView('inicio');
-    checkIfFormDone();
+    checkTestStatus();
 }
 
 function showView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
-    
     document.querySelectorAll('.nav a').forEach(a => {
         a.classList.toggle('active-link', a.dataset.view === viewId);
     });
 }
 
 // ===============================
-// LÓGICA DEL FORMULARIO WIZARD
+// LÓGICA DEL TEST FITZPATRICK
 // ===============================
 
-async function checkIfFormDone() {
-    if (currentRole === 'admin') return; // Admin siempre puede repetir
+async function checkTestStatus() {
+    if (currentRole === 'admin') return;
 
-    const { data } = await supabaseClient.from('resultados_piel').select('*').eq('usuario_id', currentUser.id).single();
+    const { data } = await supabase.from('resultados_piel').select('*').eq('user_id', currentUser.id).single();
     if (data) {
-        showResult(data.fototipo, true);
+        showFinalResult(data.fototipo);
     }
 }
 
-function startWizard() {
-    const signature = document.getElementById('consent-signature').value;
-    const accepted = document.getElementById('consent-checkbox').checked;
+function iniciarTest() {
+    const firma = document.getElementById('firma-nombre').value;
+    const acepto = document.getElementById('acepto-terminos').checked;
 
-    if (!signature || !accepted) {
-        alert("Debe firmar y aceptar el consentimiento.");
+    if (!firma || !acepto) {
+        alert("Debe firmar y aceptar el consentimiento informado.");
         return;
     }
 
-    document.getElementById('form-step-0').classList.remove('active');
-    document.getElementById('form-step-wizard').classList.add('active');
+    document.getElementById('step-consent').classList.remove('active');
+    document.getElementById('step-test').classList.add('active');
     renderQuestion();
 }
 
 function renderQuestion() {
-    const container = document.getElementById('question-container');
+    const container = document.getElementById('pregunta-box');
     const q = questions[currentStep];
     const progress = ((currentStep) / questions.length) * 100;
-    
     document.getElementById('progress-bar').style.width = `${progress}%`;
 
     container.innerHTML = `
-        <p class="muted small">Pregunta ${currentStep + 1} de ${questions.length}</p>
-        <h3 style="margin-bottom:20px;">${q.q}</h3>
+        <p class="small">Pregunta ${currentStep + 1} de ${questions.length}</p>
+        <h3 style="margin: 15px 0;">${q.q}</h3>
         ${q.opts.map((opt, i) => `
-            <button class="question-option" onclick="processAnswer(${q.values[i]})">${opt}</button>
+            <button class="opcion-test" onclick="saveAnswer(${q.pts[i]})">${opt}</button>
         `).join('')}
     `;
 }
 
-function processAnswer(val) {
-    pointsTotal += val;
+async function saveAnswer(pts) {
+    pointsTotal += pts;
     currentStep++;
 
     if (currentStep < questions.length) {
         renderQuestion();
     } else {
-        calculateAndSave();
+        const fototipo = calculateFitzpatrick(pointsTotal);
+        await saveToDatabase(fototipo);
     }
 }
 
-async function calculateAndSave() {
-    let fototipo = "";
-    if (pointsTotal <= 6) fototipo = "Tipo I";
-    else if (pointsTotal <= 13) fototipo = "Tipo II";
-    else if (pointsTotal <= 20) fototipo = "Tipo III";
-    else if (pointsTotal <= 27) fototipo = "Tipo IV";
-    else if (pointsTotal <= 34) fototipo = "Tipo V";
-    else fototipo = "Tipo VI";
+function calculateFitzpatrick(p) {
+    if (p <= 6) return "Tipo I";
+    if (p <= 13) return "Tipo II";
+    if (p <= 20) return "Tipo III";
+    if (p <= 27) return "Tipo IV";
+    if (p <= 34) return "Tipo V";
+    return "Tipo VI";
+}
 
-    // GUARDAR EN BASE DE DATOS
-    const { error } = await supabaseClient.from('resultados_piel').insert({
-        usuario_id: currentUser.id,
-        nombre_voluntario: document.getElementById('consent-signature').value,
-        puntos: pointsTotal,
-        fototipo: fototipo
+async function saveToDatabase(tipo) {
+    const { error } = await supabase.from('resultados_piel').insert({
+        user_id: currentUser.id,
+        nombre_voluntario: document.getElementById('firma-nombre').value,
+        fototipo: tipo,
+        puntos: pointsTotal
     });
 
-    if (!error) showResult(fototipo);
+    if (!error) {
+        showFinalResult(tipo);
+    }
 }
 
-function showResult(tipo, alreadyDone = false) {
-    document.getElementById('form-step-wizard').classList.remove('active');
-    document.getElementById('form-step-0').classList.remove('active');
-    document.getElementById('form-step-result').classList.add('active');
-
-    document.getElementById('result-display').innerHTML = `
-        <h2>${alreadyDone ? 'Resultado de tu Análisis previo' : '¡Análisis Completado!'}</h2>
-        <div style="font-size: 3rem; font-weight: 800; color: var(--blue-bright); margin: 20px 0;">${tipo}</div>
-        <p>Sus datos han sido integrados a la base de datos del Proyecto Espectral.</p>
-    `;
+function showFinalResult(tipo) {
+    document.getElementById('step-test').classList.remove('active');
+    document.getElementById('step-consent').classList.remove('active');
+    document.getElementById('step-resultado').classList.add('active');
+    document.getElementById('fototipo-final').textContent = tipo;
 }
 
 // ===============================
-// EVENTOS LOGIN/LOGOUT
+// EVENTOS Y NAVEGACIÓN
 // ===============================
+
+function switchAuth(type) {
+    document.getElementById('login-form').classList.toggle('hidden', type === 'register');
+    document.getElementById('register-form').classList.toggle('hidden', type === 'login');
+    document.getElementById('tab-login').classList.toggle('active', type === 'login');
+    document.getElementById('tab-register').classList.toggle('active', type === 'register');
+}
 
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
         email: document.getElementById('login-email').value,
         password: document.getElementById('login-password').value
     });
-    if (error) alert(error.message);
-    else handlePostLogin(data.user);
+    if (error) document.getElementById('auth-error').textContent = error.message;
+    else setupApp(data.user);
 });
 
 document.getElementById('logout-btn').addEventListener('click', () => {
-    supabaseClient.auth.signOut();
+    supabase.auth.signOut();
     location.reload();
 });
 
-// Navegación
 document.querySelectorAll('.nav a').forEach(a => {
     a.addEventListener('click', (e) => {
         e.preventDefault();
@@ -168,5 +173,4 @@ document.querySelectorAll('.nav a').forEach(a => {
     });
 });
 
-// Inicio
-checkSession();
+checkAuth();
