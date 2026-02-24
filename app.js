@@ -727,72 +727,51 @@ function iniciarFormulario() {
 }
 
 async function guardarVoluntario() {
-  event.preventDefault();
+    if (event) event.preventDefault();
 
-  // 1. Verificar si es voluntario y ya completó el test
-  if (currentRole === "voluntario") {
-     const { data: userCheck } = await supabaseClient
-      .from("perfiles")
-      .select("test_fototipo_completado")
-      .eq("id", (await supabaseClient.auth.getUser()).data.user.id)
-      .single();
+    // 1. CAPTURAR LA MATRÍCULA (Identificador)
+    // Supongamos que tu input de matrícula tiene id="matriculaInput"
+    const matriculaElement = document.getElementById("matriculaInput"); 
+    const matricula = matriculaElement ? matriculaElement.value.trim() : null;
 
-    if (userCheck?.test_fototipo_completado) {
-      alert("Ya has realizado este formulario anteriormente.");
-      return;
-    }
-  }
+    // 2. Si no hay matrícula, buscar el nombre del consentimiento como respaldo
+    const identificadorFinal = matricula || localStorage.getItem("nombreConsentimiento");
 
-  const radios = document.querySelectorAll("input[type='radio']:checked");
-  if (radios.length !== 10) {
-    alert("Debes responder todas las preguntas.");
-    return;
-  }
-
-  let total = 0;
-  radios.forEach(radio => total += parseInt(radio.value));
-  let fototipo = calcularFototipo(total);
-
-  // 2. RECOPILAR DATOS PARA LA TABLA 'VOLUNTARIOS'
-  // Usamos el nombre que guardamos en el paso del consentimiento
-  const nombreCompleto = localStorage.getItem("nombreConsentimiento");
-
-  const { data, error } = await supabaseClient
-    .from("voluntarios")
-    .insert([
-      {
-        identificador: nombreCompleto, // Lo usamos como identificador inicial
-        fototipo_de_piel: fototipo,
-        fecha: new Date().toISOString().split('T')[0],
-        // Aquí puedes agregar más campos si los tienes en el HTML
-      }
-    ])
-    .select();
-
-  if (error) {
-    console.error(error);
-    alert("Error al guardar en la base de datos");
-  } else {
-    alert("¡Datos guardados! Tu resultado es: " + fototipo);
-    
-    // 3. SI ES VOLUNTARIO, BLOQUEAR PRÓXIMOS INTENTOS
-    if (currentRole === "voluntario") {
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      await supabaseClient
-        .from("perfiles")
-        .update({ test_fototipo_completado: true })
-        .eq("id", user.id);
+    if (!identificadorFinal) {
+        alert("Por favor, ingresa tu matrícula o nombre antes de finalizar.");
+        return;
     }
 
-    // Refrescar la tabla para que el Admin lo vea
-    if (currentRole === "admin") {
-      await cargarVoluntarios();
+    // 3. Calcular puntaje y fototipo
+    const radios = document.querySelectorAll("input[type='radio']:checked");
+    if (radios.length < 10) {
+        alert("Debes responder todas las preguntas.");
+        return;
     }
-    
-    showView("equipo"); // Redirigir a la vista de equipo/resultados
-  }
+
+    let total = 0;
+    radios.forEach(radio => total += parseInt(radio.value));
+    const fototipoFinal = calcularFototipo(total);
+
+    // 4. ENVÍO A SUPABASE
+    const { data, error } = await supabaseClient
+        .from("voluntarios")
+        .insert([
+            {
+                identificador: identificadorFinal, // Ya no será null
+                fototipo_de_piel: fototipoFinal,
+                fecha: new Date().toISOString().split('T')[0]
+            }
+        ]);
+
+    if (error) {
+        console.error("Detalle del error:", error);
+        alert("Error al guardar: " + error.message);
+    } else {
+        alert("¡Cuestionario finalizado con éxito! Fototipo: " + fototipoFinal);
+        showView("inicio");
+    }
 }
-
 function validarConsentimiento() {
 
   const nombre = document.getElementById("nombreCompleto").value.trim();
@@ -1194,6 +1173,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
