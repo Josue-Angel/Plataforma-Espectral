@@ -19,6 +19,7 @@ const viewPermissions = {
   dashboard: ["admin"],
 };
 
+let voluntariosCache = [];
 let currentRole = null; // 'admin' | 'voluntario' | null
 let isLoggedIn = false;
 let currentUserName = null;
@@ -1095,8 +1096,6 @@ const chartSexo = document.getElementById("chart-sexo");
 const chartPiel = document.getElementById("chart-piel");
 const chartEdad = document.getElementById("chart-edad");
 
-let voluntariosCache = [];
-
 function actualizarDashboard() {
   if (!window.voluntariosCache) {
     console.warn("voluntariosCache aún no definido");
@@ -1195,6 +1194,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
