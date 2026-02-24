@@ -7,122 +7,110 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
-  <section id="vista-login" class="auth-section">
-    <div class="auth-card">
-      <div class="logo-grande">
-        <div class="logo-icon"><span class="logo-lens"></span><span class="logo-handle"></span><span class="logo-dot"></span></div>
-        <h1>Proyecto Espectral</h1>
-      </div>
-      <div class="tabs-auth">
-        <button id="tab-login-btn" class="tab-btn active">Ingresar</button>
-        <button id="tab-register-btn" class="tab-btn">Registrarse</button>
-      </div>
-
-      <form id="login-form" class="auth-form">
-        <input type="email" id="login-email" placeholder="Correo institucional" required autocomplete="username">
-        <input type="password" id="login-password" placeholder="Contraseña" required autocomplete="current-password">
-        <button type="submit" class="btn-primary">Entrar al Laboratorio</button>
-      </form>
-
-      <form id="register-form" class="auth-form hidden">
-        <input type="text" id="reg-nombre" placeholder="Nombre completo" required>
-        <input type="email" id="reg-email" placeholder="Correo institucional" required autocomplete="username">
-        <input type="password" id="reg-password" placeholder="Crear contraseña" required autocomplete="new-password">
-        <button type="submit" class="btn-primary">Crear Cuenta Voluntario</button>
-      </form>
-      <p id="auth-error" class="error-msg"></p>
+  <header id="main-header" class="header hidden">
+    <div class="logo">
+      <div class="logo-icon"><span class="logo-lens"></span><span class="logo-handle"></span><span class="logo-dot"></span></div>
+      <span class="logo-text">Proyecto Espectral</span>
     </div>
-  </section>
+    <nav class="nav">
+      <ul id="nav-links">
+        <li><a href="#" data-view="inicio">Inicio</a></li>
+        <li><a href="#" data-view="equipo">Equipo</a></li>
+        <li><a href="#" data-view="formularios">Análisis de Piel</a></li>
+        <li class="admin-only"><a href="#" data-view="base-datos">Base de datos</a></li>
+        <li class="admin-only"><a href="#" data-view="modelo-ia">Modelo IA</a></li>
+        <li><a href="#" data-view="archivos">Archivos</a></li>
+      </ul>
+    </nav>
+    <div class="user-info">
+      <span id="user-label"></span>
+      <button id="logout-btn" class="btn-small">Cerrar Sesión</button>
+    </div>
+  </header>
 
-  <div id="app-content" class="hidden">
-    <header class="header">
-      <div class="logo">
-        <div class="logo-icon"><span class="logo-lens"></span><span class="logo-handle"></span><span class="logo-dot"></span></div>
-        <span class="logo-text">Proyecto Espectral</span>
+  <main class="main">
+    <section id="vista-auth" class="auth-section">
+      <div class="auth-card">
+        <div class="logo-grande">
+          <h1>Proyecto Espectral</h1>
+          <p>Laboratorio de Óptica Biomédica - UPT</p>
+        </div>
+        <div class="tabs-auth">
+          <button id="btn-tab-login" class="tab-btn active">Ingresar</button>
+          <button id="btn-tab-reg" class="tab-btn">Registrarse</button>
+        </div>
+
+        <form id="login-form" class="auth-form">
+          <input type="email" id="login-email" placeholder="Correo institucional" required>
+          <input type="password" id="login-password" placeholder="Contraseña" required>
+          <button type="submit" class="btn-primary">Entrar al Laboratorio</button>
+        </form>
+
+        <form id="register-form" class="auth-form hidden">
+          <input type="text" id="reg-name" placeholder="Nombre completo" required>
+          <input type="email" id="reg-email" placeholder="Correo institucional" required>
+          <input type="password" id="reg-pass" placeholder="Crear contraseña (mín. 6 caracteres)" required>
+          <button type="submit" class="btn-primary">Crear Cuenta</button>
+        </form>
+        <p id="auth-error" class="error-msg"></p>
       </div>
-      <nav class="nav">
-        <ul id="nav-links">
-          <li><a href="#" data-view="inicio">Inicio</a></li>
-          <li><a href="#" data-view="equipo">Equipo</a></li>
-          <li><a href="#" data-view="formularios">Análisis de Piel</a></li>
-          <li class="admin-only"><a href="#" data-view="base-datos">Base de datos</a></li>
-          <li class="admin-only"><a href="#" data-view="modelo-ia">Modelo IA</a></li>
-          <li><a href="#" data-view="archivos">Archivos</a></li>
-          <li class="admin-only"><a href="#" data-view="dashboard">Estadísticas</a></li>
+    </section>
+
+    <section id="inicio" class="view">
+      <div class="hero">
+        <div class="hero-text">
+          <h1>Bienvenido a la Plataforma Espectral</h1>
+          <p>Entorno de investigación para el diagnóstico temprano del melanoma mediante técnicas ópticas e IA.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="equipo" class="view">
+      <div class="card scientific-card">
+        <h2>Equipo de trabajo y proyecto</h2>
+        <p>Somos un equipo multidisciplinario de la Universidad Politécnica de Tulancingo enfocado en el diagnóstico temprano del melanoma.</p>
+        <hr>
+        <p><strong>Responsable:</strong> Dra. Margarita Cunill Rodríguez</p>
+        <p><strong>Área de Ingeniería:</strong> Banelly Sánchez Soto, Josue Gomez Zamorano y Enrique Cázares Garrido.</p>
+      </div>
+    </section>
+
+    <section id="formularios" class="view">
+      <div id="wizard-container" class="skin-form-wrapper">
+        <div id="step-consent" class="wizard-step active">
+          <div class="scientific-card">
+            <h2>Consentimiento Informado</h2>
+            <p>Autorizo el uso de mis datos con fines de investigación académica por la UPT.</p>
+            <input type="text" id="firma-nombre" placeholder="Nombre completo para firmar">
+            <button onclick="iniciarTest()" class="btn-primary">Aceptar y Continuar</button>
+          </div>
+        </div>
+
+        <div id="step-test" class="wizard-step">
+          <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
+          <div id="pregunta-box" class="scientific-card">
+            </div>
+        </div>
+
+        <div id="step-resultado" class="wizard-step">
+          <div class="scientific-card text-center">
+            <h2>Resultado de Fototipo</h2>
+            <div id="fototipo-final" class="fototipo-badge">---</div>
+            <p id="fototipo-desc"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="base-datos" class="view admin-only"><h2>Base de Datos</h2><div id="lista-voluntarios"></div></section>
+    <section id="modelo-ia" class="view admin-only"><h2>Modelo IA</h2><p>Acceso a Google Colab restringido.</p></section>
+    <section id="archivos" class="view">
+        <h2>Documentos y Tesis</h2>
+        <ul class="doc-list">
+            <li><a href="https://www.milenio.com/opinion/varios-autores/universidad-politecnica-de-tulancingo/tratamiento-y-diagnostico-optico_2" target="_blank">Tratamiento y diagnóstico óptico (Milenio)</a></li>
         </ul>
-      </nav>
-      <div class="user-info">
-        <span id="user-label"></span>
-        <button id="logout-btn" class="btn-small">Salir</button>
-      </div>
-    </header>
-
-    <main class="main">
-      <section id="inicio" class="view">
-        <div class="hero">
-          <div class="hero-text">
-            <h1>Plataforma de Análisis Espectral de Lesiones Cutáneas</h1>
-            <p>Bienvenido al entorno de investigación del Laboratorio de Óptica Biomédica. Aquí gestionamos datos espectrales para el apoyo en la detección temprana del melanoma.</p>
-          </div>
-          <div class="hero-card">
-              <h3>Panel de Control</h3>
-              <p>Utilice el menú superior para navegar. Si es voluntario, complete su <strong>Análisis de Piel</strong>.</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="equipo" class="view">
-        <div class="scientific-card">
-          <h2>Equipo de trabajo y proyecto</h2>
-          <p>Somos un equipo multidisciplinario de la Universidad Politécnica de Tulancingo, enfocados en el diagnóstico temprano mediante técnicas espectrales e IA.</p>
-          <hr>
-          <p><strong>Responsable:</strong> Dra. Margarita Cunill Rodríguez</p>
-          <p><strong>Ingeniería:</strong> Banelly Sánchez, Josue Gomez, Enrique Cázares.</p>
-        </div>
-      </section>
-
-      <section id="formularios" class="view">
-        <div id="wizard-container" class="skin-form-wrapper">
-          <div id="step-consent" class="wizard-step active">
-            <div class="scientific-card">
-              <h2>Consentimiento Informado</h2>
-              <div class="consent-text">
-                <p>Al participar, usted permite que sus datos fisiológicos y espectrales sean utilizados exclusivamente con fines de investigación académica por la UPT. Los datos son anónimos y protegidos.</p>
-              </div>
-              <div class="form-group" style="margin-top: 20px;">
-                <label>Firma digital (Nombre completo):</label>
-                <input type="text" id="firma-consentimiento" placeholder="Escriba su nombre">
-              </div>
-              <button id="btn-iniciar-test" class="btn-primary" style="margin-top: 15px;">Aceptar y Continuar</button>
-            </div>
-          </div>
-
-          <div id="step-test" class="wizard-step">
-            <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
-            <div id="pregunta-box" class="scientific-card">
-              </div>
-          </div>
-
-          <div id="step-resultado" class="wizard-step">
-            <div class="scientific-card text-center">
-              <h2>Resultado del Análisis</h2>
-              <div id="fototipo-final" class="fototipo-badge">---</div>
-              <p id="fototipo-desc" class="muted"></p>
-              <div id="admin-repeat" class="admin-only hidden">
-                  <button id="btn-reset-test" class="btn-small">Repetir Test (Admin)</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="base-datos" class="view"><h2>Base de Datos de Voluntarios</h2><div class="table-wrapper"><table id="tabla-voluntarios"><thead><tr><th>ID</th><th>Nombre</th><th>Fototipo</th></tr></thead><tbody></tbody></table></div></section>
-      <section id="modelo-ia" class="view"><h2>Modelo de IA</h2><p>Acceso restringido a investigación.</p></section>
-      <section id="archivos" class="view"><h2>Repositorio de Documentos</h2><p>Tesis y artículos científicos.</p></section>
-      <section id="dashboard" class="view"><h2>Estadísticas</h2><div id="chart-piel"></div></section>
-    </main>
-  </div>
+    </section>
+  </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
