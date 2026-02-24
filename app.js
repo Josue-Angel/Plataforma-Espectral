@@ -550,7 +550,6 @@ function nextStep(stepNumber) {
   }
 }
 
-<script>
 document.addEventListener("DOMContentLoaded", function () {
 
   const btnConsentimiento = document.getElementById("btnContinuarConsentimiento");
@@ -581,7 +580,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
 });
-</script>
 
 
 /* ============================
@@ -1049,6 +1047,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
