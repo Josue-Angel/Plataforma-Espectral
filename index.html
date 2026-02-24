@@ -4,143 +4,171 @@
   <meta charset="UTF-8" />
   <title>Plataforma Espectral Dermatoscópica | LOB UPT</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="logged-out"> <header class="header" id="main-header" style="display: none;">
-    <div class="logo">
-      <div class="logo-icon">
-        <span class="logo-lens"></span>
-        <span class="logo-handle"></span>
-        <span class="logo-dot"></span>
+<body>
+
+  <section id="vista-login" class="auth-section">
+    <div class="auth-card">
+      <div class="logo-grande">
+        <div class="logo-icon"><span class="logo-lens"></span><span class="logo-handle"></span><span class="logo-dot"></span></div>
+        <h1>Proyecto Espectral</h1>
       </div>
-      <span class="logo-text">PROYECTO ESPECTRAL</span>
+      <div class="tabs-auth">
+        <button id="tab-login" class="tab-btn active" onclick="switchAuth('login')">Ingresar</button>
+        <button id="tab-register" class="tab-btn" onclick="switchAuth('register')">Registrarse</button>
+      </div>
+
+      <form id="login-form" class="auth-form">
+        <input type="email" id="login-email" placeholder="Correo institucional" required>
+        <input type="password" id="login-password" placeholder="Contraseña" required>
+        <button type="submit" class="btn-primary">Entrar al Laboratorio</button>
+      </form>
+
+      <form id="register-form" class="auth-form hidden">
+        <input type="text" id="reg-nombre" placeholder="Nombre completo" required>
+        <input type="email" id="reg-email" placeholder="Correo institucional" required>
+        <input type="password" id="reg-password" placeholder="Crear contraseña" required>
+        <button type="submit" class="btn-primary">Crear Cuenta Voluntario</button>
+      </form>
+      <p id="auth-error" class="error-msg"></p>
     </div>
-    <nav class="nav">
-      <ul id="nav-links">
-        <li><a href="#" data-view="inicio" data-roles="admin,voluntario">Inicio</a></li>
-        <li><a href="#" data-view="equipo" data-roles="admin,voluntario">Equipo y proyecto</a></li>
-        <li><a href="#" data-view="formularios" data-roles="admin,voluntario">Test de Fototipo</a></li>
-        <li><a href="#" data-view="base-datos" data-roles="admin" class="admin-only">Base de datos</a></li>
-        <li><a href="#" data-view="modelo-ia" data-roles="admin" class="admin-only">Modelo IA</a></li>
-        <li><a href="#" data-view="archivos" data-roles="admin,voluntario">Archivos</a></li>
-        <li><a href="#" data-view="dashboard" data-roles="admin" class="admin-only">Estadísticas</a></li>
-      </ul>
-    </nav>
-    <div class="user-info">
-      <span id="user-label" class="user-label"></span>
-      <button id="logout-btn" class="btn btn-small btn-outline">Cerrar Sesión</button>
-    </div>
-  </header>
+  </section>
 
-  <main class="main">
-    
-    <section id="vista-auth" class="view active">
-      <div class="auth-container">
-        <div class="hero-card">
-          <div class="tabs-auth">
-            <button class="tab-auth active" data-target="login-panel">Iniciar Sesión</button>
-            <button class="tab-auth" data-target="register-panel">Registro Voluntario</button>
+  <div id="app-content" class="hidden">
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon"><span class="logo-lens"></span><span class="logo-handle"></span><span class="logo-dot"></span></div>
+        <span class="logo-text">Proyecto Espectral</span>
+      </div>
+      <nav class="nav">
+        <ul id="nav-links">
+          <li><a href="#" data-view="inicio">Inicio</a></li>
+          <li><a href="#" data-view="equipo">Equipo y proyecto</a></li>
+          <li><a href="#" data-view="formularios">Análisis de Piel</a></li>
+          <li class="admin-only"><a href="#" data-view="base-datos">Base de datos</a></li>
+          <li class="admin-only"><a href="#" data-view="modelo-ia">Modelo IA</a></li>
+          <li><a href="#" data-view="archivos">Archivos</a></li>
+          <li class="admin-only"><a href="#" data-view="dashboard">Estadísticas</a></li>
+        </ul>
+      </nav>
+      <div class="user-info">
+        <span id="user-label"></span>
+        <button id="logout-btn" class="btn-small">Salir</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section id="inicio" class="view">
+        <div class="hero">
+          <div class="hero-text">
+            <h1>Bienvenido a la Plataforma Espectral</h1>
+            <p>Este sistema está diseñado para la recopilación y análisis de datos ópticos de la piel, con el fin de avanzar en la investigación dermatoscópica mediante Inteligencia Artificial.</p>
           </div>
-          
-          <div id="login-panel" class="auth-panel">
-            <h2>Acceso Investigadores / Voluntarios</h2>
-            <form id="login-form" class="form">
-              <input type="email" id="login-email" placeholder="Correo electrónico" required />
-              <input type="password" id="login-password" placeholder="Contraseña" required />
-              <button type="submit" class="btn btn-primary full-width">Entrar al Sistema</button>
-              <p id="login-error" class="error-msg hidden"></p>
+          <div class="hero-card">
+              <h3>Aviso Importante</h3>
+              <p>Si eres un voluntario nuevo, por favor dirígete a la sección de "Análisis de Piel" para registrar tus datos fisiológicos.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="equipo" class="view">
+        <div class="equipo-section">
+          <h2>Sobre el Equipo y el Proyecto</h2>
+          <div class="grid-two">
+            <div class="card clean-card">
+              <h3>Investigación LOB UPT</h3>
+              <p>El Laboratorio de Óptica Biomédica de la UPT trabaja en la caracterización no invasiva de tejidos...</p>
+            </div>
+            <div class="card clean-card">
+                <h3>Objetivo</h3>
+                <p>Correlacionar las firmas espectrales con los fototipos de la escala de Fitzpatrick...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="formularios" class="view">
+        <div class="skin-form-wrapper">
+          <div id="step-consent" class="wizard-step active">
+            <div class="scientific-card">
+              <h2>Consentimiento Libre y Voluntario</h2>
+              <div class="consent-text">
+                <p>Al participar en este protocolo de investigación, usted acepta proporcionar sus datos demográficos y permitir el análisis de su fototipo de piel de manera totalmente voluntaria. Estos datos serán utilizados exclusivamente con fines científicos y académicos por el Laboratorio de Óptica Biomédica.</p>
+              </div>
+              <div class="form-group">
+                <label>Escriba su nombre completo como firma digital:</label>
+                <input type="text" id="firma-nombre" placeholder="Nombre y Apellidos">
+              </div>
+              <label class="checkbox-container">
+                <input type="checkbox" id="acepto-terminos">
+                Confirmo que participo de manera libre y voluntaria.
+              </label>
+              <button onclick="iniciarTest()" class="btn-primary">Aceptar e Iniciar Test</button>
+            </div>
+          </div>
+
+          <div id="step-test" class="wizard-step">
+            <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
+            <div id="pregunta-box" class="scientific-card">
+              </div>
+          </div>
+
+          <div id="step-resultado" class="wizard-step">
+            <div class="scientific-card text-center">
+              <h2>Resultado de su Análisis</h2>
+              <div id="fototipo-final" class="fototipo-badge">---</div>
+              <p id="fototipo-desc"></p>
+              <div id="admin-repeat" class="admin-only">
+                  <button onclick="resetTest()" class="btn-small">Realizar nuevo test (Admin)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="base-datos" class="view">
+        <h2>Gestión de Base de Datos Espectral</h2>
+        <div class="card">
+            <form id="form-voluntario" class="form-grid">
+                <div class="form-group"><label>ID Voluntario</label><input type="text" id="vol-identificador"></div>
+                <div class="form-group"><label>Edad</label><input type="number" id="vol-edad"></div>
+                <button type="submit" class="btn-primary">Guardar en BD</button>
             </form>
-          </div>
+        </div>
+        <div class="table-wrapper">
+          <table id="tabla-voluntarios">
+            <thead><tr><th>ID</th><th>Identificador</th><th>Edad</th><th>Fototipo</th><th>Acciones</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
 
-          <div id="register-panel" class="auth-panel hidden">
-            <h2>Nuevo Registro</h2>
-            <form id="register-form" class="form">
-              <input type="text" id="reg-name" placeholder="Nombre completo" required />
-              <input type="email" id="reg-email" placeholder="Correo electrónico" required />
-              <input type="password" id="reg-password" placeholder="Contraseña" required />
-              <button type="submit" class="btn btn-primary full-width">Registrarse</button>
-              <p id="register-success" class="success-msg hidden">¡Registro exitoso! Ya puedes iniciar sesión.</p>
-            </form>
-          </div>
-        </div>
-      </div>
-    </section>
+      <section id="modelo-ia" class="view">
+          <h2>Implementación del Modelo IA</h2>
+          <p>Sección destinada a la carga y prueba del modelo entrenado en Google Colab...</p>
+      </section>
 
-    <section id="inicio" class="view">
-      <div class="hero">
-        <div class="hero-text">
-          <h1>Protocolo de Caracterización Espectral de la Piel</h1>
-          <p>Bienvenido al entorno de gestión de datos del Laboratorio de Óptica Biomédica. Esta plataforma centraliza la recolección de muestras y el análisis de fototipos para el entrenamiento de modelos de Inteligencia Artificial.</p>
-        </div>
-        <div class="hero-card">
-          <h2>Instrucciones</h2>
-          <p>Si eres voluntario, dirígete a la sección de <strong>Test de Fototipo</strong> para completar tu registro de piel. Si eres administrador, podrás gestionar la base de datos completa.</p>
-        </div>
-      </div>
-    </section>
+      <section id="archivos" class="view">
+          <h2>Repositorio de Archivos</h2>
+          <p>Documentación técnica y artículos de referencia para el proyecto.</p>
+      </section>
 
-    <section id="formularios" class="view">
-      <div class="skin-form-wrapper">
-        
-        <div id="form-step-0" class="wizard-step active">
-          <div class="scientific-card">
-            <h2>Consentimiento Informado</h2>
-            <div class="consent-content">
-                <p>Usted está siendo invitado a participar en una investigación académica para la caracterización espectral de la piel. Su participación implica proporcionar datos demográficos y permitir el análisis de su fototipo de piel.</p>
-                <p><strong>Privacidad:</strong> Sus datos serán tratados de forma confidencial y anónima.</p>
-            </div>
-            <div class="form-group" style="margin-top: 20px;">
-              <label>Escriba su nombre completo como firma de aceptación:</label>
-              <input type="text" id="consent-signature" placeholder="Nombre completo">
-            </div>
-            <label class="checkbox-label">
-              <input type="checkbox" id="consent-checkbox"> Acepto participar de manera libre y voluntaria.
-            </label>
-            <button onclick="startWizard()" class="btn btn-primary" style="margin-top:20px;">Comenzar Formulario</button>
-          </div>
-        </div>
-
-        <div id="form-step-wizard" class="wizard-step">
-          <div class="progress-container">
-            <div id="progress-bar" class="progress-bar"></div>
-          </div>
-          <div id="question-container" class="scientific-card">
-            </div>
-        </div>
-
-        <div id="form-step-result" class="wizard-step">
-          <div id="result-display" class="scientific-card text-center">
-            </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="equipo" class="view">
-      <h2 class="section-title">Equipo y Proyecto</h2>
-      <div class="grid-two">
-        <div class="card clean-card">
-          <h3>Sobre el Proyecto</h3>
-          <p>Esta investigación busca correlacionar la respuesta espectral de la piel con la escala de Fitzpatrick...</p>
-        </div>
-        </div>
-    </section>
-
-    <section id="dashboard" class="view">
-        <h2 class="section-title">Estadísticas del Sistema</h2>
+      <section id="dashboard" class="view">
+        <h2>Estadísticas en Tiempo Real</h2>
         <div class="stats-grid">
-            <div class="stat-card"><h3>Total Voluntarios</h3><p id="stat-total" class="stat-value">0</p></div>
-            <div class="stat-card"><h3>H / M</h3><p id="stat-sexo" class="stat-value">-</p></div>
+          <div class="stat-card"><h3>Total Voluntarios</h3><p id="stat-total" class="stat-value">0</p></div>
         </div>
         <div class="charts-grid">
-            <div class="chart-card"><h3>Distribución por Fototipo</h3><div id="chart-piel" class="bar-chart"></div></div>
+            <div id="chart-piel" class="chart-card"><h3>Distribución Fototipos</h3><div class="bar-chart"></div></div>
         </div>
-    </section>
+      </section>
 
-  </main>
+    </main>
+  </div>
 
-  <footer class="footer">
-    <p>Proyecto Espectral · Laboratorio de Óptica Biomédica · UPT</p>
+  <footer id="main-footer" class="footer hidden">
+    <p>© 2024 Proyecto Espectral</p>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
