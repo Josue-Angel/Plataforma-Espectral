@@ -2,7 +2,7 @@
 // CONFIGURACIÓN SUPABASE
 // ===============================
 const SUPABASE_URL = 'https://bwszeozmxzwuajrywqns.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3c3plb3ptend1YWpyeXdxbnMiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczMjk3MjU0MCwiZXhwIjoyMDQ4NTQ4NTQwfQ.8Y_U_N_Y_Z_I_D_E_A_T_O_K_E_N'; // Reemplaza con tu Key completa si esta falla
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3c3plb3pteHp3dWFqcnl3cW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODU2ODAsImV4cCI6MjA3OTg2MTY4MH0.XAj13G3Bwl3iy7gfnVyHddA6LMH4Yc9dnx9Im6Dx8xI'; // Reemplaza con tu Key completa si esta falla
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
@@ -160,3 +160,4 @@ document.querySelectorAll('.nav a').forEach(a => {
 });
 
 checkAuth();
+
