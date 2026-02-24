@@ -7,90 +7,67 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
-  <section id="vista-auth" class="auth-section">
-    <div class="auth-card">
-      <div class="logo-grande">
-        <h1>Proyecto Espectral</h1>
-        <p>Laboratorio de Óptica Biomédica - UPT</p>
-      </div>
-      <div class="tabs-auth">
-        <button id="btn-tab-login" class="tab-btn active">Ingresar</button>
-        <button id="btn-tab-reg" class="tab-btn">Registrarse</button>
-      </div>
-
-      <form id="login-form" class="auth-form">
-        <input type="email" id="login-email" placeholder="Correo institucional" required autocomplete="username">
-        <input type="password" id="login-password" placeholder="Contraseña" required autocomplete="current-password">
-        <button type="submit" class="btn-primary">Entrar al Laboratorio</button>
-      </form>
-
-      <form id="register-form" class="auth-form hidden">
-        <input type="text" id="reg-name" placeholder="Nombre completo" required>
-        <input type="email" id="reg-email" placeholder="Correo institucional" required autocomplete="username">
-        <input type="password" id="reg-pass" placeholder="Contraseña (mín. 6 caracteres)" required autocomplete="new-password">
-        <button type="submit" class="btn-primary">Crear Cuenta</button>
-      </form>
-      <p id="auth-error" class="error-msg"></p>
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon"><span class="logo-lens"></span><span class="logo-handle"></span><span class="logo-dot"></span></div>
+      <span class="logo-text">Proyecto Espectral</span>
     </div>
-  </section>
+    <nav class="nav">
+      <ul id="nav-links">
+        <li><a href="#" data-view="inicio">Inicio</a></li>
+        <li><a href="#" data-view="equipo">Equipo y proyecto</a></li>
+        <li><a href="#" data-view="formularios">Análisis de Piel</a></li>
+        <li><a href="#" data-view="archivos">Archivos</a></li>
+        <li class="admin-only"><a href="#" data-view="base-datos">Base de Datos</a></li>
+      </ul>
+    </nav>
+    <div class="user-info">
+      <span id="user-label">Invitado</span>
+      <button id="logout-btn" class="btn-small">Salir</button>
+    </div>
+  </header>
 
-  <div id="app-content" class="hidden">
-    <header class="header">
-      <div class="logo">
-        <span class="logo-text">Proyecto Espectral</span>
+  <main class="main">
+    <section id="inicio" class="view active">
+      <div id="auth-container" class="card" style="max-width: 400px; margin: auto;">
+        <h2 id="auth-title">Iniciar Sesión</h2>
+        <div class="auth-form-group">
+          <input type="email" id="email" placeholder="Correo" style="width:100%; margin-bottom:10px; padding:8px;">
+          <input type="password" id="password" placeholder="Contraseña" style="width:100%; margin-bottom:10px; padding:8px;">
+          <button id="btn-login" class="btn-primary" style="width:100%;">Entrar</button>
+          <button id="btn-switch-reg" class="btn-link" style="margin-top:10px; background:none; border:none; color:blue; cursor:pointer;">¿No tienes cuenta? Regístrate</button>
+        </div>
+        <p id="error-msg" style="color:red; font-size:12px; margin-top:10px;"></p>
       </div>
-      <nav class="nav">
-        <ul id="nav-links">
-          <li><a href="#" data-view="inicio">Inicio</a></li>
-          <li><a href="#" data-view="equipo">Equipo</a></li>
-          <li><a href="#" data-view="formularios">Análisis de Piel</a></li>
-          <li class="admin-only"><a href="#" data-view="base-datos">Base de datos</a></li>
-          <li><a href="#" data-view="archivos">Archivos</a></li>
-        </ul>
-      </nav>
-      <div class="user-info">
-        <span id="user-label"></span>
-        <button id="logout-btn" class="btn-small">Salir</button>
+      <div id="welcome-msg" class="hidden">
+        <h1>Bienvenido al Laboratorio de Óptica</h1>
+        <p>Selecciona una opción del menú para comenzar.</p>
       </div>
-    </header>
+    </section>
 
-    <main class="main">
-      <section id="inicio" class="view">
-        <div class="hero">
-          <h1>Bienvenido Investigador/Voluntario</h1>
-          <p>Utilice el menú superior para navegar por las secciones del proyecto.</p>
+    <section id="formularios" class="view">
+      <div class="scientific-card">
+        <h2>Test de Fototipo de Fitzpatrick</h2>
+        <p>Este test ayudará a determinar tu tipo de piel para la base de datos espectral.</p>
+        <hr>
+        <div id="quiz-container">
+          <div id="pregunta-texto" style="font-weight:bold; font-size:1.2rem; margin:20px 0;"></div>
+          <div id="opciones-lista"></div>
         </div>
-      </section>
-
-      <section id="equipo" class="view">
-        <div class="card">
-          <h2>Equipo de trabajo</h2>
-          <p><strong>Responsable:</strong> Dra. Margarita Cunill Rodríguez</p>
-          <p><strong>Colaboradores:</strong> Banelly Sánchez, Josue Gomez, Enrique Cázares.</p>
+        <div id="resultado-piel" class="hidden" style="text-align:center;">
+          <h3>Tu resultado es:</h3>
+          <div id="tipo-badge" style="font-size:3rem; color:#0a2647; font-weight:bold;"></div>
+          <p id="tipo-desc"></p>
+          <button onclick="reiniciarTest()" class="btn-small">Repetir Test</button>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section id="formularios" class="view">
-        <div class="scientific-card">
-          <h2>Test de Fototipo</h2>
-          <div id="wizard-body">
-             <p>Cargando test...</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="base-datos" class="view admin-only">
-        <h2>Base de Datos de Voluntarios</h2>
-        <div id="db-content">Cargando registros...</div>
-      </section>
-
-      <section id="archivos" class="view">
-        <h2>Archivos y Documentación</h2>
-        <p>Aquí podrá encontrar las tesis y artículos publicados del laboratorio.</p>
-      </section>
-    </main>
-  </div>
+    <section id="equipo" class="view">
+      <h2>Equipo y Proyecto</h2>
+      <p>Investigación dirigida por la Dra. Margarita Cunill Rodríguez.</p>
+    </section>
+  </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
