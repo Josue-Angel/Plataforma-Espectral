@@ -264,7 +264,6 @@ async function restoreSession() {
 // BASE DE DATOS ESPECTRAL CON SUPABASE
 // ===============================
 
-let voluntariosCache = [];
 
 const tablaVoluntarios = document.getElementById("tabla-voluntarios");
 const formVoluntario = document.getElementById("form-voluntario");
@@ -1045,3 +1044,4 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
