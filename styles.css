@@ -755,6 +755,9 @@ td img {
   display: block;
 }
 
+#nav-links { display: none; }
+.nav-active { display: flex !important; } /* Clase para mostrarlo */
+
 /* Grid responsiva */
 .grid-two {
   display: grid;
@@ -767,3 +770,4 @@ td img {
     grid-template-columns: 1fr;
   }
 }
+
