@@ -7,110 +7,90 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header id="main-header" class="header hidden">
-    <div class="logo">
-      <div class="logo-icon"><span class="logo-lens"></span><span class="logo-handle"></span><span class="logo-dot"></span></div>
-      <span class="logo-text">Proyecto Espectral</span>
+
+  <section id="vista-auth" class="auth-section">
+    <div class="auth-card">
+      <div class="logo-grande">
+        <h1>Proyecto Espectral</h1>
+        <p>Laboratorio de Óptica Biomédica - UPT</p>
+      </div>
+      <div class="tabs-auth">
+        <button id="btn-tab-login" class="tab-btn active">Ingresar</button>
+        <button id="btn-tab-reg" class="tab-btn">Registrarse</button>
+      </div>
+
+      <form id="login-form" class="auth-form">
+        <input type="email" id="login-email" placeholder="Correo institucional" required autocomplete="username">
+        <input type="password" id="login-password" placeholder="Contraseña" required autocomplete="current-password">
+        <button type="submit" class="btn-primary">Entrar al Laboratorio</button>
+      </form>
+
+      <form id="register-form" class="auth-form hidden">
+        <input type="text" id="reg-name" placeholder="Nombre completo" required>
+        <input type="email" id="reg-email" placeholder="Correo institucional" required autocomplete="username">
+        <input type="password" id="reg-pass" placeholder="Contraseña (mín. 6 caracteres)" required autocomplete="new-password">
+        <button type="submit" class="btn-primary">Crear Cuenta</button>
+      </form>
+      <p id="auth-error" class="error-msg"></p>
     </div>
-    <nav class="nav">
-      <ul id="nav-links">
-        <li><a href="#" data-view="inicio">Inicio</a></li>
-        <li><a href="#" data-view="equipo">Equipo</a></li>
-        <li><a href="#" data-view="formularios">Análisis de Piel</a></li>
-        <li class="admin-only"><a href="#" data-view="base-datos">Base de datos</a></li>
-        <li class="admin-only"><a href="#" data-view="modelo-ia">Modelo IA</a></li>
-        <li><a href="#" data-view="archivos">Archivos</a></li>
-      </ul>
-    </nav>
-    <div class="user-info">
-      <span id="user-label"></span>
-      <button id="logout-btn" class="btn-small">Cerrar Sesión</button>
-    </div>
-  </header>
+  </section>
 
-  <main class="main">
-    <section id="vista-auth" class="auth-section">
-      <div class="auth-card">
-        <div class="logo-grande">
-          <h1>Proyecto Espectral</h1>
-          <p>Laboratorio de Óptica Biomédica - UPT</p>
-        </div>
-        <div class="tabs-auth">
-          <button id="btn-tab-login" class="tab-btn active">Ingresar</button>
-          <button id="btn-tab-reg" class="tab-btn">Registrarse</button>
-        </div>
-
-        <form id="login-form" class="auth-form">
-          <input type="email" id="login-email" placeholder="Correo institucional" required>
-          <input type="password" id="login-password" placeholder="Contraseña" required>
-          <button type="submit" class="btn-primary">Entrar al Laboratorio</button>
-        </form>
-
-        <form id="register-form" class="auth-form hidden">
-          <input type="text" id="reg-name" placeholder="Nombre completo" required>
-          <input type="email" id="reg-email" placeholder="Correo institucional" required>
-          <input type="password" id="reg-pass" placeholder="Crear contraseña (mín. 6 caracteres)" required>
-          <button type="submit" class="btn-primary">Crear Cuenta</button>
-        </form>
-        <p id="auth-error" class="error-msg"></p>
+  <div id="app-content" class="hidden">
+    <header class="header">
+      <div class="logo">
+        <span class="logo-text">Proyecto Espectral</span>
       </div>
-    </section>
-
-    <section id="inicio" class="view">
-      <div class="hero">
-        <div class="hero-text">
-          <h1>Bienvenido a la Plataforma Espectral</h1>
-          <p>Entorno de investigación para el diagnóstico temprano del melanoma mediante técnicas ópticas e IA.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="equipo" class="view">
-      <div class="card scientific-card">
-        <h2>Equipo de trabajo y proyecto</h2>
-        <p>Somos un equipo multidisciplinario de la Universidad Politécnica de Tulancingo enfocado en el diagnóstico temprano del melanoma.</p>
-        <hr>
-        <p><strong>Responsable:</strong> Dra. Margarita Cunill Rodríguez</p>
-        <p><strong>Área de Ingeniería:</strong> Banelly Sánchez Soto, Josue Gomez Zamorano y Enrique Cázares Garrido.</p>
-      </div>
-    </section>
-
-    <section id="formularios" class="view">
-      <div id="wizard-container" class="skin-form-wrapper">
-        <div id="step-consent" class="wizard-step active">
-          <div class="scientific-card">
-            <h2>Consentimiento Informado</h2>
-            <p>Autorizo el uso de mis datos con fines de investigación académica por la UPT.</p>
-            <input type="text" id="firma-nombre" placeholder="Nombre completo para firmar">
-            <button onclick="iniciarTest()" class="btn-primary">Aceptar y Continuar</button>
-          </div>
-        </div>
-
-        <div id="step-test" class="wizard-step">
-          <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
-          <div id="pregunta-box" class="scientific-card">
-            </div>
-        </div>
-
-        <div id="step-resultado" class="wizard-step">
-          <div class="scientific-card text-center">
-            <h2>Resultado de Fototipo</h2>
-            <div id="fototipo-final" class="fototipo-badge">---</div>
-            <p id="fototipo-desc"></p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="base-datos" class="view admin-only"><h2>Base de Datos</h2><div id="lista-voluntarios"></div></section>
-    <section id="modelo-ia" class="view admin-only"><h2>Modelo IA</h2><p>Acceso a Google Colab restringido.</p></section>
-    <section id="archivos" class="view">
-        <h2>Documentos y Tesis</h2>
-        <ul class="doc-list">
-            <li><a href="https://www.milenio.com/opinion/varios-autores/universidad-politecnica-de-tulancingo/tratamiento-y-diagnostico-optico_2" target="_blank">Tratamiento y diagnóstico óptico (Milenio)</a></li>
+      <nav class="nav">
+        <ul id="nav-links">
+          <li><a href="#" data-view="inicio">Inicio</a></li>
+          <li><a href="#" data-view="equipo">Equipo</a></li>
+          <li><a href="#" data-view="formularios">Análisis de Piel</a></li>
+          <li class="admin-only"><a href="#" data-view="base-datos">Base de datos</a></li>
+          <li><a href="#" data-view="archivos">Archivos</a></li>
         </ul>
-    </section>
-  </main>
+      </nav>
+      <div class="user-info">
+        <span id="user-label"></span>
+        <button id="logout-btn" class="btn-small">Salir</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section id="inicio" class="view">
+        <div class="hero">
+          <h1>Bienvenido Investigador/Voluntario</h1>
+          <p>Utilice el menú superior para navegar por las secciones del proyecto.</p>
+        </div>
+      </section>
+
+      <section id="equipo" class="view">
+        <div class="card">
+          <h2>Equipo de trabajo</h2>
+          <p><strong>Responsable:</strong> Dra. Margarita Cunill Rodríguez</p>
+          <p><strong>Colaboradores:</strong> Banelly Sánchez, Josue Gomez, Enrique Cázares.</p>
+        </div>
+      </section>
+
+      <section id="formularios" class="view">
+        <div class="scientific-card">
+          <h2>Test de Fototipo</h2>
+          <div id="wizard-body">
+             <p>Cargando test...</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="base-datos" class="view admin-only">
+        <h2>Base de Datos de Voluntarios</h2>
+        <div id="db-content">Cargando registros...</div>
+      </section>
+
+      <section id="archivos" class="view">
+        <h2>Archivos y Documentación</h2>
+        <p>Aquí podrá encontrar las tesis y artículos publicados del laboratorio.</p>
+      </section>
+    </main>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
