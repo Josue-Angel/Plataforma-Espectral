@@ -55,26 +55,33 @@ function showView(viewId) {
 }
 
 function updateNavForRole(role) {
+  const navContainer = document.getElementById("nav-links");
+  
+  if (!role) {
+    // Si no hay rol (no hay login), ocultamos el menú completo
+    navContainer.classList.remove("nav-active");
+    return;
+  } 
+
+  // Si hay login, mostramos el menú y filtramos los links
+  navContainer.classList.add("nav-active");
+
   navLinks.forEach((link) => {
     const viewId = link.dataset.view;
     const roles = (link.dataset.roles || "").split(",");
     const trimmed = roles.map((r) => r.trim()).filter(Boolean);
 
-    if (!role) {
-      // sin login: solo Inicio
-      if (viewId === "inicio") link.classList.remove("hidden");
-      else link.classList.add("hidden");
+    // Ocultar "Inicio" si ya está logueado
+    if (viewId === "inicio") {
+      link.classList.add("hidden");
+      return;
+    }
+    
+    // Mostrar solo lo permitido para el rol
+    if (trimmed.length === 0 || trimmed.includes(role)) {
+      link.classList.remove("hidden");
     } else {
-      // logueado: ocultar Inicio
-      if (viewId === "inicio") {
-        link.classList.add("hidden");
-        return;
-      }
-      if (trimmed.length === 0 || trimmed.includes(role)) {
-        link.classList.remove("hidden");
-      } else {
-        link.classList.add("hidden");
-      }
+      link.classList.add("hidden");
     }
   });
 }
@@ -671,51 +678,86 @@ function calcularFototipo(total) {
    FUNCIÓN FINAL
 ============================ */
 
-async function guardarVoluntario() {
+function iniciarFormulario() {
+  if (currentRole === "admin") {
+    // El admin siempre puede entrar
+    nextStep(1); 
+    return;
+  }
 
-  // Evita que el form recargue la página
+  // Si es voluntario, checamos si ya terminó
+  // (Esta variable debe venir de tu función initSession)
+  if (perfilGlobalDeUsuario.test_fototipo_completado) {
+    alert("Acceso restringido: Ya completaste tu evaluación.");
+  } else {
+    nextStep(1);
+  }
+}
+
+async function guardarVoluntario() {
   event.preventDefault();
 
-  const radios = document.querySelectorAll("input[type='radio']:checked");
+  // 1. Verificar si es voluntario y ya completó el test
+  if (currentRole === "voluntario") {
+     const { data: userCheck } = await supabaseClient
+      .from("perfiles")
+      .select("test_fototipo_completado")
+      .eq("id", (await supabaseClient.auth.getUser()).data.user.id)
+      .single();
 
+    if (userCheck?.test_fototipo_completado) {
+      alert("Ya has realizado este formulario anteriormente.");
+      return;
+    }
+  }
+
+  const radios = document.querySelectorAll("input[type='radio']:checked");
   if (radios.length !== 10) {
     alert("Debes responder todas las preguntas.");
     return;
   }
 
   let total = 0;
+  radios.forEach(radio => total += parseInt(radio.value));
+  let fototipo = calcularFototipo(total);
 
-  radios.forEach(radio => {
-    total += parseInt(radio.value);
-  });
+  // 2. RECOPILAR DATOS PARA LA TABLA 'VOLUNTARIOS'
+  // Usamos el nombre que guardamos en el paso del consentimiento
+  const nombreCompleto = localStorage.getItem("nombreConsentimiento");
 
-  let fototipo = "";
-
-  if (total <= 6) fototipo = "Fototipo I";
-  else if (total <= 13) fototipo = "Fototipo II";
-  else if (total <= 20) fototipo = "Fototipo III";
-  else if (total <= 27) fototipo = "Fototipo IV";
-  else if (total <= 34) fototipo = "Fototipo V";
-  else fototipo = "Fototipo VI";
-
-  alert("Tu resultado es: " + fototipo);
-
-  // 🔹 ENVÍO A SUPABASE
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from("voluntarios")
     .insert([
       {
-        nombre_completo: localStorage.getItem("nombreConsentimiento"),
-        puntaje_total: total,
-        fototipo: fototipo
+        identificador: nombreCompleto, // Lo usamos como identificador inicial
+        fototipo_de_piel: fototipo,
+        fecha: new Date().toISOString().split('T')[0],
+        // Aquí puedes agregar más campos si los tienes en el HTML
       }
-    ]);
+    ])
+    .select();
 
   if (error) {
     console.error(error);
     alert("Error al guardar en la base de datos");
   } else {
-    alert("Datos guardados correctamente");
+    alert("¡Datos guardados! Tu resultado es: " + fototipo);
+    
+    // 3. SI ES VOLUNTARIO, BLOQUEAR PRÓXIMOS INTENTOS
+    if (currentRole === "voluntario") {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      await supabaseClient
+        .from("perfiles")
+        .update({ test_fototipo_completado: true })
+        .eq("id", user.id);
+    }
+
+    // Refrescar la tabla para que el Admin lo vea
+    if (currentRole === "admin") {
+      await cargarVoluntarios();
+    }
+    
+    showView("equipo"); // Redirigir a la vista de equipo/resultados
   }
 }
 
@@ -1122,6 +1164,7 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
 
