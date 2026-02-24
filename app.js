@@ -260,6 +260,148 @@ async function restoreSession() {
   }
 }
 
+// Reemplazo para la lógica de consentimiento
+document.getElementById("btnContinuarConsentimiento").addEventListener("click", async () => {
+    const nombre = document.getElementById("nombreConsentimiento").value.trim();
+    const acepta = document.getElementById("aceptaConsentimiento").checked;
+
+    if (!nombre || !acepta) {
+        alert("Debes completar el nombre y aceptar el consentimiento.");
+        return;
+    }
+
+    // Obtenemos el usuario actual de la sesión de Supabase
+    const { data: { user } } = await supabaseClient.auth.getUser();
+
+    if (!user) {
+        alert("Debes estar logueado para guardar el consentimiento.");
+        return;
+    }
+
+    // Actualizamos la tabla 'perfiles' o 'usuarios' según tu estructura
+    const { error } = await supabaseClient
+        .from("perfiles") // Asegúrate que tu tabla se llame así
+        .update({ 
+            nombre_completo: nombre, 
+            consentimiento: true 
+        })
+        .eq("id", user.id);
+
+    if (error) {
+        console.error("Error al guardar consentimiento:", error);
+        alert("Error al guardar en la base de datos.");
+    } else {
+        localStorage.setItem("nombreConsentimiento", nombre);
+        document.getElementById("consentimientoSection").style.display = "none";
+        document.getElementById("formularioFototipo").style.display = "block";
+    }
+});
+
+async function finalizarTest() {
+    const resultado = calcularFototipo(); // Asegúrate que esta función devuelva el texto (ej: "Fototipo II")
+    
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    
+    if (!user) {
+        alert("Sesión expirada. Por favor vuelve a entrar.");
+        return;
+    }
+
+    // 1. Verificar si ya lo completó (evitar duplicados)
+    const { data: perfil } = await supabaseClient
+        .from("perfiles")
+        .select("test_fototipo_completado")
+        .eq("id", user.id)
+        .single();
+
+    if (perfil?.test_fototipo_completado) {
+        alert("Este test solo puede realizarse una vez.");
+        return;
+    }
+
+    // 2. Insertar el resultado en la tabla de resultados
+    const { error: errorRes } = await supabaseClient
+        .from("resultados_fototipo")
+        .insert([{
+            usuario_id: user.id,
+            resultado: resultado,
+            respuestas: JSON.stringify(respuestas) // 'respuestas' es tu variable global
+        }]);
+
+    if (errorRes) {
+        console.error("Error al guardar resultado:", errorRes);
+        return;
+    }
+
+    // 3. Marcar como completado en el perfil del usuario
+    await supabaseClient
+        .from("perfiles")
+        .update({ test_fototipo_completado: true })
+        .eq("id", user.id);
+
+    mostrarResultadoBonito(resultado);
+    localStorage.removeItem("fototipo_progreso");
+    localStorage.removeItem("fototipo_paso");
+}
+
+async function cargarVoluntariosAdmin() {
+    // Solo si el rol es admin
+    if (currentRole !== "admin") return;
+
+    const { data, error } = await supabaseClient
+        .from("perfiles") // O la tabla donde guardas a los usuarios que hicieron el test
+        .select(`
+            id, 
+            nombre_completo, 
+            resultados_fototipo (resultado, creado_en)
+        `);
+
+    if (error) {
+        console.error("Error al obtener voluntarios:", error);
+        return;
+    }
+
+    const tabla = document.getElementById("tablaVoluntarios");
+    tabla.innerHTML = ""; // Limpiar tabla
+
+    data.forEach(v => {
+        const resultadoObj = v.resultados_fototipo?.[0] || {};
+        tabla.innerHTML += `
+            <tr>
+                <td>${v.nombre_completo || "Sin nombre"}</td>
+                <td>${resultadoObj.resultado || "Pendiente"}</td>
+                <td>${resultadoObj.creado_en || "-"}</td>
+                <td>
+                    <button onclick="resetearUsuario('${v.id}')" class="btn-danger">
+                        Resetear
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+async function resetearUsuario(userId) {
+    if (!confirm("¿Estás seguro de resetear el test de este usuario?")) return;
+
+    // 1. Borrar resultados previos
+    const { error: delErr } = await supabaseClient
+        .from("resultados_fototipo")
+        .delete()
+        .eq("usuario_id", userId);
+
+    // 2. Habilitar el test de nuevo en el perfil
+    const { error: updErr } = await supabaseClient
+        .from("perfiles")
+        .update({ test_fototipo_completado: false })
+        .eq("id", userId);
+
+    if (!delErr && !updErr) {
+        alert("Usuario reseteado correctamente.");
+        cargarVoluntariosAdmin(); // Recargar tabla
+    }
+}
+
 // ===============================
 // BASE DE DATOS ESPECTRAL CON SUPABASE
 // ===============================
@@ -980,5 +1122,6 @@ bar.appendChild(label);
 
 // Arranque
 restoreSession();
+
 
 
