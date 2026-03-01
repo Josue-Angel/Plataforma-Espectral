@@ -280,6 +280,7 @@
 
   <div class="form-skin-wrapper">
     <form class="skin-form" onsubmit="return false;">
+      <div id="formEstadoCuenta" class="card account-form-status hidden"></div>
 
       <section id="consentimientoSection" class="step active">
   <div class="consentimiento-card">
@@ -335,8 +336,8 @@
         </div>
 
         <div class="step-actions">
-          <button type="button" class="btn btn-outline" onclick="prevStep()">Regresar</button>
-          <button type="button" class="btn btn-primary" onclick="nextStep(2)">Continuar</button>
+          <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
+          <button type="button" class="btn btn-primary btn-next-step" onclick="nextStep(2)">Continuar</button>
         </div>
         <button type="button" class="btn btn-danger btn-cancel-form" onclick="cancelarFormularioFototipo()">Cancelar formulario</button>
       </section>
@@ -374,8 +375,8 @@
         <label><input type="radio" name="pecas" value="4"> Ninguna</label>
 
         <div class="step-actions">
-          <button type="button" class="btn btn-outline" onclick="prevStep()">Regresar</button>
-          <button type="button" class="btn btn-primary" onclick="nextStep(3)">Continuar</button>
+          <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
+          <button type="button" class="btn btn-primary btn-next-step" onclick="nextStep(3)">Continuar</button>
         </div>
         <button type="button" class="btn btn-danger btn-cancel-form" onclick="cancelarFormularioFototipo()">Cancelar formulario</button>
       </section>
@@ -413,8 +414,8 @@
         <label><input type="radio" name="rostro" value="4"> Nunca tuve problema</label>
 
         <div class="step-actions">
-          <button type="button" class="btn btn-outline" onclick="prevStep()">Regresar</button>
-          <button type="button" class="btn btn-primary" onclick="nextStep(4)">Continuar</button>
+          <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
+          <button type="button" class="btn btn-primary btn-next-step" onclick="nextStep(4)">Continuar</button>
         </div>
         <button type="button" class="btn btn-danger btn-cancel-form" onclick="cancelarFormularioFototipo()">Cancelar formulario</button>
       </section>
@@ -438,8 +439,8 @@
         <label><input type="radio" name="regular" value="4"> Siempre</label>
 
         <div class="step-actions">
-          <button type="button" class="btn btn-outline" onclick="prevStep()">Regresar</button>
-          <button type="button" class="btn btn-primary" onclick="guardarVoluntario()">Finalizar</button>
+          <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
+          <button type="button" class="btn btn-primary btn-next-step" onclick="guardarVoluntario()">Finalizar</button>
         </div>
         <button type="button" class="btn btn-danger btn-cancel-form" onclick="cancelarFormularioFototipo()">Cancelar formulario</button>
       </section>
@@ -622,4 +623,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-
