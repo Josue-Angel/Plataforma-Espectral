@@ -14,6 +14,8 @@ let voluntariosCache = [];
 let currentRole = null;
 let isLoggedIn = false;
 let currentUserName = null;
+let currentUserId = null;
+let currentProfile = null;
 
 const views = document.querySelectorAll(".view");
 const navLinks = document.querySelectorAll("#nav-links a");
@@ -22,6 +24,17 @@ const logoutBtn = document.getElementById("logout-btn");
 
 const GUEST_LANDING_VIEW = "inicio";
 const AUTH_LANDING_VIEW = "equipo";
+const ADMIN_EMAILS = ["admin@ejemplo.com"];
+
+function resolveRoleFromProfile(perfil, userEmail) {
+  const roleFromProfile = perfil?.role ? String(perfil.role).trim().toLowerCase() : "";
+  if (roleFromProfile === "admin" || roleFromProfile === "voluntario") return roleFromProfile;
+
+  const normalizedEmail = String(userEmail || "").trim().toLowerCase();
+  if (ADMIN_EMAILS.includes(normalizedEmail)) return "admin";
+
+  return "voluntario";
+}
 
 function showToast(message, type = "error") {
   const container = document.getElementById("toast-container");
@@ -39,8 +52,8 @@ function showToast(message, type = "error") {
 
   setTimeout(() => {
     toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 220);
-  }, 3200);
+    setTimeout(() => toast.remove(), 260);
+  }, 5200);
 }
 
 function showView(viewId) {
@@ -180,6 +193,8 @@ logoutBtn.addEventListener("click", async () => {
   isLoggedIn = false;
   currentRole = null;
   currentUserName = null;
+  currentUserId = null;
+  currentProfile = null;
   userLabel.textContent = "No has iniciado sesión";
   logoutBtn.classList.add("hidden");
   updateNavForRole(null);
@@ -187,16 +202,91 @@ logoutBtn.addEventListener("click", async () => {
   showView(GUEST_LANDING_VIEW);
 });
 
+function renderReadOnlyFormResult(fototipo) {
+  const statusCard = document.getElementById("formEstadoCuenta");
+  if (!statusCard) return;
+
+  statusCard.innerHTML = `
+    <h3>Formulario ya completado</h3>
+    <p>Ya has realizado este formulario en tu cuenta.</p>
+    <p><strong>Tu Fototipo de Piel es:</strong> ${fototipo || "No disponible"}</p>
+    <p id="resumenRecomendacionCuenta" class="muted"></p>
+  `;
+
+  const recomendaciones = {
+    I: "Protección SPF 50+, evita exposición directa y usa barreras físicas.",
+    II: "Protección alta diaria con reaplicación frecuente.",
+    III: "SPF 30-50 y protección especial en horas de mayor radiación.",
+    IV: "SPF 30 y seguimiento preventivo continuo.",
+    "V y VI": "SPF 15-30 para prevenir daño acumulado y fotoenvejecimiento.",
+  };
+
+  const recEl = document.getElementById("resumenRecomendacionCuenta");
+  if (recEl) recEl.textContent = recomendaciones[fototipo] || "Mantén hábitos de protección solar adecuados.";
+
+  statusCard.classList.remove("hidden");
+}
+
+async function syncFormAccessForCurrentAccount() {
+  const statusCard = document.getElementById("formEstadoCuenta");
+  const skinForm = document.querySelector(".skin-form");
+  if (!statusCard || !skinForm || !currentUserId) return;
+
+  statusCard.classList.add("hidden");
+  statusCard.innerHTML = "";
+  skinForm.classList.remove("form-locked");
+
+  const { data: perfil } = await supabaseClient
+    .from("perfiles")
+    .select("test_fototipo_completado")
+    .eq("id", currentUserId)
+    .maybeSingle();
+
+  currentProfile = { ...(currentProfile || {}), ...(perfil || {}) };
+
+  if (currentRole === "admin") {
+    setActiveFormStepById(readSavedFormStepProgress() || FORM_INITIAL_STEP);
+    return;
+  }
+
+  if (perfil?.test_fototipo_completado) {
+    const { data: ultimoRegistro } = await supabaseClient
+      .from("voluntarios")
+      .select("fototipo_de_piel")
+      .eq("user_id", currentUserId)
+      .order("id", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    renderReadOnlyFormResult(ultimoRegistro?.fototipo_de_piel);
+    skinForm.classList.add("form-locked");
+    return;
+  }
+
+  setActiveFormStepById(readSavedFormStepProgress() || FORM_INITIAL_STEP);
+}
+
 async function initSession(user) {
   isLoggedIn = true;
   const { data: perfil } = await supabaseClient
     .from("perfiles")
-    .select("nombre, role")
+    .select("nombre, role, test_fototipo_completado")
     .eq("id", user.id)
     .maybeSingle();
 
-  currentRole = perfil?.role || "voluntario";
+  currentRole = resolveRoleFromProfile(perfil, user.email);
   currentUserName = perfil?.nombre || user.email;
+  currentUserId = user.id;
+  currentProfile = perfil || null;
+
+  if ((!perfil?.role || perfil.role !== currentRole) && currentRole === "admin") {
+    await supabaseClient.from("perfiles").upsert({
+      id: user.id,
+      email: user.email,
+      nombre: currentUserName,
+      role: "admin",
+    });
+  }
 
   userLabel.textContent = `${currentUserName} (${currentRole === "admin" ? "Doctora/Administrador" : "Voluntario"})`;
   logoutBtn.classList.remove("hidden");
@@ -208,7 +298,10 @@ async function initSession(user) {
   if (currentRole === "admin") {
     await cargarVoluntarios();
   }
+
+  await syncFormAccessForCurrentAccount();
 }
+
 
 async function restoreSession() {
   const { data } = await supabaseClient.auth.getSession();
@@ -221,8 +314,8 @@ async function restoreSession() {
   }
 }
 
-// Redirección automática tras login a la sección Equipo y proyecto.
-showView(AUTH_LANDING_VIEW);
+// Vista inicial para invitados mientras se restaura sesión.
+showView(GUEST_LANDING_VIEW);
 
 const tablaVoluntarios = document.getElementById("tabla-voluntarios");
 const formVoluntario = document.getElementById("form-voluntario");
@@ -521,6 +614,30 @@ const FORM_INITIAL_STEP = "consentimientoSection";
 const FORM_ORDER = [FORM_INITIAL_STEP, "step1", "step2", "step3", "step4"];
 let formCurrentStepIndex = 0;
 
+
+function getFormProgressStorageKey() {
+  return currentUserId ? `fototipo-step-${currentUserId}` : null;
+}
+
+function saveCurrentFormStepProgress(stepId) {
+  const key = getFormProgressStorageKey();
+  if (!key) return;
+  localStorage.setItem(key, stepId);
+}
+
+function readSavedFormStepProgress() {
+  const key = getFormProgressStorageKey();
+  if (!key) return null;
+  const saved = localStorage.getItem(key);
+  return FORM_ORDER.includes(saved) ? saved : null;
+}
+
+function clearSavedFormStepProgress() {
+  const key = getFormProgressStorageKey();
+  if (!key) return;
+  localStorage.removeItem(key);
+}
+
 function setActiveFormStepById(stepId) {
   const targetIndex = FORM_ORDER.indexOf(stepId);
   if (targetIndex === -1) return;
@@ -529,6 +646,12 @@ function setActiveFormStepById(stepId) {
   const target = document.getElementById(stepId);
   if (target) target.classList.add("active");
   formCurrentStepIndex = targetIndex;
+  saveCurrentFormStepProgress(stepId);
+
+  const prevButtons = document.querySelectorAll(`#${stepId} .btn-prev-step`);
+  prevButtons.forEach((btn) => {
+    btn.classList.toggle("hidden", stepId === "step1");
+  });
 }
 
 function nextStep(stepNumber) {
@@ -540,12 +663,6 @@ function nextStep(stepNumber) {
 window.nextStep = nextStep;
 
 function prevStep() {
-  const currentStepId = FORM_ORDER[formCurrentStepIndex];
-  if (currentStepId === "step1") {
-    showToast("No es posible regresar a la sección de consentimiento.", "info");
-    return;
-  }
-
   const previousIndex = Math.max(1, formCurrentStepIndex - 1);
   const previousId = FORM_ORDER[previousIndex];
   setActiveFormStepById(previousId);
@@ -559,6 +676,7 @@ function cancelarFormularioFototipo() {
   const resultadoDiv = document.getElementById("resultadoFototipo");
   if (resultadoDiv) resultadoDiv.classList.add("hidden");
 
+  clearSavedFormStepProgress();
   setActiveFormStepById(FORM_INITIAL_STEP);
   showToast("Formulario cancelado. Regresaste a la autorización inicial.", "info");
 }
@@ -600,9 +718,23 @@ function mostrarResultadoBonito(tipo) {
 }
 
 async function guardarVoluntario() {
-  if (!isLoggedIn) {
+  if (!isLoggedIn || !currentUserId) {
     showToast("Debes iniciar sesión para guardar el formulario.");
     return;
+  }
+
+  if (currentRole !== "admin") {
+    const { data: perfilActual } = await supabaseClient
+      .from("perfiles")
+      .select("test_fototipo_completado")
+      .eq("id", currentUserId)
+      .maybeSingle();
+
+    if (perfilActual?.test_fototipo_completado) {
+      showToast("Ya has realizado este formulario con tu cuenta.", "info");
+      await syncFormAccessForCurrentAccount();
+      return;
+    }
   }
 
   if (!validateCurrentStep(4)) return;
@@ -641,6 +773,7 @@ async function guardarVoluntario() {
     .eq("id", user.id);
 
   const payload = {
+    user_id: currentUserId,
     identificador,
     sexo,
     edad,
@@ -657,10 +790,13 @@ async function guardarVoluntario() {
     return;
   }
 
+  clearSavedFormStepProgress();
   mostrarResultadoBonito(fototipo);
 
   if (currentRole === "admin") {
     await cargarVoluntarios();
+  } else {
+    await syncFormAccessForCurrentAccount();
   }
 }
 window.guardarVoluntario = guardarVoluntario;

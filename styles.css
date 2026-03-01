@@ -871,3 +871,165 @@ td img {
 .toast-error { background: #b91c1c; }
 .toast-success { background: #15803d; }
 .toast-info { background: #1d4ed8; }
+
+
+:root {
+  --color-bg: #e9f0f7;
+  --color-surface: #ffffff;
+  --color-header-1: #0b1f3f;
+  --color-header-2: #10315f;
+  --color-primary: #2f6fbb;
+  --color-primary-strong: #225792;
+  --color-accent: #22a3a6;
+  --color-text: #10213f;
+  --color-muted: #42526b;
+}
+
+html,
+body {
+  font-family: "Inter", "Segoe UI", Roboto, system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at top left, #edf3fb 0%, var(--color-bg) 55%, #e4edf8 100%);
+  color: var(--color-text);
+}
+
+.header {
+  background: linear-gradient(125deg, var(--color-header-1), var(--color-header-2));
+  padding: 1.25rem 2rem;
+  box-shadow: 0 14px 30px rgba(10, 32, 71, 0.28);
+}
+
+.logo-text {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.015em;
+}
+
+.nav a {
+  font-size: 1.02rem;
+  padding: 0.6rem 1.05rem;
+}
+
+.main {
+  max-width: 1200px;
+}
+
+.hero-text h1 {
+  font-size: clamp(2rem, 2.5vw, 2.4rem);
+  color: #0c2b53;
+}
+
+.hero-text p,
+.hero-list {
+  font-size: 1.02rem;
+  color: var(--color-muted);
+}
+
+.hero-card {
+  background: linear-gradient(150deg, #0f2f59, #1a447a 60%, #1b4f8d 100%);
+}
+
+.card {
+  border-color: #d8e3f1;
+  box-shadow: 0 10px 24px rgba(18, 42, 73, 0.08);
+}
+
+h2,
+h3 {
+  color: #11345f;
+}
+
+.step-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.step-actions .btn-next-step,
+.step-actions .btn-primary {
+  margin-left: auto;
+}
+
+.step-actions .btn-prev-step.hidden {
+  display: none;
+}
+
+.account-form-status {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #f8fbff, #eef5ff);
+  border: 1px solid #c8d9ef;
+}
+
+.form-locked .step,
+.form-locked .btn-cancel-form {
+  display: none !important;
+}
+
+.form-locked #resultadoFototipo {
+  display: none !important;
+}
+
+.toast {
+  min-width: 320px;
+  max-width: 430px;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.95rem 1.1rem;
+  border-radius: 0.8rem;
+}
+
+.toast-error { background: linear-gradient(135deg, #bf1f36, #d14f4f); }
+.toast-success { background: linear-gradient(135deg, #0e8f61, #2aa46c); }
+.toast-info { background: linear-gradient(135deg, #1d63d1, #2f78ec); }
+
+
+/* Ajustes de legibilidad global */
+body,
+p,
+li,
+label,
+input,
+select,
+textarea,
+.small,
+.muted {
+  color: #13253f;
+}
+
+.card p,
+.card li,
+.skin-form p,
+.skin-form label,
+.equipo-section p,
+.scientific-section p {
+  color: #1d3150;
+}
+
+.hero-card p,
+.hero-card label,
+.hero-card .small,
+.hero-card .muted {
+  color: #e7eef8;
+}
+
+/* Botones del formulario alineados en la misma altura */
+.step-actions {
+  align-items: center;
+}
+
+.step-actions .btn {
+  margin-top: 0 !important;
+  width: auto !important;
+  min-width: 150px;
+  line-height: 1.2;
+}
+
+.step-actions .btn-prev-step {
+  margin-right: auto;
+}
+
+.step-actions .btn-next-step,
+.step-actions .btn-primary {
+  margin-left: auto;
+}
