@@ -24,6 +24,17 @@ const logoutBtn = document.getElementById("logout-btn");
 
 const GUEST_LANDING_VIEW = "inicio";
 const AUTH_LANDING_VIEW = "equipo";
+const ADMIN_EMAILS = ["admin@ejemplo.com"];
+
+function resolveRoleFromProfile(perfil, userEmail) {
+  const roleFromProfile = perfil?.role ? String(perfil.role).trim().toLowerCase() : "";
+  if (roleFromProfile === "admin" || roleFromProfile === "voluntario") return roleFromProfile;
+
+  const normalizedEmail = String(userEmail || "").trim().toLowerCase();
+  if (ADMIN_EMAILS.includes(normalizedEmail)) return "admin";
+
+  return "voluntario";
+}
 
 function showToast(message, type = "error") {
   const container = document.getElementById("toast-container");
@@ -263,7 +274,7 @@ async function initSession(user) {
     .eq("id", user.id)
     .maybeSingle();
 
-  currentRole = perfil?.role || "voluntario";
+  currentRole = resolveRoleFromProfile(perfil, user.email);
   currentUserName = perfil?.nombre || user.email;
   currentUserId = user.id;
   currentProfile = perfil || null;
