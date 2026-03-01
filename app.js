@@ -21,7 +21,7 @@ const userLabel = document.getElementById("user-label");
 const logoutBtn = document.getElementById("logout-btn");
 
 function showView(viewId) {
-  if (!isLoggedIn && viewId !== "inicio") viewId = "inicio";
+  if (!isLoggedIn && viewId !== "equipo") viewId = "equipo";
 
   if (isLoggedIn) {
     const allowed = viewPermissions[viewId] || [];
