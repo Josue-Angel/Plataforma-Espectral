@@ -23,6 +23,26 @@ const logoutBtn = document.getElementById("logout-btn");
 const GUEST_LANDING_VIEW = "inicio";
 const AUTH_LANDING_VIEW = "equipo";
 
+function showToast(message, type = "error") {
+  const container = document.getElementById("toast-container");
+  if (!container) {
+    console.warn(message);
+    return;
+  }
+
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => toast.classList.add("show"));
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 220);
+  }, 3200);
+}
+
 function showView(viewId) {
   if (!isLoggedIn && viewId !== GUEST_LANDING_VIEW) viewId = GUEST_LANDING_VIEW;
 
@@ -182,8 +202,8 @@ async function initSession(user) {
   logoutBtn.classList.remove("hidden");
   updateNavForRole(currentRole);
 
-  // Redirección automática tras login a la sección Inicio.
-  showView("inicio");
+  // Redirección automática tras login a la sección Equipo y proyecto.
+  showView(AUTH_LANDING_VIEW);
 
   if (currentRole === "admin") {
     await cargarVoluntarios();
@@ -317,7 +337,7 @@ tablaVoluntarios.addEventListener("click", (e) => {
 
   if (action === "editar") {
     if (!isLoggedIn || currentRole !== "admin") {
-      alert("Solo la Doctora/Administrador puede editar voluntarios.");
+      showToast("Solo la Doctora/Administrador puede editar voluntarios.");
       return;
     }
     cargarEnFormulario(vol);
@@ -354,7 +374,7 @@ formVoluntario.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   if (!isLoggedIn || currentRole !== "admin") {
-    alert("Solo la Doctora/Administrador puede registrar o editar voluntarios.");
+    showToast("Solo la Doctora/Administrador puede registrar o editar voluntarios.");
     return;
   }
 
@@ -367,17 +387,17 @@ formVoluntario.addEventListener("submit", async (e) => {
   const fecha = inputFecha.value;
 
   if (!/^\d+$/.test(identificador)) {
-    alert("El identificador debe contener solo números.");
+    showToast("El identificador debe contener solo números.");
     return;
   }
 
   if (!identificador || !sexo || !carrera || !fototipo || !fecha || !Number.isFinite(edad)) {
-    alert("Por favor, completa todos los campos obligatorios.");
+    showToast("Por favor, completa todos los campos obligatorios.");
     return;
   }
 
   if (!/^[^\s@]+@upt\.edu\.mx$/i.test(correo)) {
-    alert("El correo debe ser institucional y terminar en @upt.edu.mx.");
+    showToast("El correo debe ser institucional y terminar en @upt.edu.mx.");
     return;
   }
 
@@ -386,11 +406,17 @@ formVoluntario.addEventListener("submit", async (e) => {
 
   if (idEnEdicion) {
     const { data, error } = await supabaseClient.from("voluntarios").update(payload).eq("id", idEnEdicion).select().single();
-    if (error) return alert("Error al actualizar voluntario.");
+    if (error) {
+      showToast("Error al actualizar voluntario.");
+      return;
+    }
     voluntarioId = data.id;
   } else {
     const { data, error } = await supabaseClient.from("voluntarios").insert(payload).select().single();
-    if (error) return alert("Error al guardar voluntario.");
+    if (error) {
+      showToast("Error al guardar voluntario.");
+      return;
+    }
     voluntarioId = data.id;
   }
 
@@ -433,12 +459,12 @@ function validateCurrentStep(targetStep) {
     const acepta = document.getElementById("aceptaConsentimiento").checked;
 
     if (!validarNombreCompleto(nombre)) {
-      alert("Debes capturar al menos nombre y apellido.");
+      showToast("Debes capturar al menos nombre y apellido.");
       return false;
     }
 
     if (!acepta) {
-      alert("Debes aceptar el consentimiento para continuar.");
+      showToast("Debes aceptar el consentimiento para continuar.");
       return false;
     }
 
@@ -453,17 +479,17 @@ function validateCurrentStep(targetStep) {
     const correo = document.getElementById("correo").value.trim();
 
     if (!/^\d+$/.test(identificador)) {
-      alert("La matrícula/identificador debe contener solo números.");
+      showToast("La matrícula/identificador debe contener solo números.");
       return false;
     }
 
     if (!identificador || !edad || !sexo || !carrera || !correo) {
-      alert("Completa todos los datos obligatorios antes de continuar.");
+      showToast("Completa todos los datos obligatorios antes de continuar.");
       return false;
     }
 
     if (!validarCorreoUpt(correo)) {
-      alert("El correo debe ser válido y terminar en @upt.edu.mx.");
+      showToast("El correo debe ser válido y terminar en @upt.edu.mx.");
       return false;
     }
 
@@ -473,7 +499,7 @@ function validateCurrentStep(targetStep) {
   if (targetStep === 3) {
     const pendientes = ["ojos", "cabello", "piel_base", "pecas"].filter((q) => getSelectedValue(q) === null);
     if (pendientes.length) {
-      alert("Debes contestar todas las preguntas de Disposición Genética.");
+      showToast("Debes contestar todas las preguntas de Disposición Genética.");
       return false;
     }
     return true;
@@ -482,7 +508,7 @@ function validateCurrentStep(targetStep) {
   if (targetStep === 4) {
     const pendientes = ["quemadura", "bronceado", "horas_sol", "rostro"].filter((q) => getSelectedValue(q) === null);
     if (pendientes.length) {
-      alert("Debes contestar todas las preguntas de Reacción Solar.");
+      showToast("Debes contestar todas las preguntas de Reacción Solar.");
       return false;
     }
     return true;
@@ -491,14 +517,52 @@ function validateCurrentStep(targetStep) {
   return true;
 }
 
+const FORM_INITIAL_STEP = "consentimientoSection";
+const FORM_ORDER = [FORM_INITIAL_STEP, "step1", "step2", "step3", "step4"];
+let formCurrentStepIndex = 0;
+
+function setActiveFormStepById(stepId) {
+  const targetIndex = FORM_ORDER.indexOf(stepId);
+  if (targetIndex === -1) return;
+
+  document.querySelectorAll(".step").forEach((step) => step.classList.remove("active"));
+  const target = document.getElementById(stepId);
+  if (target) target.classList.add("active");
+  formCurrentStepIndex = targetIndex;
+}
+
 function nextStep(stepNumber) {
   if (!validateCurrentStep(stepNumber)) return;
 
-  document.querySelectorAll(".step").forEach((step) => step.classList.remove("active"));
-  const next = document.getElementById(`step${stepNumber}`);
-  if (next) next.classList.add("active");
+  const nextId = `step${stepNumber}`;
+  setActiveFormStepById(nextId);
 }
 window.nextStep = nextStep;
+
+function prevStep() {
+  const currentStepId = FORM_ORDER[formCurrentStepIndex];
+  if (currentStepId === "step1") {
+    showToast("No es posible regresar a la sección de consentimiento.", "info");
+    return;
+  }
+
+  const previousIndex = Math.max(1, formCurrentStepIndex - 1);
+  const previousId = FORM_ORDER[previousIndex];
+  setActiveFormStepById(previousId);
+}
+window.prevStep = prevStep;
+
+function cancelarFormularioFototipo() {
+  const formulario = document.querySelector(".skin-form");
+  if (formulario) formulario.reset();
+
+  const resultadoDiv = document.getElementById("resultadoFototipo");
+  if (resultadoDiv) resultadoDiv.classList.add("hidden");
+
+  setActiveFormStepById(FORM_INITIAL_STEP);
+  showToast("Formulario cancelado. Regresaste a la autorización inicial.", "info");
+}
+window.cancelarFormularioFototipo = cancelarFormularioFototipo;
 
 function calcularFototipo(total) {
   if (total <= 6) return "I";
@@ -537,7 +601,7 @@ function mostrarResultadoBonito(tipo) {
 
 async function guardarVoluntario() {
   if (!isLoggedIn) {
-    alert("Debes iniciar sesión para guardar el formulario.");
+    showToast("Debes iniciar sesión para guardar el formulario.");
     return;
   }
 
@@ -545,12 +609,12 @@ async function guardarVoluntario() {
 
   const pendientesFinal = ["ultima_vez", "regular"].filter((q) => getSelectedValue(q) === null);
   if (pendientesFinal.length) {
-    alert("Debes contestar todas las preguntas antes de finalizar.");
+    showToast("Debes contestar todas las preguntas antes de finalizar.");
     return;
   }
 
   if (!questionGroups.every((q) => getSelectedValue(q) !== null)) {
-    alert("Todas las preguntas del test son obligatorias.");
+    showToast("Todas las preguntas del test son obligatorias.");
     return;
   }
 
@@ -567,7 +631,7 @@ async function guardarVoluntario() {
   const { data: authData } = await supabaseClient.auth.getUser();
   const user = authData.user;
   if (!user) {
-    alert("Sesión expirada. Vuelve a iniciar sesión.");
+    showToast("Sesión expirada. Vuelve a iniciar sesión.");
     return;
   }
 
@@ -589,7 +653,7 @@ async function guardarVoluntario() {
   const { error } = await supabaseClient.from("voluntarios").insert(payload);
   if (error) {
     console.error(error);
-    alert("No se pudo guardar la información del voluntario.");
+    showToast("No se pudo guardar la información del voluntario.");
     return;
   }
 
