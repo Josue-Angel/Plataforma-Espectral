@@ -1,14 +1,5 @@
-// ===============================
-// CONFIGURACIÓN SUPABASE
-// ===============================
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ===============================
-// ROLES Y NAVEGACIÓN
-// ===============================
 const viewPermissions = {
   inicio: ["admin", "voluntario"],
   equipo: ["admin", "voluntario"],
@@ -20,29 +11,23 @@ const viewPermissions = {
 };
 
 let voluntariosCache = [];
-let currentRole = null; // 'admin' | 'voluntario' | null
+let currentRole = null;
 let isLoggedIn = false;
 let currentUserName = null;
-let currentUserEmail = null;
 
-// DOM navegación
 const views = document.querySelectorAll(".view");
 const navLinks = document.querySelectorAll("#nav-links a");
 const userLabel = document.getElementById("user-label");
 const logoutBtn = document.getElementById("logout-btn");
 
 function showView(viewId) {
+  if (!isLoggedIn && viewId !== "inicio") viewId = "inicio";
+
   if (isLoggedIn) {
-    const allowedRoles = viewPermissions[viewId];
-    if (allowedRoles && !allowedRoles.includes(currentRole)) {
+    const allowed = viewPermissions[viewId] || [];
+    if (!allowed.includes(currentRole)) {
       alert("No tienes permiso para acceder a esta sección.");
       return;
-    }
-  } else {
-    // Si NO está logueado, forzamos que solo vea la sección de Login
-    // aunque intente navegar a otra parte
-    if (viewId !== "inicio") {
-      viewId = "inicio"; 
     }
   }
 
@@ -51,57 +36,31 @@ function showView(viewId) {
   if (target) target.classList.add("active");
 
   navLinks.forEach((link) => {
-    link.classList.remove("active-link");
-    if (link.dataset.view === viewId) link.classList.add("active-link");
+    link.classList.toggle("active-link", link.dataset.view === viewId);
   });
 }
 
 function updateNavForRole(role) {
   const navContainer = document.getElementById("nav-links");
-  
   if (!role) {
-    // Si no hay rol (no hay login), ocultamos el menú completo
     navContainer.classList.remove("nav-active");
     return;
-  } 
+  }
 
-  // Si hay login, mostramos el menú y filtramos los links
   navContainer.classList.add("nav-active");
-
   navLinks.forEach((link) => {
-    const viewId = link.dataset.view;
-    const roles = (link.dataset.roles || "").split(",");
-    const trimmed = roles.map((r) => r.trim()).filter(Boolean);
-
-    // Ocultar "Inicio" si ya está logueado
-    if (viewId === "inicio") {
-      link.classList.add("hidden");
-      return;
-    }
-    
-    // Mostrar solo lo permitido para el rol
-    if (trimmed.length === 0 || trimmed.includes(role)) {
-      link.classList.remove("hidden");
-    } else {
-      link.classList.add("hidden");
-    }
+    const roles = (link.dataset.roles || "").split(",").map((r) => r.trim());
+    link.classList.toggle("hidden", roles.length > 0 && !roles.includes(role));
   });
 }
 
-// eventos de navegación
 navLinks.forEach((link) => {
   link.addEventListener("click", (e) => {
     e.preventDefault();
-    const viewId = link.dataset.view;
-    if (viewId) showView(viewId);
+    showView(link.dataset.view);
   });
 });
 
-// ===============================
-// AUTH: LOGIN + REGISTRO VOLUNTARIOS
-// ===============================
-
-// Tabs login/registro
 const tabButtons = document.querySelectorAll(".tab-auth");
 const loginPanel = document.getElementById("login-panel");
 const registerPanel = document.getElementById("register-panel");
@@ -111,56 +70,39 @@ tabButtons.forEach((btn) => {
     tabButtons.forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
 
-    const target = btn.dataset.target;
-    if (target === "login-panel") {
-      loginPanel.classList.remove("hidden");
-      registerPanel.classList.add("hidden");
-    } else {
-      registerPanel.classList.remove("hidden");
-      loginPanel.classList.add("hidden");
-    }
+    const showLogin = btn.dataset.target === "login-panel";
+    loginPanel.classList.toggle("hidden", !showLogin);
+    registerPanel.classList.toggle("hidden", showLogin);
   });
 });
 
-// LOGIN
 const loginForm = document.getElementById("login-form");
 const loginError = document.getElementById("login-error");
-
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   loginError.classList.add("hidden");
-  loginError.textContent = "";
 
   const email = document.getElementById("login-email").value.trim();
   const password = document.getElementById("login-password").value.trim();
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
   if (error) {
-    console.error("Error login:", error);
     loginError.textContent = error.message || "Error al iniciar sesión.";
     loginError.classList.remove("hidden");
     return;
   }
 
-  if (data.user) {
-    await initSession(data.user);
-  }
+  if (data.user) await initSession(data.user);
 });
 
-// REGISTRO (solo voluntarios)
 const registerForm = document.getElementById("register-form");
 const regError = document.getElementById("register-error");
 const regSuccess = document.getElementById("register-success");
-
 registerForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   regError.classList.add("hidden");
   regSuccess.classList.add("hidden");
-  regError.textContent = "";
 
   const nombre = document.getElementById("reg-name").value.trim();
   const email = document.getElementById("reg-email").value.trim();
@@ -173,42 +115,30 @@ registerForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password: pass1,
-  });
-
+  const { data, error } = await supabaseClient.auth.signUp({ email, password: pass1 });
   if (error) {
-    console.error("Error registro:", error);
     regError.textContent = error.message || "Error al crear la cuenta.";
     regError.classList.remove("hidden");
     return;
   }
 
-  const user = data.user;
-  // Crear perfil con rol voluntario
-  if (user) {
-    const { error: profErr } = await supabaseClient.from("perfiles").insert({
-      id: user.id,
+  if (data.user) {
+    await supabaseClient.from("perfiles").upsert({
+      id: data.user.id,
       email,
       nombre,
       role: "voluntario",
     });
-    if (profErr) {
-      console.error("Error creando perfil:", profErr);
-    }
   }
 
   registerForm.reset();
   regSuccess.classList.remove("hidden");
 });
 
-// Cerrar sesión
 logoutBtn.addEventListener("click", async () => {
   await supabaseClient.auth.signOut();
   isLoggedIn = false;
   currentRole = null;
-  currentUserEmail = null;
   currentUserName = null;
   userLabel.textContent = "No has iniciado sesión";
   logoutBtn.classList.add("hidden");
@@ -216,225 +146,41 @@ logoutBtn.addEventListener("click", async () => {
   showView("inicio");
 });
 
-// Inicializar sesión (login o sesión ya existente)
 async function initSession(user) {
   isLoggedIn = true;
-  currentUserEmail = user.email || "";
-
-  // 1. Consultamos el perfil
-  const { data: perfil, error } = await supabaseClient
+  const { data: perfil } = await supabaseClient
     .from("perfiles")
     .select("nombre, role")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  // 2. Manejo de errores para que la app NO se rompa
-  if (error) {
-    console.warn("No se encontró el perfil en la tabla, usando rol voluntario.");
-    currentRole = "voluntario";
-    currentUserName = currentUserEmail;
-  } else {
-    // Aquí perfil ya existe porque lo definimos arriba en la desestructuración
-    currentRole = perfil.role || "voluntario";
-    currentUserName = perfil.nombre || currentUserEmail;
-  }
+  currentRole = perfil?.role || "voluntario";
+  currentUserName = perfil?.nombre || user.email;
 
-  // 3. Actualizar interfaz
-  userLabel.textContent = `${currentUserName} (${
-    currentRole === "admin" ? "Doctora/Administrador" : "Voluntario"
-  })`;
-  
-  if (logoutBtn) logoutBtn.classList.remove("hidden");
-  
-  // Activar navegación y redirigir
+  userLabel.textContent = `${currentUserName} (${currentRole === "admin" ? "Doctora/Administrador" : "Voluntario"})`;
+  logoutBtn.classList.remove("hidden");
   updateNavForRole(currentRole);
+
+  // Redirección automática tras login a la sección Inicio.
   showView("inicio");
 
-  // Cargar datos si es admin
-  if (currentRole === "admin" && typeof cargarVoluntarios === "function") {
+  if (currentRole === "admin") {
     await cargarVoluntarios();
   }
 }
 
-// Restaurar sesión si ya estaba logueado
 async function restoreSession() {
-  const { data, error } = await supabaseClient.auth.getSession();
-  if (error) {
-    console.error("Error obteniendo sesión:", error);
-    updateNavForRole(null);
-    showView("inicio");
-    return;
-  }
-  const session = data.session;
-  if (session && session.user) {
-    await initSession(session.user);
+  const { data } = await supabaseClient.auth.getSession();
+  if (data.session?.user) {
+    await initSession(data.session.user);
   } else {
     updateNavForRole(null);
     showView("inicio");
   }
 }
 
-// Reemplazo para la lógica de consentimiento
-// MODIFICACIÓN PARA EVITAR EL ERROR "NULL"
-const btnConsentimiento = document.getElementById("btnContinuarConsentimiento");
-
-if (btnConsentimiento) {
-    btnConsentimiento.addEventListener("click", async () => {
-        const nombreInput = document.getElementById("nombreConsentimiento");
-        const aceptaInput = document.getElementById("aceptaConsentimiento");
-
-        if (!nombreInput || !aceptaInput) return; // Seguridad extra
-
-        const nombre = nombreInput.value.trim();
-        const acepta = aceptaInput.checked;
-
-        if (!nombre || !acepta) {
-            alert("Debes completar el nombre y aceptar el consentimiento.");
-            return;
-        }
-
-        const { data: { user } } = await supabaseClient.auth.getUser();
-
-        if (!user) {
-            alert("Debes estar logueado para guardar el consentimiento.");
-            return;
-        }
-
-        const { error } = await supabaseClient
-            .from("perfiles")
-            .update({ 
-                nombre_completo: nombre, 
-                consentimiento: true 
-            })
-            .eq("id", user.id);
-
-        if (error) {
-            console.error("Error al guardar consentimiento:", error);
-            alert("Error al guardar en la base de datos.");
-        } else {
-            localStorage.setItem("nombreConsentimiento", nombre);
-            // Verifica que estos IDs existan en tu HTML
-            const seccionCons = document.getElementById("consentimientoSection");
-            const seccionFoto = document.getElementById("formularioFototipo");
-            if(seccionCons) seccionCons.style.display = "none";
-            if(seccionFoto) seccionFoto.style.display = "block";
-        }
-    });
-}
-
-async function finalizarTest() {
-    const resultado = calcularFototipo(); // Asegúrate que esta función devuelva el texto (ej: "Fototipo II")
-    
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    
-    if (!user) {
-        alert("Sesión expirada. Por favor vuelve a entrar.");
-        return;
-    }
-
-    // 1. Verificar si ya lo completó (evitar duplicados)
-    const { data: perfil } = await supabaseClient
-        .from("perfiles")
-        .select("test_fototipo_completado")
-        .eq("id", user.id)
-        .single();
-
-    if (perfil?.test_fototipo_completado) {
-        alert("Este test solo puede realizarse una vez.");
-        return;
-    }
-
-    // 2. Insertar el resultado en la tabla de resultados
-    const { error: errorRes } = await supabaseClient
-        .from("resultados_fototipo")
-        .insert([{
-            usuario_id: user.id,
-            resultado: resultado,
-            respuestas: JSON.stringify(respuestas) // 'respuestas' es tu variable global
-        }]);
-
-    if (errorRes) {
-        console.error("Error al guardar resultado:", errorRes);
-        return;
-    }
-
-    // 3. Marcar como completado en el perfil del usuario
-    await supabaseClient
-        .from("perfiles")
-        .update({ test_fototipo_completado: true })
-        .eq("id", user.id);
-
-    mostrarResultadoBonito(resultado);
-    localStorage.removeItem("fototipo_progreso");
-    localStorage.removeItem("fototipo_paso");
-}
-
-async function cargarVoluntariosAdmin() {
-    // Solo si el rol es admin
-    if (currentRole !== "admin") return;
-
-    const { data, error } = await supabaseClient
-        .from("perfiles") // O la tabla donde guardas a los usuarios que hicieron el test
-        .select(`
-            id, 
-            nombre_completo, 
-            resultados_fototipo (resultado, creado_en)
-        `);
-
-    if (error) {
-        console.error("Error al obtener voluntarios:", error);
-        return;
-    }
-
-    const tabla = document.getElementById("tablaVoluntarios");
-    tabla.innerHTML = ""; // Limpiar tabla
-
-    data.forEach(v => {
-        const resultadoObj = v.resultados_fototipo?.[0] || {};
-        tabla.innerHTML += `
-            <tr>
-                <td>${v.nombre_completo || "Sin nombre"}</td>
-                <td>${resultadoObj.resultado || "Pendiente"}</td>
-                <td>${resultadoObj.creado_en || "-"}</td>
-                <td>
-                    <button onclick="resetearUsuario('${v.id}')" class="btn-danger">
-                        Resetear
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-}
-
-async function resetearUsuario(userId) {
-    if (!confirm("¿Estás seguro de resetear el test de este usuario?")) return;
-
-    // 1. Borrar resultados previos
-    const { error: delErr } = await supabaseClient
-        .from("resultados_fototipo")
-        .delete()
-        .eq("usuario_id", userId);
-
-    // 2. Habilitar el test de nuevo en el perfil
-    const { error: updErr } = await supabaseClient
-        .from("perfiles")
-        .update({ test_fototipo_completado: false })
-        .eq("id", userId);
-
-    if (!delErr && !updErr) {
-        alert("Usuario reseteado correctamente.");
-        cargarVoluntariosAdmin(); // Recargar tabla
-    }
-}
-
-// ===============================
-// BASE DE DATOS ESPECTRAL CON SUPABASE
-// ===============================
-
-
 const tablaVoluntarios = document.getElementById("tabla-voluntarios");
 const formVoluntario = document.getElementById("form-voluntario");
-
 const inputId = document.getElementById("vol-id");
 const inputIdentificador = document.getElementById("vol-identificador");
 const inputSexo = document.getElementById("vol-sexo");
@@ -445,20 +191,22 @@ const inputFototipo = document.getElementById("vol-fototipo");
 const inputFecha = document.getElementById("vol-fecha");
 const inputEspectros = document.getElementById("vol-espectros");
 const inputImagenes = document.getElementById("vol-imagenes");
-
 const btnGuardarVol = document.getElementById("btn-guardar-vol");
 const btnCancelarEdicion = document.getElementById("btn-cancelar-edicion");
 
 const detalleArchivosCard = document.getElementById("detalle-archivos");
 const detalleTitulo = document.getElementById("detalle-titulo");
 const detalleLista = document.getElementById("detalle-lista");
-
 let idEnEdicion = null;
 
-// Cargar voluntarios + espectros + imagenes
-async function cargarVoluntarios() {
-  console.log("Intentando cargar voluntarios..."); // Debug para ver si se ejecuta
+function normalizeFototipoForSelect(value) {
+  if (!value) return "";
+  const clean = String(value).toUpperCase().replace("FOTOTIPO", "").trim();
+  const mapping = { I: "I", II: "II", III: "III", IV: "IV", V: "V y VI", VI: "V y VI", "V Y VI": "V y VI" };
+  return mapping[clean] || "";
+}
 
+async function cargarVoluntarios() {
   const { data, error } = await supabaseClient
     .from("voluntarios")
     .select(`
@@ -476,113 +224,73 @@ async function cargarVoluntarios() {
     .order("id", { ascending: true });
 
   if (error) {
-    console.error("Error crítico en Supabase:", error.message, error.details);
-    alert("Error al cargar datos. Revisa la consola.");
+    console.error("Error al cargar voluntarios:", error);
     return;
   }
 
-  console.log("Datos recibidos:", data); // Verifica que 'data' sea un array con objetos
   voluntariosCache = data || [];
-  
-  // Llamamos a las funciones que pintan la pantalla
   renderVoluntarios();
   actualizarDashboard();
 }
 
-// Pintar tabla
 function renderVoluntarios() {
   tablaVoluntarios.innerHTML = "";
 
   voluntariosCache.forEach((v) => {
+    const tr = document.createElement("tr");
     const espectros = v.espectros || [];
     const imagenes = v.imagenes || [];
 
-    const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${v.id}</td>
-      <td>${v.identificador}</td>
-      <td>${v.sexo}</td>
-      <td>${v.edad}</td>
-      <td>${v.carrera}</td>
-      <td>${v.correo}</td>
-      <td>${v.fototipo_de_piel}</td>
-      <td>${v.fecha}</td>
-      <td>
-        ${
-          espectros.length > 0
-            ? `<button class="btn btn-small" data-action="ver-espectros" data-id="${v.id}">
-                 Ver archivos (${espectros.length})
-               </button>`
-            : "<span class='small muted'>Sin espectros</span>"
-        }
-      </td>
-      <td>
-        ${
-          imagenes.length > 0
-            ? `<button class="btn btn-small" data-action="ver-imagenes" data-id="${v.id}">
-                 Ver imágenes (${imagenes.length})
-               </button>`
-            : "<span class='small muted'>Sin imágenes</span>"
-        }
-      </td>
-      <td>
-        <button class="btn btn-small btn-outline" data-action="editar" data-id="${v.id}">
-          Editar
-        </button>
-      </td>
+      <td>${v.identificador || ""}</td>
+      <td>${v.sexo || ""}</td>
+      <td>${v.edad || ""}</td>
+      <td>${v.carrera || ""}</td>
+      <td>${v.correo || ""}</td>
+      <td>${v.fototipo_de_piel || ""}</td>
+      <td>${v.fecha || ""}</td>
+      <td>${espectros.length ? `<button class="btn btn-small" data-action="ver-espectros" data-id="${v.id}">Ver archivos (${espectros.length})</button>` : "<span class='small muted'>Sin espectros</span>"}</td>
+      <td>${imagenes.length ? `<button class="btn btn-small" data-action="ver-imagenes" data-id="${v.id}">Ver imágenes (${imagenes.length})</button>` : "<span class='small muted'>Sin imágenes</span>"}</td>
+      <td><button class="btn btn-small btn-outline" data-action="editar" data-id="${v.id}">Editar</button></td>
     `;
+
     tablaVoluntarios.appendChild(tr);
   });
 }
 
-// Mostrar archivos / imágenes de un voluntario
 function mostrarArchivos(vol, tipo) {
   if (!vol) return;
+  const items = tipo === "espectros" ? vol.espectros || [] : vol.imagenes || [];
+  const bucket = tipo === "espectros" ? "espectros" : "imagenes";
+  const pathKey = tipo === "espectros" ? "espectro_path" : "imagen_path";
 
-  const espectros = vol.espectros || [];
-  const imagenes = vol.imagenes || [];
-
+  detalleTitulo.textContent = `${tipo === "espectros" ? "Espectros" : "Imágenes"} de ${vol.identificador}`;
   detalleLista.innerHTML = "";
 
-  if (tipo === "espectros") {
-    detalleTitulo.textContent = `Espectros de ${vol.identificador}`;
-    espectros.forEach((e) => {
-      const url = supabaseClient.storage
-        .from("espectros")
-        .getPublicUrl(e.espectro_path).data.publicUrl;
-      const li = document.createElement("li");
-      li.innerHTML = `<a href="${url}" target="_blank">${e.espectro_path}</a>`;
-      detalleLista.appendChild(li);
-    });
-  } else {
-    detalleTitulo.textContent = `Imágenes de ${vol.identificador}`;
-    imagenes.forEach((img) => {
-      const url = supabaseClient.storage
-        .from("imagenes")
-        .getPublicUrl(img.imagen_path).data.publicUrl;
-      const li = document.createElement("li");
-      li.innerHTML = `<a href="${url}" target="_blank">${img.imagen_path}</a>`;
-      detalleLista.appendChild(li);
-    });
-  }
+  items.forEach((item) => {
+    const path = item[pathKey];
+    const url = supabaseClient.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+    const li = document.createElement("li");
+    li.innerHTML = `<a href="${url}" target="_blank">${path}</a>`;
+    detalleLista.appendChild(li);
+  });
 
   detalleArchivosCard.classList.remove("hidden");
 }
 
-// Click en botones de la tabla
 tablaVoluntarios.addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-action]");
   if (!btn) return;
 
-  const id = parseInt(btn.dataset.id, 10);
-  const action = btn.dataset.action;
+  const id = Number(btn.dataset.id);
   const vol = voluntariosCache.find((v) => v.id === id);
+  const action = btn.dataset.action;
 
-  if (action === "ver-espectros") {
-    mostrarArchivos(vol, "espectros");
-  } else if (action === "ver-imagenes") {
-    mostrarArchivos(vol, "imagenes");
-  } else if (action === "editar") {
+  if (action === "ver-espectros") mostrarArchivos(vol, "espectros");
+  if (action === "ver-imagenes") mostrarArchivos(vol, "imagenes");
+
+  if (action === "editar") {
     if (!isLoggedIn || currentRole !== "admin") {
       alert("Solo la Doctora/Administrador puede editar voluntarios.");
       return;
@@ -591,376 +299,19 @@ tablaVoluntarios.addEventListener("click", (e) => {
   }
 });
 
-
-
-async function finalizarTest() {
-  const resultado = calcularFototipo();
-
-  await fetch("/guardar-fototipo", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userId: usuarioId,
-      respuestas,
-      resultadoFinal: resultado
-    })
-  });
-
-  mostrarResultadoBonito(resultado);
-}
-
-function soloAdmin(req, res, next) {
-  if (req.user.rol !== "admin") {
-    return res.status(403).json({ mensaje: "Acceso restringido" });
-  }
-  next();
-}
-
-fetch("/admin/voluntarios")
-.then(res => res.json())
-.then(data => {
-
-  const tabla = document.getElementById("tablaVoluntarios");
-
-  data.forEach(v => {
-    tabla.innerHTML += `
-      <tr>
-        <td>${v.nombre_completo}</td>
-        <td>${v.resultado || "Pendiente"}</td>
-        <td>${v.fecha || "-"}</td>
-        <td>
-          <button onclick="resetear(${v.id})">
-            Resetear
-          </button>
-        </td>
-      </tr>
-    `;
-  });
-});
-
-
-function resetear(id) {
-  fetch("/admin/resetear", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: id })
-  })
-  .then(() => location.reload());
-}
-
-
-
-// ===============================
-// CONTROL DE PASOS
-// ===============================
-
-function nextStep(stepNumber) {
-  const steps = document.querySelectorAll(".step");
-
-  steps.forEach(step => step.classList.remove("active"));
-
-  const next = document.getElementById("step" + stepNumber);
-  if (next) {
-    next.classList.add("active");
-  }
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-
-  const btnConsentimiento = document.getElementById("btnContinuarConsentimiento");
-  const nombreInput = document.getElementById("nombreConsentimiento");
-  const checkbox = document.getElementById("aceptaConsentimiento");
-
-  btnConsentimiento.addEventListener("click", function () {
-
-    if (nombreInput.value.trim() === "") {
-      alert("Por favor ingrese su nombre completo.");
-      return;
-    }
-
-    if (!checkbox.checked) {
-      alert("Debe aceptar el tratamiento de datos para continuar.");
-      return;
-    }
-
-    nextStep(1); // 👈 usa tu función correctamente
-
-  });
-
-});
-
-
-/* ============================
-   CALCULAR FOTOTIPO
-============================ */
-
-function calcularFototipo(total) {
-
-  if (total <= 6) return "Fototipo I";
-  if (total <= 13) return "Fototipo II";
-  if (total <= 20) return "Fototipo III";
-  if (total <= 27) return "Fototipo IV";
-  if (total <= 34) return "Fototipo V";
-  return "Fototipo VI";
-
-}
-
-
-/* ============================
-   FUNCIÓN FINAL
-============================ */
-
-function iniciarFormulario() {
-  if (currentRole === "admin") {
-    // El admin siempre puede entrar
-    nextStep(1); 
-    return;
-  }
-
-  // Si es voluntario, checamos si ya terminó
-  // (Esta variable debe venir de tu función initSession)
-  if (perfilGlobalDeUsuario.test_fototipo_completado) {
-    alert("Acceso restringido: Ya completaste tu evaluación.");
-  } else {
-    nextStep(1);
-  }
-}
-
-async function guardarVoluntario() {
-  // 1. Capturar los datos de la Sección 1 (Identificación)
-  const identificador = document.getElementById("identificador").value.trim();
-  const edad = document.getElementById("edad").value;
-  const sexo = document.getElementById("sexo").value;
-  const correo = document.getElementById("correo").value.trim();
-  
-  // Agregamos la captura de 'carrera' para evitar el error de restricción NOT NULL
-  const carreraInput = document.getElementById("carrera");
-  const carrera = carreraInput ? carreraInput.value.trim() : "No especificada";
-
-  // Validación: La matrícula/identificador es clave primaria emocional aquí
-  if (!identificador) {
-    alert("La matrícula es obligatoria para guardar tus resultados.");
-    return;
-  }
-
-  // 2. Calcular el Fototipo (Suma de los 10 radios)
-  const seleccionados = document.querySelectorAll('input[type="radio"]:checked');
-  if (seleccionados.length < 10) {
-    alert("Por favor, responde las 10 preguntas antes de finalizar.");
-    return;
-  }
-
-  let puntajeTotal = 0;
-  seleccionados.forEach(radio => {
-    puntajeTotal += parseInt(radio.value);
-  });
-
-  const fototipoFinal = calcularFototipo(puntajeTotal);
-
-  // 3. Enviar a Supabase (Insertar en la tabla 'voluntarios')
-  const { data, error } = await supabaseClient
-    .from("voluntarios")
-    .insert([
-      {
-        identificador: identificador,
-        carrera: carrera, // <-- Ya no enviamos NULL
-        edad: edad ? parseInt(edad) : null,
-        sexo: sexo,
-        correo: correo,
-        fototipo_de_piel: fototipoFinal,
-        fecha: new Date().toISOString().split('T')[0]
-      }
-    ]);
-
-  // 4. Manejo del resultado
-  if (error) {
-    console.error("Error al guardar en voluntarios:", error);
-    alert("Hubo un error al guardar: " + error.message);
-  } else {
-    // ÉXITO: Actualizamos la pantalla de resultados
-    const tipoLabel = document.getElementById("tipoFototipo");
-    const resultadoContainer = document.getElementById("resultadoFototipo");
-    
-    if (tipoLabel) tipoLabel.textContent = fototipoFinal;
-    if (resultadoContainer) resultadoContainer.classList.remove("hidden");
-
-    // Llenamos la descripción según el fototipo (opcional pero recomendado)
-    llenarInfoFototipo(fototipoFinal);
-
-    alert("¡Datos guardados correctamente!");
-
-    // Si es administrador, refrescamos la tabla de la base de datos automáticamente
-    if (currentRole === "admin" && typeof cargarVoluntarios === "function") {
-      await cargarVoluntarios();
-    }
-
-    // Scroll suave hacia el resultado
-    resultadoContainer.scrollIntoView({ behavior: 'smooth' });
-  }
-}
-
-// Función auxiliar para las descripciones (puedes pegarla debajo)
-function llenarInfoFototipo(tipo) {
-    const desc = document.getElementById("descripcionFototipo");
-    const rec = document.getElementById("recomendacionFototipo");
-    
-    const info = {
-        "Fototipo I": { d: "Piel muy clara, pelirrojos, siempre se queman.", r: "Protección solar SPF 50+ obligatoria." },
-        "Fototipo II": { d: "Piel clara, ojos claros, se queman fácilmente.", r: "Protección muy alta y evitar sol directo." },
-        "Fototipo III": { d: "Piel blanca a aceitunada, bronceado gradual.", r: "SPF 30-50 y moderación solar." },
-        "Fototipo IV": { d: "Piel morena clara, se broncean rápido.", r: "SPF 30 y cuidado en horas pico." },
-        "Fototipo V": { d: "Piel morena oscura, raramente se queman.", r: "SPF 15-30 para prevenir manchas." },
-        "Fototipo VI": { d: "Piel negra, nunca se queman.", r: "SPF 15 para protección contra fotoenvejecimiento." }
-    };
-
-    if (desc && rec && info[tipo]) {
-        desc.textContent = info[tipo].d;
-        rec.textContent = info[tipo].r;
-    }
-}
-
-function validarConsentimiento() {
-
-  const nombre = document.getElementById("nombreCompleto").value.trim();
-  const acepta = document.getElementById("aceptaConsentimiento").checked;
-
-  if (!nombre) {
-    alert("Debes ingresar tu nombre completo.");
-    return;
-  }
-
-  if (!acepta) {
-    alert("Debes aceptar el consentimiento.");
-    return;
-  }
-
-  // Guardamos nombre temporalmente
-  localStorage.setItem("nombreConsentimiento", nombre);
-
-  // Cambiar vista
-  document.getElementById("consentimiento").classList.remove("active");
-  document.getElementById("formularios").classList.add("active");
-}
-
-let respuestas = JSON.parse(localStorage.getItem("fototipo_progreso")) || {};
-let pasoActual = parseInt(localStorage.getItem("fototipo_paso")) || 0;
-
-function guardarProgreso() {
-  localStorage.setItem("fototipo_progreso", JSON.stringify(respuestas));
-  localStorage.setItem("fototipo_paso", pasoActual);
-}
-
-opciones.forEach(opcion => {
-  opcion.addEventListener("click", () => {
-    respuestas[pasoActual] = opcion.value;
-    guardarProgreso();
-    siguientePaso();
-  });
-});
-
-function finalizarTest() {
-  const resultado = calcularFototipo();
-
-  fetch("/guardar-fototipo", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      userId: usuarioId,
-      respuestas,
-      resultadoFinal: resultado
-    })
-  });
-
-  mostrarResultadoBonito(resultado);
-
-  localStorage.removeItem("fototipo_progreso");
-  localStorage.removeItem("fototipo_paso");
-}
-
-function mostrarResultadoBonito(tipo) {
-  const resultadoDiv = document.getElementById("resultadoFototipo");
-  const titulo = document.getElementById("tipoFototipo");
-  const descripcion = document.getElementById("descripcionFototipo");
-  const recomendacion = document.getElementById("recomendacionFototipo");
-
-  resultadoDiv.classList.remove("hidden");
-
-  titulo.textContent = `Tu fototipo es: ${tipo}`;
-
-  const info = obtenerInfoFototipo(tipo);
-
-  descripcion.textContent = info.descripcion;
-  recomendacion.textContent = info.recomendacion;
-
-  resultadoDiv.scrollIntoView({ behavior: "smooth" });
-}
-
-function obtenerInfoFototipo(tipo) {
-  const data = {
-    I: {
-      descripcion: "Piel muy clara...",
-      recomendacion: "Protección solar SPF 50 obligatoria..."
-    },
-    II: {
-      descripcion: "Piel clara...",
-      recomendacion: "Usar protector SPF 30+..."
-    },
-    III: {
-      descripcion: "Piel intermedia...",
-      recomendacion: "Protección solar moderada..."
-    },
-    IV: {
-      descripcion: "Piel morena...",
-      recomendacion: "SPF 30 recomendado..."
-    },
-    V: {
-      descripcion: "Piel morena oscura...",
-      recomendacion: "Protección básica diaria..."
-    },
-    VI: {
-      descripcion: "Piel muy oscura...",
-      recomendacion: "Protección preventiva..."
-    }
-  };
-
-  return data[tipo];
-}
-
-fetch("/verificar-test", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ userId: usuarioId })
-})
-.then(res => res.json())
-.then(data => {
-  if (data.completado) {
-    document.getElementById("formularioFototipo").innerHTML = `
-      <div class="mensaje-bloqueado">
-        <h2>Ya realizaste este análisis</h2>
-        <p>Solo puede realizarse una vez por cuenta.</p>
-      </div>
-    `;
-  }
-});
-
 function cargarEnFormulario(vol) {
   if (!vol) return;
-
   idEnEdicion = vol.id;
   inputId.value = vol.id;
-  inputIdentificador.value = vol.identificador;
-  inputSexo.value = vol.sexo;
-  inputEdad.value = vol.edad;
-  inputCarrera.value = vol.carrera;
-  inputCorreo.value = vol.correo;
-  inputFototipo.value = vol.fototipo_de_piel;
-  inputFecha.value = vol.fecha;
-
+  inputIdentificador.value = vol.identificador || "";
+  inputSexo.value = vol.sexo || "";
+  inputEdad.value = vol.edad || "";
+  inputCarrera.value = vol.carrera || "";
+  inputCorreo.value = vol.correo || "";
+  inputFototipo.value = normalizeFototipoForSelect(vol.fototipo_de_piel);
+  inputFecha.value = vol.fecha || "";
   inputEspectros.value = "";
   inputImagenes.value = "";
-
   btnGuardarVol.textContent = "Actualizar voluntario";
   btnCancelarEdicion.classList.remove("hidden");
 }
@@ -972,12 +323,8 @@ function resetFormulario() {
   btnGuardarVol.textContent = "Guardar voluntario";
   btnCancelarEdicion.classList.add("hidden");
 }
+btnCancelarEdicion.addEventListener("click", resetFormulario);
 
-btnCancelarEdicion.addEventListener("click", () => {
-  resetFormulario();
-});
-
-// Guardar / actualizar voluntario + subir archivos
 formVoluntario.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -994,139 +341,277 @@ formVoluntario.addEventListener("submit", async (e) => {
   const fototipo = inputFototipo.value;
   const fecha = inputFecha.value;
 
-  if (!identificador || !sexo || !carrera || !correo || !fototipo || !fecha || !Number.isFinite(edad)) {
+  if (!/^\d+$/.test(identificador)) {
+    alert("El identificador debe contener solo números.");
+    return;
+  }
+
+  if (!identificador || !sexo || !carrera || !fototipo || !fecha || !Number.isFinite(edad)) {
     alert("Por favor, completa todos los campos obligatorios.");
     return;
   }
 
+  if (!/^[^\s@]+@upt\.edu\.mx$/i.test(correo)) {
+    alert("El correo debe ser institucional y terminar en @upt.edu.mx.");
+    return;
+  }
+
   let voluntarioId;
+  const payload = { identificador, sexo, edad, carrera, correo, fototipo_de_piel: fototipo, fecha };
 
   if (idEnEdicion) {
-    const { data, error } = await supabaseClient
-      .from("voluntarios")
-      .update({
-        identificador,
-        sexo,
-        edad,
-        carrera,
-        correo,
-        fototipo_de_piel: fototipo,
-        fecha,
-      })
-      .eq("id", idEnEdicion)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error actualizando voluntario:", error);
-      alert("Error al actualizar voluntario.");
-      return;
-    }
+    const { data, error } = await supabaseClient.from("voluntarios").update(payload).eq("id", idEnEdicion).select().single();
+    if (error) return alert("Error al actualizar voluntario.");
     voluntarioId = data.id;
   } else {
-    const { data, error } = await supabaseClient
-      .from("voluntarios")
-      .insert({
-        identificador,
-        sexo,
-        edad,
-        carrera,
-        correo,
-        fototipo_de_piel: fototipo,
-        fecha,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error insertando voluntario:", error);
-      alert("Error al guardar voluntario.");
-      return;
-    }
+    const { data, error } = await supabaseClient.from("voluntarios").insert(payload).select().single();
+    if (error) return alert("Error al guardar voluntario.");
     voluntarioId = data.id;
   }
 
-  // Subir espectros múltiples
-  const espectroFiles = Array.from(inputEspectros.files || []);
-  for (const file of espectroFiles) {
+  for (const file of Array.from(inputEspectros.files || [])) {
     const path = `voluntarios/${voluntarioId}/espectros/${Date.now()}_${file.name}`;
-    const { error: upErr } = await supabaseClient.storage
-      .from("espectros")
-      .upload(path, file);
-    if (!upErr) {
-      await supabaseClient.from("espectros").insert({
-        voluntario_id: voluntarioId,
-        espectro_path: path,
-      });
-    } else {
-      console.error("Error subiendo espectro:", upErr);
-    }
+    const { error: upErr } = await supabaseClient.storage.from("espectros").upload(path, file);
+    if (!upErr) await supabaseClient.from("espectros").insert({ voluntario_id: voluntarioId, espectro_path: path });
   }
 
-  // Subir imágenes múltiples
-  const imagenFiles = Array.from(inputImagenes.files || []);
-  for (const file of imagenFiles) {
+  for (const file of Array.from(inputImagenes.files || [])) {
     const path = `voluntarios/${voluntarioId}/imagenes/${Date.now()}_${file.name}`;
-    const { error: upErr } = await supabaseClient.storage
-      .from("imagenes")
-      .upload(path, file);
-    if (!upErr) {
-      await supabaseClient.from("imagenes").insert({
-        voluntario_id: voluntarioId,
-        imagen_path: path,
-      });
-    } else {
-      console.error("Error subiendo imagen:", upErr);
-    }
+    const { error: upErr } = await supabaseClient.storage.from("imagenes").upload(path, file);
+    if (!upErr) await supabaseClient.from("imagenes").insert({ voluntario_id: voluntarioId, imagen_path: path });
   }
 
   resetFormulario();
   await cargarVoluntarios();
 });
 
-document.getElementById("btnContinuarConsentimiento")
-.addEventListener("click", async () => {
+// Formulario fototipo
+const questionGroups = ["ojos", "cabello", "piel_base", "pecas", "quemadura", "bronceado", "horas_sol", "rostro", "ultima_vez", "regular"];
 
-  const nombre = document.getElementById("nombreConsentimiento").value;
-  const acepta = document.getElementById("aceptaConsentimiento").checked;
+function validarNombreCompleto(nombre) {
+  const partes = nombre.trim().split(/\s+/).filter(Boolean);
+  return partes.length >= 2;
+}
 
-  if (!nombre || !acepta) {
-    alert("Debes completar el nombre y aceptar el consentimiento.");
+function validarCorreoUpt(correo) {
+  return /^[^\s@]+@upt\.edu\.mx$/i.test(correo);
+}
+
+function getSelectedValue(name) {
+  const selected = document.querySelector(`input[name="${name}"]:checked`);
+  return selected ? Number(selected.value) : null;
+}
+
+function validateCurrentStep(targetStep) {
+  if (targetStep === 1) {
+    const nombre = document.getElementById("nombreConsentimiento").value.trim();
+    const acepta = document.getElementById("aceptaConsentimiento").checked;
+
+    if (!validarNombreCompleto(nombre)) {
+      alert("Debes capturar al menos nombre y apellido.");
+      return false;
+    }
+
+    if (!acepta) {
+      alert("Debes aceptar el consentimiento para continuar.");
+      return false;
+    }
+
+    return true;
+  }
+
+  if (targetStep === 2) {
+    const identificador = document.getElementById("identificador").value.trim();
+    const edad = document.getElementById("edad").value;
+    const sexo = document.getElementById("sexo").value;
+    const carrera = document.getElementById("carrera").value.trim();
+    const correo = document.getElementById("correo").value.trim();
+
+    if (!/^\d+$/.test(identificador)) {
+      alert("La matrícula/identificador debe contener solo números.");
+      return false;
+    }
+
+    if (!identificador || !edad || !sexo || !carrera || !correo) {
+      alert("Completa todos los datos obligatorios antes de continuar.");
+      return false;
+    }
+
+    if (!validarCorreoUpt(correo)) {
+      alert("El correo debe ser válido y terminar en @upt.edu.mx.");
+      return false;
+    }
+
+    return true;
+  }
+
+  if (targetStep === 3) {
+    const pendientes = ["ojos", "cabello", "piel_base", "pecas"].filter((q) => getSelectedValue(q) === null);
+    if (pendientes.length) {
+      alert("Debes contestar todas las preguntas de Disposición Genética.");
+      return false;
+    }
+    return true;
+  }
+
+  if (targetStep === 4) {
+    const pendientes = ["quemadura", "bronceado", "horas_sol", "rostro"].filter((q) => getSelectedValue(q) === null);
+    if (pendientes.length) {
+      alert("Debes contestar todas las preguntas de Reacción Solar.");
+      return false;
+    }
+    return true;
+  }
+
+  return true;
+}
+
+function nextStep(stepNumber) {
+  if (!validateCurrentStep(stepNumber)) return;
+
+  document.querySelectorAll(".step").forEach((step) => step.classList.remove("active"));
+  const next = document.getElementById(`step${stepNumber}`);
+  if (next) next.classList.add("active");
+}
+window.nextStep = nextStep;
+
+function calcularFototipo(total) {
+  if (total <= 6) return "I";
+  if (total <= 13) return "II";
+  if (total <= 20) return "III";
+  if (total <= 27) return "IV";
+  if (total <= 34) return "V y VI";
+  return "V y VI";
+}
+
+function llenarInfoFototipo(tipo) {
+  const desc = document.getElementById("descripcionFototipo");
+  const rec = document.getElementById("recomendacionFototipo");
+  const info = {
+    I: { d: "Piel muy clara, se quema con mucha facilidad.", r: "Usa SPF 50+ y evita el sol directo." },
+    II: { d: "Piel clara con alta sensibilidad al sol.", r: "Protección alta y reaplicación frecuente." },
+    III: { d: "Piel intermedia, puede quemarse y broncearse gradualmente.", r: "SPF 30-50 y protección en horas pico." },
+    IV: { d: "Piel morena clara, menor riesgo de quemadura severa.", r: "SPF 30 y cuidado continuo." },
+    "V y VI": { d: "Piel morena oscura/oscura, alta tolerancia al sol.", r: "SPF 15-30 para prevenir daño acumulado." },
+  };
+
+  if (info[tipo]) {
+    desc.textContent = info[tipo].d;
+    rec.textContent = info[tipo].r;
+  }
+}
+
+function mostrarResultadoBonito(tipo) {
+  const resultadoDiv = document.getElementById("resultadoFototipo");
+  const titulo = document.getElementById("tipoFototipo");
+  titulo.textContent = `Tu fototipo es: ${tipo}`;
+  llenarInfoFototipo(tipo);
+  resultadoDiv.classList.remove("hidden");
+  resultadoDiv.scrollIntoView({ behavior: "smooth" });
+}
+
+async function guardarVoluntario() {
+  if (!isLoggedIn) {
+    alert("Debes iniciar sesión para guardar el formulario.");
     return;
   }
 
-  await fetch("/guardar-consentimiento", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userId: usuarioId,
-      nombreCompleto: nombre
-    })
-  });
+  if (!validateCurrentStep(4)) return;
 
-  document.getElementById("consentimientoSection").style.display = "none";
-  document.getElementById("formularioFototipo").style.display = "block";
-});
+  const pendientesFinal = ["ultima_vez", "regular"].filter((q) => getSelectedValue(q) === null);
+  if (pendientesFinal.length) {
+    alert("Debes contestar todas las preguntas antes de finalizar.");
+    return;
+  }
 
+  if (!questionGroups.every((q) => getSelectedValue(q) !== null)) {
+    alert("Todas las preguntas del test son obligatorias.");
+    return;
+  }
 
+  const identificador = document.getElementById("identificador").value.trim();
+  const edad = Number(document.getElementById("edad").value);
+  const sexo = document.getElementById("sexo").value;
+  const carrera = document.getElementById("carrera").value.trim();
+  const correo = document.getElementById("correo").value.trim();
+  const nombreConsentimiento = document.getElementById("nombreConsentimiento").value.trim();
 
-// ===============================
-// DASHBOARD (usa voluntariosCache)
-// ===============================
+  const total = questionGroups.reduce((acc, q) => acc + getSelectedValue(q), 0);
+  const fototipo = calcularFototipo(total);
+
+  const { data: authData } = await supabaseClient.auth.getUser();
+  const user = authData.user;
+  if (!user) {
+    alert("Sesión expirada. Vuelve a iniciar sesión.");
+    return;
+  }
+
+  await supabaseClient
+    .from("perfiles")
+    .update({ nombre_completo: nombreConsentimiento, consentimiento: true, test_fototipo_completado: true })
+    .eq("id", user.id);
+
+  const payload = {
+    identificador,
+    sexo,
+    edad,
+    carrera,
+    correo,
+    fototipo_de_piel: fototipo,
+    fecha: new Date().toISOString().slice(0, 10),
+  };
+
+  const { error } = await supabaseClient.from("voluntarios").insert(payload);
+  if (error) {
+    console.error(error);
+    alert("No se pudo guardar la información del voluntario.");
+    return;
+  }
+
+  mostrarResultadoBonito(fototipo);
+
+  if (currentRole === "admin") {
+    await cargarVoluntarios();
+  }
+}
+window.guardarVoluntario = guardarVoluntario;
+
+// Dashboard
 const statTotal = document.getElementById("stat-total");
 const statEdadPromedio = document.getElementById("stat-edad-promedio");
 const statSexo = document.getElementById("stat-sexo");
 const statTiposPiel = document.getElementById("stat-tipos-piel");
-
 const chartSexo = document.getElementById("chart-sexo");
 const chartPiel = document.getElementById("chart-piel");
 const chartEdad = document.getElementById("chart-edad");
 
+function renderBarChart(container, data) {
+  container.innerHTML = "";
+  if (!data.length) return;
+
+  const max = Math.max(...data.map((d) => d.value), 1);
+  data.forEach((item) => {
+    const bar = document.createElement("div");
+    bar.className = "bar";
+
+    const inner = document.createElement("div");
+    inner.className = "bar-inner";
+    inner.style.height = `${(item.value / max) * 100}%`;
+
+    const valueLabel = document.createElement("div");
+    valueLabel.className = "bar-value";
+    valueLabel.textContent = item.value;
+
+    const label = document.createElement("div");
+    label.className = "bar-label";
+    label.textContent = item.label;
+
+    bar.append(inner, valueLabel, label);
+    container.appendChild(bar);
+  });
+}
+
 function actualizarDashboard() {
-  if (!window.voluntariosCache) {
-    console.warn("voluntariosCache aún no definido");
-    return;
-  }
   const total = voluntariosCache.length;
   statTotal.textContent = total;
 
@@ -1140,15 +625,15 @@ function actualizarDashboard() {
     return;
   }
 
-  const sumaEdad = voluntariosCache.reduce((sum, v) => sum + (v.edad || 0), 0);
-  const edadProm = sumaEdad / total;
+  const edadProm = voluntariosCache.reduce((sum, v) => sum + Number(v.edad || 0), 0) / total;
   statEdadPromedio.textContent = edadProm.toFixed(1);
 
   const conteoSexo = { F: 0, M: 0, Otro: 0 };
   voluntariosCache.forEach((v) => {
-    if (v.sexo === "F" || v.sexo === "M") conteoSexo[v.sexo]++;
-    else conteoSexo.Otro++;
+    if (v.sexo === "F" || v.sexo === "M") conteoSexo[v.sexo] += 1;
+    else conteoSexo.Otro += 1;
   });
+
   const porcF = ((conteoSexo.F / total) * 100).toFixed(1);
   const porcM = ((conteoSexo.M / total) * 100).toFixed(1);
   statSexo.textContent = `F: ${porcF}% · M: ${porcM}%`;
@@ -1166,71 +651,24 @@ function actualizarDashboard() {
     { label: "Otro", value: conteoSexo.Otro },
   ]);
 
-  const pielData = Object.entries(conteoPiel).map(([label, value]) => ({
-    label,
-    value,
-  }));
-  renderBarChart(chartPiel, pielData);
+  renderBarChart(
+    chartPiel,
+    Object.entries(conteoPiel).map(([label, value]) => ({ label, value }))
+  );
 
   const gruposEdad = { "<18": 0, "18-30": 0, "31-45": 0, "46+": 0 };
   voluntariosCache.forEach((v) => {
-    const e = v.edad || 0;
-    if (e < 18) gruposEdad["<18"]++;
-    else if (e <= 30) gruposEdad["18-30"]++;
-    else if (e <= 45) gruposEdad["31-45"]++;
-    else gruposEdad["46+"]++;
+    const e = Number(v.edad || 0);
+    if (e < 18) gruposEdad["<18"] += 1;
+    else if (e <= 30) gruposEdad["18-30"] += 1;
+    else if (e <= 45) gruposEdad["31-45"] += 1;
+    else gruposEdad["46+"] += 1;
   });
-  const edadData = Object.entries(gruposEdad).map(([label, value]) => ({
-    label,
-    value,
-  }));
-  renderBarChart(chartEdad, edadData);
+
+  renderBarChart(
+    chartEdad,
+    Object.entries(gruposEdad).map(([label, value]) => ({ label, value }))
+  );
 }
 
-function renderBarChart(container, data) {
-  container.innerHTML = "";
-  if (!data || data.length === 0) return;
-
-  const max = Math.max(...data.map((d) => d.value)) || 1;
-
-  data.forEach((item) => {
-    const bar = document.createElement("div");
-    bar.className = "bar";
-
-    const inner = document.createElement("div");
-    inner.className = "bar-inner";
-    inner.style.height = `${(item.value / max) * 100}%`;
-
-    const valueLabel = document.createElement("div");
-    valueLabel.className = "bar-value";
-    valueLabel.textContent = item.value;
-
-    const label = document.createElement("div");
-    label.className = "bar-label";
-    label.textContent = item.label;
-
-   bar.appendChild(inner);
-bar.appendChild(valueLabel);
-bar.appendChild(label);
-
-
-    container.appendChild(bar);
-  });
-}
-
-// Arranque
 restoreSession();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
