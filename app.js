@@ -279,15 +279,6 @@ async function initSession(user) {
   currentUserId = user.id;
   currentProfile = perfil || null;
 
-  if ((!perfil?.role || perfil.role !== currentRole) && currentRole === "admin") {
-    await supabaseClient.from("perfiles").upsert({
-      id: user.id,
-      email: user.email,
-      nombre: currentUserName,
-      role: "admin",
-    });
-  }
-
   userLabel.textContent = `${currentUserName} (${currentRole === "admin" ? "Doctora/Administrador" : "Voluntario"})`;
   logoutBtn.classList.remove("hidden");
   updateNavForRole(currentRole);
