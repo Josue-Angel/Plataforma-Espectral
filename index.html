@@ -234,7 +234,6 @@
                 <option value="II">II</option>
                 <option value="III">III</option>
                 <option value="IV">IV</option>
-                <option value="V y VI">V y VI</option>
               </select>
             </label>
 
@@ -300,7 +299,10 @@
       </label>
     </div>
 
-     <button type="button" onclick="nextStep(1)">Continuar</button>
+     <div class="step-actions">
+      <button type="button" class="btn btn-primary" onclick="nextStep(1)">Continuar</button>
+      <button type="button" class="btn btn-outline" onclick="cancelarFormularioFototipo()">Cancelar formulario</button>
+    </div>
   </div>
 </section>
     
@@ -333,7 +335,11 @@
           <input type="email" id="correo" placeholder="Correo institucional">
         </div>
 
-        <button type="button" onclick="nextStep(2)">Continuar</button>
+        <div class="step-actions">
+          <button type="button" class="btn btn-outline" onclick="prevStep()">Regresar</button>
+          <button type="button" class="btn btn-primary" onclick="nextStep(2)">Continuar</button>
+        </div>
+        <button type="button" class="btn btn-danger btn-cancel-form" onclick="cancelarFormularioFototipo()">Cancelar formulario</button>
       </section>
 
       <!-- SECCIÓN 2 -->
@@ -368,7 +374,11 @@
         <label><input type="radio" name="pecas" value="3"> Algunas</label>
         <label><input type="radio" name="pecas" value="4"> Ninguna</label>
 
-        <button type="button" onclick="nextStep(3)">Continuar</button>
+        <div class="step-actions">
+          <button type="button" class="btn btn-outline" onclick="prevStep()">Regresar</button>
+          <button type="button" class="btn btn-primary" onclick="nextStep(3)">Continuar</button>
+        </div>
+        <button type="button" class="btn btn-danger btn-cancel-form" onclick="cancelarFormularioFototipo()">Cancelar formulario</button>
       </section>
 
       <!-- SECCIÓN 3 -->
@@ -403,7 +413,11 @@
         <label><input type="radio" name="rostro" value="3"> Muy resistente</label>
         <label><input type="radio" name="rostro" value="4"> Nunca tuve problema</label>
 
-        <button type="button" onclick="nextStep(4)">Continuar</button>
+        <div class="step-actions">
+          <button type="button" class="btn btn-outline" onclick="prevStep()">Regresar</button>
+          <button type="button" class="btn btn-primary" onclick="nextStep(4)">Continuar</button>
+        </div>
+        <button type="button" class="btn btn-danger btn-cancel-form" onclick="cancelarFormularioFototipo()">Cancelar formulario</button>
       </section>
 
       <!-- SECCIÓN 4 -->
@@ -424,7 +438,11 @@
         <label><input type="radio" name="regular" value="3"> Frecuentemente</label>
         <label><input type="radio" name="regular" value="4"> Siempre</label>
 
-        <button type="button" onclick="guardarVoluntario()">Finalizar</button>
+        <div class="step-actions">
+          <button type="button" class="btn btn-outline" onclick="prevStep()">Regresar</button>
+          <button type="button" class="btn btn-primary" onclick="guardarVoluntario()">Finalizar</button>
+        </div>
+        <button type="button" class="btn btn-danger btn-cancel-form" onclick="cancelarFormularioFototipo()">Cancelar formulario</button>
       </section>
 <div id="resultadoFototipo" class="resultado-container hidden">
   <div class="resultado-card">
@@ -591,6 +609,9 @@
   <footer class="footer">
     <p>Proyecto Espectral · Laboratorio de Óptica Biomedica UPT</p>
   </footer>
+
+
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Supabase + app -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
