@@ -20,13 +20,16 @@ const navLinks = document.querySelectorAll("#nav-links a");
 const userLabel = document.getElementById("user-label");
 const logoutBtn = document.getElementById("logout-btn");
 
+const GUEST_LANDING_VIEW = "inicio";
+const AUTH_LANDING_VIEW = "equipo";
+
 function showView(viewId) {
-  if (!isLoggedIn && viewId !== "equipo") viewId = "equipo";
+  if (!isLoggedIn && viewId !== GUEST_LANDING_VIEW) viewId = GUEST_LANDING_VIEW;
 
   if (isLoggedIn) {
     const allowed = viewPermissions[viewId] || [];
     if (!allowed.includes(currentRole)) {
-      alert("No tienes permiso para acceder a esta sección.");
+      showToast("No tienes permiso para acceder a esta sección.");
       return;
     }
   }
@@ -42,13 +45,24 @@ function showView(viewId) {
 
 function updateNavForRole(role) {
   const navContainer = document.getElementById("nav-links");
+
   if (!role) {
-    navContainer.classList.remove("nav-active");
+    navContainer.classList.add("nav-active");
+    navLinks.forEach((link) => {
+      const isLoginLink = link.dataset.view === GUEST_LANDING_VIEW;
+      link.classList.toggle("hidden", !isLoginLink);
+    });
     return;
   }
 
   navContainer.classList.add("nav-active");
   navLinks.forEach((link) => {
+    const viewId = link.dataset.view;
+    if (viewId === GUEST_LANDING_VIEW) {
+      link.classList.add("hidden");
+      return;
+    }
+
     const roles = (link.dataset.roles || "").split(",").map((r) => r.trim());
     link.classList.toggle("hidden", roles.length > 0 && !roles.includes(role));
   });
@@ -65,16 +79,22 @@ const tabButtons = document.querySelectorAll(".tab-auth");
 const loginPanel = document.getElementById("login-panel");
 const registerPanel = document.getElementById("register-panel");
 
+function setAuthTab(targetPanelId = "login-panel") {
+  tabButtons.forEach((btn) => {
+    const isTarget = btn.dataset.target === targetPanelId;
+    btn.classList.toggle("active", isTarget);
+  });
+
+  const showLogin = targetPanelId === "login-panel";
+  loginPanel.classList.toggle("hidden", !showLogin);
+  registerPanel.classList.toggle("hidden", showLogin);
+}
+
 tabButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
-    tabButtons.forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    const showLogin = btn.dataset.target === "login-panel";
-    loginPanel.classList.toggle("hidden", !showLogin);
-    registerPanel.classList.toggle("hidden", showLogin);
+    setAuthTab(btn.dataset.target);
   });
-});
+});;
 
 const loginForm = document.getElementById("login-form");
 const loginError = document.getElementById("login-error");
@@ -143,7 +163,8 @@ logoutBtn.addEventListener("click", async () => {
   userLabel.textContent = "No has iniciado sesión";
   logoutBtn.classList.add("hidden");
   updateNavForRole(null);
-  showView("inicio");
+  setAuthTab("login-panel");
+  showView(GUEST_LANDING_VIEW);
 });
 
 async function initSession(user) {
@@ -175,9 +196,13 @@ async function restoreSession() {
     await initSession(data.session.user);
   } else {
     updateNavForRole(null);
-    showView("inicio");
+    setAuthTab("login-panel");
+    showView(GUEST_LANDING_VIEW);
   }
 }
+
+// Redirección automática tras login a la sección Equipo y proyecto.
+showView(AUTH_LANDING_VIEW);
 
 const tablaVoluntarios = document.getElementById("tabla-voluntarios");
 const formVoluntario = document.getElementById("form-voluntario");
