@@ -30,6 +30,7 @@ const ADMIN_EMAILS = ["admin@ejemplo.com"];
 const ADMIN_NOTIFICATION_EMAIL = "admin@ejemplo.com";
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const RESEND_API_KEY_VALUE = window.RESEND_API_KEY || "";
+const RESEND_API_KEY = window.RESEND_API_KEY || "";
 const FROM_EMAIL = window.NOTIFICATION_FROM_EMAIL || "onboarding@resend.dev";
 
 function resolveRoleFromProfile(perfil, userEmail) {
