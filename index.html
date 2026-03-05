@@ -273,29 +273,43 @@
     <form class="skin-form" onsubmit="return false;">
       <div id="formEstadoCuenta" class="card account-form-status hidden"></div>
 
+      <div class="form-progress card">
+        <div class="form-progress-meta">
+          <span>Formulario de fototipo</span>
+          <span id="form-progress-text">20% completado</span>
+        </div>
+        <div class="form-progress-track">
+          <div id="form-progress-fill" class="form-progress-fill"></div>
+        </div>
+        <div class="form-progress-steps">
+          <div class="progress-step active" data-step-index="0"><span>🛡️</span><small>Consentimiento</small></div>
+          <div class="progress-step" data-step-index="1"><span>🧾</span><small>Datos</small></div>
+          <div class="progress-step" data-step-index="2"><span>🧬</span><small>Genética</small></div>
+          <div class="progress-step" data-step-index="3"><span>☀️</span><small>Reacción solar</small></div>
+          <div class="progress-step" data-step-index="4"><span>✅</span><small>Hábitos</small></div>
+        </div>
+      </div>
+
       <section id="consentimientoSection" class="step active">
-  <div class="consentimiento-card">
-    <h2>Consentimiento Informado</h2>
-    <p>
-      Autorizo el uso de mis datos personales con fines clínicos y de análisis
-      dermatológico dentro de la Plataforma Espectral.
-    </p>
+        <div class="step-card consentimiento-card">
+          <h2>Consentimiento Informado</h2>
+          <p class="muted">Por favor, confirma que has leído y comprendido la información, y que autorizas el uso de tus datos para este estudio.</p>
 
-    <label>Nombre Completo</label>
-    <input type="text" id="nombreConsentimiento" required>
+          <label for="nombreConsentimiento">Nombre completo</label>
+          <input type="text" id="nombreConsentimiento" required placeholder="Escribe tu nombre completo" />
 
-    <div class="checkbox-container">
-      <input type="checkbox" id="aceptaConsentimiento">
-      <label for="aceptaConsentimiento">
-        Acepto el tratamiento confidencial de mis datos.
-      </label>
-    </div>
+          <div class="consent-box">
+            <label><input type="checkbox" id="aceptaConsentimiento" /> Autorizo el uso de mis datos personales con fines clínicos y de análisis dermatológico dentro de la Plataforma Espectral.</label>
+            <label><input type="checkbox" id="aceptaConfidencialidad" /> Acepto el tratamiento confidencial de mis datos e imágenes recolectadas para investigación científica.</label>
+          </div>
 
-     <div class="step-actions">
-      <button type="button" class="btn btn-primary" onclick="nextStep(1)">Continuar</button>
-    </div>
-  </div>
-</section>
+          <p class="consent-note"><strong>Nota:</strong> Al continuar, declaras que participas voluntariamente en este estudio.</p>
+
+          <div class="step-actions">
+            <button type="button" class="btn btn-primary" onclick="nextStep(1)">Continuar</button>
+          </div>
+        </div>
+      </section>
     
 
       <!-- SECCIÓN 1 -->
@@ -365,6 +379,8 @@
         <label><input type="radio" name="pecas" value="3"> Algunas</label>
         <label><input type="radio" name="pecas" value="4"> Ninguna</label>
 
+        <p class="step-tip">Recomendación: usa protector solar diariamente y evita exposición prolongada en horas de alta radiación.</p>
+
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
           <button type="button" class="btn btn-primary btn-next-step" onclick="nextStep(3)">Continuar</button>
@@ -404,6 +420,8 @@
         <label><input type="radio" name="rostro" value="3"> Muy resistente</label>
         <label><input type="radio" name="rostro" value="4"> Nunca tuve problema</label>
 
+        <p class="step-tip">Recomendación: incluso si tu piel se broncea fácil, mantener fotoprotección reduce daño acumulado y envejecimiento prematuro.</p>
+
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
           <button type="button" class="btn btn-primary btn-next-step" onclick="nextStep(4)">Continuar</button>
@@ -428,6 +446,8 @@
         <label><input type="radio" name="regular" value="2"> Algunas veces</label>
         <label><input type="radio" name="regular" value="3"> Frecuentemente</label>
         <label><input type="radio" name="regular" value="4"> Siempre</label>
+
+        <p class="step-tip">Recomendación final: hidrata tu piel, reaplica protector cada 2-3 horas y agenda revisiones dermatológicas periódicas.</p>
 
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>

@@ -15,6 +15,7 @@ let currentRole = null;
 let isLoggedIn = false;
 let currentUserName = null;
 let currentUserId = null;
+let currentUserEmail = null;
 let currentProfile = null;
 
 const views = document.querySelectorAll(".view");
@@ -338,6 +339,7 @@ logoutBtn.addEventListener("click", async () => {
   currentRole = null;
   currentUserName = null;
   currentUserId = null;
+  currentUserEmail = null;
   currentProfile = null;
   userLabel.textContent = "Laboratorio de Óptica Biomédica UPT";
   logoutBtn.classList.add("hidden");
@@ -376,17 +378,29 @@ function renderReadOnlyFormResult(fototipo) {
 async function syncFormAccessForCurrentAccount() {
   const statusCard = document.getElementById("formEstadoCuenta");
   const skinForm = document.querySelector(".skin-form");
+  const correoInput = document.getElementById("correo");
   if (!statusCard || !skinForm || !currentUserId) return;
+
+  if (currentUserEmail && correoInput && !correoInput.value) {
+    correoInput.value = currentUserEmail;
+  }
 
   statusCard.classList.add("hidden");
   statusCard.innerHTML = "";
   skinForm.classList.remove("form-locked");
 
-  const { data: perfil } = await supabaseClient
+  let perfil = null;
+  const perfilResp = await supabaseClient
     .from("perfiles")
     .select("test_fototipo_completado")
     .eq("id", currentUserId)
     .maybeSingle();
+
+  if (!perfilResp.error) {
+    perfil = perfilResp.data;
+  } else if (!isMissingColumnError(perfilResp.error, "test_fototipo_completado")) {
+    console.error("Error al consultar perfiles:", perfilResp.error);
+  }
 
   currentProfile = { ...(currentProfile || {}), ...(perfil || {}) };
 
@@ -395,16 +409,18 @@ async function syncFormAccessForCurrentAccount() {
     return;
   }
 
-  if (perfil?.test_fototipo_completado) {
-    const { data: ultimoRegistro } = await supabaseClient
-      .from("voluntarios")
-      .select("fototipo_de_piel")
-      .eq("user_id", currentUserId)
-      .order("id", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+  const completedFromProfile = Boolean(perfil?.test_fototipo_completado);
+  const correoBusqueda = String(currentUserEmail || "").trim().toLowerCase();
+  const { data: ultimoRegistro } = await supabaseClient
+    .from("voluntarios")
+    .select("fototipo_de_piel")
+    .eq("correo", correoBusqueda)
+    .order("id", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-    renderReadOnlyFormResult(ultimoRegistro?.fototipo_de_piel);
+  if (completedFromProfile || ultimoRegistro?.fototipo_de_piel) {
+    renderReadOnlyFormResult(ultimoRegistro?.fototipo_de_piel || "No disponible");
     skinForm.classList.add("form-locked");
     return;
   }
@@ -423,6 +439,7 @@ async function initSession(user) {
   currentRole = resolveRoleFromProfile(perfil, user.email);
   currentUserName = perfil?.nombre || user.email;
   currentUserId = user.id;
+  currentUserEmail = user.email || null;
   currentProfile = perfil || null;
 
   userLabel.textContent = `${currentUserName} (${currentRole === "admin" ? "Doctora/Administrador" : "Voluntario"})`;
@@ -687,15 +704,16 @@ function getSelectedValue(name) {
 function validateCurrentStep(targetStep) {
   if (targetStep === 1) {
     const nombre = document.getElementById("nombreConsentimiento").value.trim();
-    const acepta = document.getElementById("aceptaConsentimiento").checked;
+    const aceptaPrimario = document.getElementById("aceptaConsentimiento").checked;
+    const aceptaSecundario = document.getElementById("aceptaConfidencialidad").checked;
 
     if (!validarNombreCompleto(nombre)) {
       showToast("Debes capturar al menos nombre y apellido.");
       return false;
     }
 
-    if (!acepta) {
-      showToast("Debes aceptar el consentimiento para continuar.");
+    if (!aceptaPrimario || !aceptaSecundario) {
+      showToast("Debes aceptar ambas casillas de consentimiento para continuar.");
       return false;
     }
 
@@ -776,6 +794,24 @@ function clearSavedFormStepProgress() {
   localStorage.removeItem(key);
 }
 
+function renderFormProgress(stepId) {
+  const progressFill = document.getElementById("form-progress-fill");
+  const progressText = document.getElementById("form-progress-text");
+  const steps = document.querySelectorAll(".progress-step");
+  const currentIndex = Math.max(0, FORM_ORDER.indexOf(stepId));
+  const totalSteps = FORM_ORDER.length;
+  const percent = Math.round(((currentIndex + 1) / totalSteps) * 100);
+
+  if (progressFill) progressFill.style.width = `${percent}%`;
+  if (progressText) progressText.textContent = `${percent}% completado`;
+
+  steps.forEach((step) => {
+    const stepIndex = Number(step.dataset.stepIndex || 0);
+    step.classList.toggle("completed", stepIndex < currentIndex);
+    step.classList.toggle("active", stepIndex === currentIndex);
+  });
+}
+
 function setActiveFormStepById(stepId) {
   const targetIndex = FORM_ORDER.indexOf(stepId);
   if (targetIndex === -1) return;
@@ -785,6 +821,7 @@ function setActiveFormStepById(stepId) {
   if (target) target.classList.add("active");
   formCurrentStepIndex = targetIndex;
   saveCurrentFormStepProgress(stepId);
+  renderFormProgress(stepId);
 
   const prevButtons = document.querySelectorAll(`#${stepId} .btn-prev-step`);
   prevButtons.forEach((btn) => {
@@ -801,7 +838,7 @@ function nextStep(stepNumber) {
 window.nextStep = nextStep;
 
 function prevStep() {
-  const previousIndex = Math.max(1, formCurrentStepIndex - 1);
+  const previousIndex = Math.max(0, formCurrentStepIndex - 1);
   const previousId = FORM_ORDER[previousIndex];
   setActiveFormStepById(previousId);
 }
@@ -854,13 +891,8 @@ async function guardarVoluntario() {
   }
 
   if (currentRole !== "admin") {
-    const { data: perfilActual } = await supabaseClient
-      .from("perfiles")
-      .select("test_fototipo_completado")
-      .eq("id", currentUserId)
-      .maybeSingle();
-
-    if (perfilActual?.test_fototipo_completado) {
+    const completed = await hasVolunteerCompletedForm();
+    if (completed) {
       showToast("Ya has realizado este formulario con tu cuenta.", "info");
       await syncFormAccessForCurrentAccount();
       return;
@@ -897,10 +929,7 @@ async function guardarVoluntario() {
     return;
   }
 
-  await supabaseClient
-    .from("perfiles")
-    .update({ nombre_completo: nombreConsentimiento, consentimiento: true, test_fototipo_completado: true })
-    .eq("id", user.id);
+  await updateProfileCompletionState(user.id, nombreConsentimiento);
 
   const payload = {
     user_id: currentUserId,
@@ -913,10 +942,17 @@ async function guardarVoluntario() {
     fecha: new Date().toISOString().slice(0, 10),
   };
 
-  const { error } = await supabaseClient.from("voluntarios").insert(payload);
+  let { error } = await supabaseClient.from("voluntarios").insert(payload);
+  if (isMissingColumnError(error, "user_id")) {
+    const fallbackPayload = { ...payload };
+    delete fallbackPayload.user_id;
+    const fallbackInsert = await supabaseClient.from("voluntarios").insert(fallbackPayload);
+    error = fallbackInsert.error;
+  }
+
   if (error) {
     console.error(error);
-    showToast("No se pudo guardar la información del voluntario.");
+    showToast(`No se pudo guardar la información del voluntario. ${error.message || ""}`);
     return;
   }
 
