@@ -15,6 +15,7 @@ let currentRole = null;
 let isLoggedIn = false;
 let currentUserName = null;
 let currentUserId = null;
+let currentUserEmail = null;
 let currentProfile = null;
 
 const views = document.querySelectorAll(".view");
@@ -25,6 +26,10 @@ const logoutBtn = document.getElementById("logout-btn");
 const GUEST_LANDING_VIEW = "inicio";
 const AUTH_LANDING_VIEW = "equipo";
 const ADMIN_EMAILS = ["admin@ejemplo.com"];
+const ADMIN_NOTIFICATION_EMAIL = "admin@ejemplo.com";
+const RESEND_ENDPOINT = "https://api.resend.com/emails";
+const RESEND_API_KEY_VALUE = window.RESEND_API_KEY || "";
+const FROM_EMAIL = window.NOTIFICATION_FROM_EMAIL || "onboarding@resend.dev";
 
 function resolveRoleFromProfile(perfil, userEmail) {
   const roleFromProfile = perfil?.role ? String(perfil.role).trim().toLowerCase() : "";
@@ -34,6 +39,219 @@ function resolveRoleFromProfile(perfil, userEmail) {
   if (ADMIN_EMAILS.includes(normalizedEmail)) return "admin";
 
   return "voluntario";
+}
+
+function getFototipoDetails(tipo) {
+  const info = {
+    I: { descripcion: "Piel muy clara, se quema con mucha facilidad.", recomendacion: "Usa SPF 50+ y evita el sol directo." },
+    II: { descripcion: "Piel clara con alta sensibilidad al sol.", recomendacion: "Protección alta y reaplicación frecuente." },
+    III: { descripcion: "Piel intermedia, puede quemarse y broncearse gradualmente.", recomendacion: "SPF 30-50 y protección en horas pico." },
+    IV: { descripcion: "Piel morena clara, menor riesgo de quemadura severa.", recomendacion: "SPF 30 y cuidado continuo." },
+    "V y VI": { descripcion: "Piel morena oscura/oscura, alta tolerancia al sol.", recomendacion: "SPF 15-30 para prevenir daño acumulado." },
+  };
+
+  return info[tipo] || {
+    descripcion: "Fototipo no disponible.",
+    recomendacion: "Mantén hábitos de protección solar adecuados.",
+  };
+}
+
+function isMissingColumnError(error, columnName) {
+  if (!error) return false;
+  if (error.code !== "PGRST204") return false;
+  return String(error.message || "").includes(`'${columnName}'`);
+}
+
+async function updateProfileCompletionState(userId, nombreConsentimiento) {
+  const payload = {
+    nombre_completo: nombreConsentimiento,
+    consentimiento: true,
+    test_fototipo_completado: true,
+  };
+
+  const { error } = await supabaseClient.from("perfiles").update(payload).eq("id", userId);
+  if (!error) return;
+
+  if (isMissingColumnError(error, "nombre_completo") || isMissingColumnError(error, "consentimiento")) {
+    const fallback = await supabaseClient
+      .from("perfiles")
+      .update({ test_fototipo_completado: true })
+      .eq("id", userId);
+
+    if (!fallback.error) return;
+
+    if (isMissingColumnError(fallback.error, "test_fototipo_completado")) {
+      console.warn("La tabla perfiles no contiene columnas de estado del formulario. Se continúa sin bloqueo por perfil.");
+      return;
+    }
+
+    console.error("No se pudo actualizar el perfil del voluntario:", fallback.error);
+    return;
+  }
+
+  if (isMissingColumnError(error, "test_fototipo_completado")) {
+    console.warn("La columna test_fototipo_completado no existe en perfiles.");
+    return;
+  }
+
+  console.error("No se pudo actualizar el perfil del voluntario:", error);
+}
+
+async function hasVolunteerCompletedForm() {
+  const correoFormulario = document.getElementById("correo")?.value?.trim().toLowerCase() || "";
+  const correoBusqueda = correoFormulario || String(currentUserEmail || "").trim().toLowerCase();
+
+  const perfilResp = await supabaseClient
+    .from("perfiles")
+    .select("test_fototipo_completado")
+    .eq("id", currentUserId)
+    .maybeSingle();
+
+  if (!perfilResp.error && perfilResp.data?.test_fototipo_completado) return true;
+
+  if (perfilResp.error && !isMissingColumnError(perfilResp.error, "test_fototipo_completado")) {
+    console.error("Error al consultar el estado del formulario en perfiles:", perfilResp.error);
+  }
+
+  if (!correoBusqueda) return false;
+
+  const { data: ultimo, error } = await supabaseClient
+    .from("voluntarios")
+    .select("id")
+    .eq("correo", correoBusqueda)
+    .order("id", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error al validar formulario completado en voluntarios:", error);
+    return false;
+  }
+
+  return Boolean(ultimo?.id);
+}
+
+async function sendEmailNotification({ to, subject, html }) {
+  if (!RESEND_API_KEY_VALUE) {
+    console.warn("RESEND_API_KEY no configurada. Se omitió el envío de correo.");
+    return { skipped: true, reason: "missing_api_key" };
+  }
+
+  try {
+    const response = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY_VALUE}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: FROM_EMAIL,
+        to: [to],
+        subject,
+        html,
+      }),
+    });
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload?.message || "Error al enviar correo con Resend.");
+    }
+
+    return { skipped: false, payload };
+  } catch (error) {
+    console.error("Error al enviar notificación por correo:", error);
+    return { skipped: false, error };
+  }
+}
+
+async function createAdminNotificationLog(message) {
+  const { error } = await supabaseClient.from("admin_notificaciones").insert({
+    message,
+    tipo: "nuevo_registro",
+  });
+
+  if (error) {
+    console.error("No se pudo registrar la notificación para administrador:", error);
+  }
+}
+
+async function notifyAdminNewVolunteer(email) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+  if (!normalizedEmail) return;
+
+  const message = `Nuevo usuario registrado con el correo: ${normalizedEmail}`;
+
+  await createAdminNotificationLog(message);
+
+  const sent = await sendEmailNotification({
+    to: ADMIN_NOTIFICATION_EMAIL,
+    subject: "Nuevo voluntario registrado",
+    html: `<p>${message}</p>`,
+  });
+
+  if (sent?.error) {
+    showToast("Voluntario registrado, pero falló el aviso por correo al administrador.", "info");
+  }
+}
+
+async function notifyVolunteerFototipo({ email, nombre, fototipo }) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+  if (!normalizedEmail || !fototipo) return;
+
+  const details = getFototipoDetails(fototipo);
+  const safeName = nombre || "Voluntario";
+
+  const html = `
+    <h2>Resultado de tu fototipo de piel</h2>
+    <p>Hola ${safeName}, gracias por completar el formulario.</p>
+    <p><strong>Tu fototipo de piel es:</strong> ${fototipo}</p>
+    <p><strong>Descripción:</strong> ${details.descripcion}</p>
+    <p><strong>Recomendación:</strong> ${details.recomendacion}</p>
+  `;
+
+  const sent = await sendEmailNotification({
+    to: normalizedEmail,
+    subject: "Resultado de tu fototipo de piel",
+    html,
+  });
+
+  if (sent?.error) {
+    showToast("Formulario guardado, pero no se pudo enviar el correo del fototipo.", "info");
+  }
+}
+
+async function cargarAlertasAdmin() {
+  const lista = document.getElementById("lista-alertas-admin");
+  if (!lista) return;
+
+  if (!isLoggedIn || currentRole !== "admin") {
+    lista.innerHTML = "";
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("admin_notificaciones")
+    .select("id, message, created_at")
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    console.error("Error al cargar notificaciones de administrador:", error);
+    lista.innerHTML = "<li class=\"muted small\">No se pudieron cargar las notificaciones.</li>";
+    return;
+  }
+
+  if (!data?.length) {
+    lista.innerHTML = "<li class=\"muted small\">Sin notificaciones por ahora.</li>";
+    return;
+  }
+
+  lista.innerHTML = data
+    .map((item) => {
+      const fecha = item.created_at ? new Date(item.created_at).toLocaleString("es-MX") : "Sin fecha";
+      return `<li><strong>${item.message}</strong><span class=\"muted small\">${fecha}</span></li>`;
+    })
+    .join("");
 }
 
 function showToast(message, type = "error") {
@@ -182,6 +400,8 @@ registerForm.addEventListener("submit", async (e) => {
       nombre,
       role: "voluntario",
     });
+
+    await notifyAdminNewVolunteer(email);
   }
 
   registerForm.reset();
@@ -194,9 +414,12 @@ logoutBtn.addEventListener("click", async () => {
   currentRole = null;
   currentUserName = null;
   currentUserId = null;
+  currentUserEmail = null;
   currentProfile = null;
   userLabel.textContent = "Laboratorio de Óptica Biomédica UPT";
   logoutBtn.classList.add("hidden");
+  const listaAlertasAdmin = document.getElementById("lista-alertas-admin");
+  if (listaAlertasAdmin) listaAlertasAdmin.innerHTML = "";
   updateNavForRole(null);
   setAuthTab("login-panel");
   showView(GUEST_LANDING_VIEW);
@@ -230,17 +453,29 @@ function renderReadOnlyFormResult(fototipo) {
 async function syncFormAccessForCurrentAccount() {
   const statusCard = document.getElementById("formEstadoCuenta");
   const skinForm = document.querySelector(".skin-form");
+  const correoInput = document.getElementById("correo");
   if (!statusCard || !skinForm || !currentUserId) return;
+
+  if (currentUserEmail && correoInput && !correoInput.value) {
+    correoInput.value = currentUserEmail;
+  }
 
   statusCard.classList.add("hidden");
   statusCard.innerHTML = "";
   skinForm.classList.remove("form-locked");
 
-  const { data: perfil } = await supabaseClient
+  let perfil = null;
+  const perfilResp = await supabaseClient
     .from("perfiles")
     .select("test_fototipo_completado")
     .eq("id", currentUserId)
     .maybeSingle();
+
+  if (!perfilResp.error) {
+    perfil = perfilResp.data;
+  } else if (!isMissingColumnError(perfilResp.error, "test_fototipo_completado")) {
+    console.error("Error al consultar perfiles:", perfilResp.error);
+  }
 
   currentProfile = { ...(currentProfile || {}), ...(perfil || {}) };
 
@@ -249,16 +484,18 @@ async function syncFormAccessForCurrentAccount() {
     return;
   }
 
-  if (perfil?.test_fototipo_completado) {
-    const { data: ultimoRegistro } = await supabaseClient
-      .from("voluntarios")
-      .select("fototipo_de_piel")
-      .eq("user_id", currentUserId)
-      .order("id", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+  const completedFromProfile = Boolean(perfil?.test_fototipo_completado);
+  const correoBusqueda = String(currentUserEmail || "").trim().toLowerCase();
+  const { data: ultimoRegistro } = await supabaseClient
+    .from("voluntarios")
+    .select("fototipo_de_piel")
+    .eq("correo", correoBusqueda)
+    .order("id", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-    renderReadOnlyFormResult(ultimoRegistro?.fototipo_de_piel);
+  if (completedFromProfile || ultimoRegistro?.fototipo_de_piel) {
+    renderReadOnlyFormResult(ultimoRegistro?.fototipo_de_piel || "No disponible");
     skinForm.classList.add("form-locked");
     return;
   }
@@ -277,6 +514,7 @@ async function initSession(user) {
   currentRole = resolveRoleFromProfile(perfil, user.email);
   currentUserName = perfil?.nombre || user.email;
   currentUserId = user.id;
+  currentUserEmail = user.email || null;
   currentProfile = perfil || null;
 
   userLabel.textContent = `${currentUserName} (${currentRole === "admin" ? "Doctora/Administrador" : "Voluntario"})`;
@@ -288,6 +526,7 @@ async function initSession(user) {
 
   if (currentRole === "admin") {
     await cargarVoluntarios();
+    await cargarAlertasAdmin();
   }
 
   await syncFormAccessForCurrentAccount();
@@ -540,15 +779,16 @@ function getSelectedValue(name) {
 function validateCurrentStep(targetStep) {
   if (targetStep === 1) {
     const nombre = document.getElementById("nombreConsentimiento").value.trim();
-    const acepta = document.getElementById("aceptaConsentimiento").checked;
+    const aceptaPrimario = document.getElementById("aceptaConsentimiento").checked;
+    const aceptaSecundario = document.getElementById("aceptaConfidencialidad").checked;
 
     if (!validarNombreCompleto(nombre)) {
       showToast("Debes capturar al menos nombre y apellido.");
       return false;
     }
 
-    if (!acepta) {
-      showToast("Debes aceptar el consentimiento para continuar.");
+    if (!aceptaPrimario || !aceptaSecundario) {
+      showToast("Debes aceptar ambas casillas de consentimiento para continuar.");
       return false;
     }
 
@@ -629,6 +869,24 @@ function clearSavedFormStepProgress() {
   localStorage.removeItem(key);
 }
 
+function renderFormProgress(stepId) {
+  const progressFill = document.getElementById("form-progress-fill");
+  const progressText = document.getElementById("form-progress-text");
+  const steps = document.querySelectorAll(".progress-step");
+  const currentIndex = Math.max(0, FORM_ORDER.indexOf(stepId));
+  const totalSteps = FORM_ORDER.length;
+  const percent = Math.round(((currentIndex + 1) / totalSteps) * 100);
+
+  if (progressFill) progressFill.style.width = `${percent}%`;
+  if (progressText) progressText.textContent = `${percent}% completado`;
+
+  steps.forEach((step) => {
+    const stepIndex = Number(step.dataset.stepIndex || 0);
+    step.classList.toggle("completed", stepIndex < currentIndex);
+    step.classList.toggle("active", stepIndex === currentIndex);
+  });
+}
+
 function setActiveFormStepById(stepId) {
   const targetIndex = FORM_ORDER.indexOf(stepId);
   if (targetIndex === -1) return;
@@ -638,6 +896,7 @@ function setActiveFormStepById(stepId) {
   if (target) target.classList.add("active");
   formCurrentStepIndex = targetIndex;
   saveCurrentFormStepProgress(stepId);
+  renderFormProgress(stepId);
 
   const prevButtons = document.querySelectorAll(`#${stepId} .btn-prev-step`);
   prevButtons.forEach((btn) => {
@@ -654,7 +913,7 @@ function nextStep(stepNumber) {
 window.nextStep = nextStep;
 
 function prevStep() {
-  const previousIndex = Math.max(1, formCurrentStepIndex - 1);
+  const previousIndex = Math.max(0, formCurrentStepIndex - 1);
   const previousId = FORM_ORDER[previousIndex];
   setActiveFormStepById(previousId);
 }
@@ -685,18 +944,10 @@ function calcularFototipo(total) {
 function llenarInfoFototipo(tipo) {
   const desc = document.getElementById("descripcionFototipo");
   const rec = document.getElementById("recomendacionFototipo");
-  const info = {
-    I: { d: "Piel muy clara, se quema con mucha facilidad.", r: "Usa SPF 50+ y evita el sol directo." },
-    II: { d: "Piel clara con alta sensibilidad al sol.", r: "Protección alta y reaplicación frecuente." },
-    III: { d: "Piel intermedia, puede quemarse y broncearse gradualmente.", r: "SPF 30-50 y protección en horas pico." },
-    IV: { d: "Piel morena clara, menor riesgo de quemadura severa.", r: "SPF 30 y cuidado continuo." },
-    "V y VI": { d: "Piel morena oscura/oscura, alta tolerancia al sol.", r: "SPF 15-30 para prevenir daño acumulado." },
-  };
+  const info = getFototipoDetails(tipo);
 
-  if (info[tipo]) {
-    desc.textContent = info[tipo].d;
-    rec.textContent = info[tipo].r;
-  }
+  desc.textContent = info.descripcion;
+  rec.textContent = info.recomendacion;
 }
 
 function mostrarResultadoBonito(tipo) {
@@ -715,13 +966,8 @@ async function guardarVoluntario() {
   }
 
   if (currentRole !== "admin") {
-    const { data: perfilActual } = await supabaseClient
-      .from("perfiles")
-      .select("test_fototipo_completado")
-      .eq("id", currentUserId)
-      .maybeSingle();
-
-    if (perfilActual?.test_fototipo_completado) {
+    const completed = await hasVolunteerCompletedForm();
+    if (completed) {
       showToast("Ya has realizado este formulario con tu cuenta.", "info");
       await syncFormAccessForCurrentAccount();
       return;
@@ -758,10 +1004,7 @@ async function guardarVoluntario() {
     return;
   }
 
-  await supabaseClient
-    .from("perfiles")
-    .update({ nombre_completo: nombreConsentimiento, consentimiento: true, test_fototipo_completado: true })
-    .eq("id", user.id);
+  await updateProfileCompletionState(user.id, nombreConsentimiento);
 
   const payload = {
     user_id: currentUserId,
@@ -774,15 +1017,24 @@ async function guardarVoluntario() {
     fecha: new Date().toISOString().slice(0, 10),
   };
 
-  const { error } = await supabaseClient.from("voluntarios").insert(payload);
+  let { error } = await supabaseClient.from("voluntarios").insert(payload);
+  if (isMissingColumnError(error, "user_id")) {
+    const fallbackPayload = { ...payload };
+    delete fallbackPayload.user_id;
+    const fallbackInsert = await supabaseClient.from("voluntarios").insert(fallbackPayload);
+    error = fallbackInsert.error;
+  }
+
   if (error) {
     console.error(error);
-    showToast("No se pudo guardar la información del voluntario.");
+    showToast(`No se pudo guardar la información del voluntario. ${error.message || ""}`);
     return;
   }
 
   clearSavedFormStepProgress();
   mostrarResultadoBonito(fototipo);
+
+  await notifyVolunteerFototipo({ email: correo, nombre: nombreConsentimiento, fototipo });
 
   if (currentRole === "admin") {
     await cargarVoluntarios();
@@ -885,6 +1137,13 @@ function actualizarDashboard() {
     chartEdad,
     Object.entries(gruposEdad).map(([label, value]) => ({ label, value }))
   );
+}
+
+const btnRefrescarAlertas = document.getElementById("btn-refrescar-alertas");
+if (btnRefrescarAlertas) {
+  btnRefrescarAlertas.addEventListener("click", () => {
+    cargarAlertasAdmin();
+  });
 }
 
 restoreSession();
