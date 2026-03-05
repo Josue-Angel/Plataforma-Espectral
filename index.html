@@ -53,11 +53,11 @@
             <form id="login-form" class="form">
               <label>
                 Correo electrónico
-                <input type="email" id="login-email" required placeholder="tu.correo@ejemplo.com" />
+                <input type="email" id="login-email" required autocomplete="email" placeholder="tu.correo@ejemplo.com" />
               </label>
               <label>
                 Contraseña
-                <input type="password" id="login-password" required placeholder="••••••••" />
+                <input type="password" id="login-password" required autocomplete="current-password" placeholder="••••••••" />
               </label>
               <button type="submit" class="btn btn-primary full-width">Entrar</button>
               <p id="login-error" class="error-msg small hidden"></p>
@@ -76,19 +76,19 @@
             <form id="register-form" class="form">
               <label>
                 Nombre completo
-                <input type="text" id="reg-name" required placeholder="Nombre del voluntario" />
+                <input type="text" id="reg-name" required autocomplete="name" placeholder="Nombre del voluntario" />
               </label>
               <label>
                 Correo electrónico
-                <input type="email" id="reg-email" required placeholder="voluntario@ejemplo.com" />
+                <input type="email" id="reg-email" required autocomplete="email" placeholder="voluntario@ejemplo.com" />
               </label>
               <label>
                 Contraseña
-                <input type="password" id="reg-password" required minlength="6" placeholder="••••••••" />
+                <input type="password" id="reg-password" required minlength="6" autocomplete="new-password" placeholder="••••••••" />
               </label>
               <label>
                 Repetir contraseña
-                <input type="password" id="reg-password2" required minlength="6" placeholder="••••••••" />
+                <input type="password" id="reg-password2" required minlength="6" autocomplete="new-password" placeholder="••••••••" />
               </label>
               <button type="submit" class="btn btn-accent full-width">Crear cuenta</button>
               <button type="button" class="btn btn-link tab-auth" data-target="login-panel">← Volver al inicio de sesión</button>
@@ -481,18 +481,14 @@
   <div class="card">
     <h3>Interfaz de predicción</h3>
     <div class="iframe-wrapper">
-      
-      <!-- SCRIPT DE GRADIO -->
-      <script
-        type="module"
-        src="https://gradio.s3-us-west-2.amazonaws.com/6.0.2/gradio.js">
-      </script>
-
-      <!-- TU SPACE -->
-      <gradio-app 
-        src="https://yeahboiiiiiiiiiii-clasificador-de-lesiones-de-piel.hf.space">
-      </gradio-app>
-
+      <iframe
+        class="model-frame"
+        src="https://yeahboiiiiiiiiiii-clasificador-de-lesiones-de-piel.hf.space"
+        title="Modelo de clasificación de lesiones de piel"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+        allow="clipboard-read; clipboard-write">
+      </iframe>
     </div>
   </div>
 </section>

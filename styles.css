@@ -126,6 +126,7 @@ td img{max-width:80px;border-radius:8px}
 .bar-label,.bar-value{font-size:.72rem;white-space:nowrap}
 
 .iframe-wrapper{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.model-frame{display:block;width:100%;min-height:760px;border:0;background:#fff}
 .reference-links{margin-top:.3rem}
 .ref-btn{display:inline-block;margin-right:.4rem;padding:.35rem .55rem;background:#2563eb;color:#fff;border-radius:7px;text-decoration:none;font-size:.8rem}
 
