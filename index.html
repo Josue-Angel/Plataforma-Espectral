@@ -19,17 +19,17 @@
     </div>
     <nav class="nav">
       <ul id="nav-links">
-        <li><a href="#" data-view="inicio" data-roles="admin,voluntario">Inicio de Sesión</a></li>
+        
         <li><a href="#" data-view="equipo" data-roles="admin,voluntario">Equipo y proyecto</a></li>
         <li><a href="#" data-view="base-datos" data-roles="admin">Base de datos espectral</a></li>
         <li><a href="#" data-view="formularios" data-roles="admin,voluntario">Formularios</a></li>
-        <li><a href="#" data-view="modelo-ia" data-roles="admin">Modelo IA (Colab)</a></li>
+        <li><a href="#" data-view="modelo-ia" data-roles="admin">Modelo de IA</a></li>
         <li><a href="#" data-view="archivos" data-roles="admin,voluntario">Tesis y artículos</a></li>
         <li><a href="#" data-view="dashboard" data-roles="admin">Dashboard</a></li>
       </ul>
     </nav>
     <div class="user-info">
-      <span id="user-label" class="user-label">No has iniciado sesión</span>
+      <span id="user-label" class="user-label">Laboratorio de Óptica Biomédica UPT</span>
       <button id="logout-btn" class="btn btn-outline btn-small hidden">Cerrar sesión</button>
     </div>
   </header>
@@ -41,30 +41,15 @@
         <div class="hero-text">
           <h1>Plataforma de Análisis Espectral de Lesiones Cutáneas</h1>
           <p>
-            Aplicación web para apoyar la investigación clínica mediante el uso de 
+            Aplicación web para apoyar la investigación clínica mediante el uso de
             imágenes espectrales, datos de voluntarios y modelos de inteligencia artificial.
           </p>
-          <ul class="hero-list">
-            <li>Visualización de la base de datos espectral.</li>
-            <li>Integración con formularios de captación de voluntarios.</li>
-            <li>Acceso al modelo de IA desarrollado en Google Colab.</li>
-            <li>Dashboard con estadísticas clave (edad, sexo, tipo de piel).</li>
-          </ul>
+          
         </div>
-        <div class="hero-card">
-          <h2>Acceso a la plataforma</h2>
 
-          <div class="tabs-auth">
-            <button type="button" class="tab-auth active" data-target="login-panel">
-              Iniciar sesión
-            </button>
-            <button type="button" class="tab-auth" data-target="register-panel">
-              Crear cuenta (voluntario)
-            </button>
-          </div>
-
-          <!-- LOGIN -->
-          <div id="login-panel" class="auth-panel">
+        <div class="auth-layout">
+          <div id="login-panel" class="auth-panel auth-card">
+            <h2>Iniciar Sesión</h2>
             <form id="login-form" class="form">
               <label>
                 Correo electrónico
@@ -77,10 +62,17 @@
               <button type="submit" class="btn btn-primary full-width">Entrar</button>
               <p id="login-error" class="error-msg small hidden"></p>
             </form>
+            <div class="volunteer-cta">
+              <h3>¿Quieres ser voluntario?</h3>
+              <p>Participa voluntariamente en nuestra investigación científica.</p>
+              <button type="button" class="btn btn-accent full-width tab-auth active" data-target="register-panel">
+                Comenzar como voluntario
+              </button>
+            </div>
           </div>
 
-          <!-- REGISTRO -->
-          <div id="register-panel" class="auth-panel hidden">
+          <div id="register-panel" class="auth-panel auth-card hidden">
+            <h2>Crear cuenta (voluntario)</h2>
             <form id="register-form" class="form">
               <label>
                 Nombre completo
@@ -92,15 +84,14 @@
               </label>
               <label>
                 Contraseña
-                <input type="password" id="reg-password" required minlength="6" />
+                <input type="password" id="reg-password" required minlength="6" placeholder="••••••••" />
               </label>
               <label>
                 Repetir contraseña
-                <input type="password" id="reg-password2" required minlength="6" />
+                <input type="password" id="reg-password2" required minlength="6" placeholder="••••••••" />
               </label>
-              <button type="submit" class="btn btn-primary full-width">
-                Crear cuenta
-              </button>
+              <button type="submit" class="btn btn-accent full-width">Crear cuenta</button>
+              <button type="button" class="btn btn-link tab-auth" data-target="login-panel">← Volver al inicio de sesión</button>
               <p id="register-error" class="error-msg small hidden"></p>
               <p id="register-success" class="small muted hidden">
                 Cuenta creada. Revisa tu correo si se requiere confirmación y luego inicia sesión.
@@ -138,7 +129,7 @@
       <h3>Área de Ingeniería</h3>
       <p>
         Desarrollo de la aplicación web para la base de datos espectral
-        y del modelo de IA en Google Colab a cargo de:
+        y del modelo de IA en plataforma computacional a cargo de:
       </p>
       <p>
         <strong>Banelly Sánchez Soto, Josue Angel Gomez Zamorano y Enrique Cázares Garrido.</strong>
@@ -147,7 +138,7 @@
 
     <div class="card clean-card">
       <h3>Voluntarios</h3>
-      <p>Participantes que aportan sus datos e imágenes para avanzar en la investigación.</p>
+      <p>Participantes que aportan datos e imágenes para fortalecer la validez del estudio.</p>
     </div>
   </div>
 </section>
@@ -462,7 +453,7 @@
 
     <!-- MODELO IA -->
 <section id="modelo-ia" class="view">
-  <h2>Modelo de Inteligencia Artificial (Hugging Face Space)</h2>
+  <h2>Modelo de Inteligencia Artificial (entorno de inferencia)</h2>
   <p>
     Aquí se mostrará la interfaz web del modelo.
   </p>
@@ -607,7 +598,7 @@
   </main>
 
   <footer class="footer">
-    <p>Proyecto Espectral · Laboratorio de Óptica Biomedica UPT</p>
+    <p>Proyecto Espectral · Laboratorio de Óptica Biomédica UPT</p>
   </footer>
 
 
