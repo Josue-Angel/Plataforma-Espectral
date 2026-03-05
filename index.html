@@ -561,6 +561,15 @@
         Los datos se calculan a partir de la base de datos almacenada en Supabase.
       </p>
 
+      <div class="card">
+        <div class="admin-alert-header">
+          <h3>Notificaciones de registro</h3>
+          <button type="button" class="btn btn-outline btn-small" id="btn-refrescar-alertas">Actualizar</button>
+        </div>
+        <p class="muted small">Avisos automáticos cuando se registra un nuevo voluntario.</p>
+        <ul id="lista-alertas-admin" class="admin-alert-list"></ul>
+      </div>
+
       <div class="stats-grid">
         <div class="stat-card">
           <h3>Total de voluntarios</h3>
@@ -610,6 +619,9 @@
     // REEMPLAZA con los datos de tu proyecto
     const SUPABASE_URL = 'https://bwszeozmxzwuajrywqns.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3c3plb3pteHp3dWFqcnl3cW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODU2ODAsImV4cCI6MjA3OTg2MTY4MH0.XAj13G3Bwl3iy7gfnVyHddA6LMH4Yc9dnx9Im6Dx8xI';
+    // Configuración opcional para envío de correos transaccionales.
+    const RESEND_API_KEY = '';
+    const NOTIFICATION_FROM_EMAIL = 'onboarding@resend.dev';
   </script>
   <script src="app.js"></script>
 </body>

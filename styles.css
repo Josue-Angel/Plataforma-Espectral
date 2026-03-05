@@ -94,6 +94,10 @@ td img{max-width:80px;border-radius:8px}
 .resultado-card{background:#f8fbff;border:1px solid #cfe0f5;border-radius:14px;padding:1rem}
 .recomendacion-box{background:#e7f2ff;border-radius:10px;padding:.8rem;margin-top:.7rem}
 
+.admin-alert-header{display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+.admin-alert-list{list-style:none;display:flex;flex-direction:column;gap:.55rem;margin-top:.8rem}
+.admin-alert-list li{display:flex;justify-content:space-between;gap:.8rem;padding:.55rem .65rem;border:1px solid var(--line);border-radius:10px;background:#f8fbff}
+
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:.8rem;margin-top:1rem}
 .stat-card{background:linear-gradient(135deg,#0f4c81,#2563eb);border-radius:14px;padding:.9rem;color:#fff}
 .stat-card h3{font-size:.92rem;color:#dbeafe}

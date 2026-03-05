@@ -25,6 +25,10 @@ const logoutBtn = document.getElementById("logout-btn");
 const GUEST_LANDING_VIEW = "inicio";
 const AUTH_LANDING_VIEW = "equipo";
 const ADMIN_EMAILS = ["admin@ejemplo.com"];
+const ADMIN_NOTIFICATION_EMAIL = "admin@ejemplo.com";
+const RESEND_ENDPOINT = "https://api.resend.com/emails";
+const RESEND_API_KEY = window.RESEND_API_KEY || "";
+const FROM_EMAIL = window.NOTIFICATION_FROM_EMAIL || "onboarding@resend.dev";
 
 function resolveRoleFromProfile(perfil, userEmail) {
   const roleFromProfile = perfil?.role ? String(perfil.role).trim().toLowerCase() : "";
@@ -34,6 +38,144 @@ function resolveRoleFromProfile(perfil, userEmail) {
   if (ADMIN_EMAILS.includes(normalizedEmail)) return "admin";
 
   return "voluntario";
+}
+
+function getFototipoDetails(tipo) {
+  const info = {
+    I: { descripcion: "Piel muy clara, se quema con mucha facilidad.", recomendacion: "Usa SPF 50+ y evita el sol directo." },
+    II: { descripcion: "Piel clara con alta sensibilidad al sol.", recomendacion: "Protección alta y reaplicación frecuente." },
+    III: { descripcion: "Piel intermedia, puede quemarse y broncearse gradualmente.", recomendacion: "SPF 30-50 y protección en horas pico." },
+    IV: { descripcion: "Piel morena clara, menor riesgo de quemadura severa.", recomendacion: "SPF 30 y cuidado continuo." },
+    "V y VI": { descripcion: "Piel morena oscura/oscura, alta tolerancia al sol.", recomendacion: "SPF 15-30 para prevenir daño acumulado." },
+  };
+
+  return info[tipo] || {
+    descripcion: "Fototipo no disponible.",
+    recomendacion: "Mantén hábitos de protección solar adecuados.",
+  };
+}
+
+async function sendEmailNotification({ to, subject, html }) {
+  if (!RESEND_API_KEY) {
+    console.warn("RESEND_API_KEY no configurada. Se omitió el envío de correo.");
+    return { skipped: true, reason: "missing_api_key" };
+  }
+
+  try {
+    const response = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: FROM_EMAIL,
+        to: [to],
+        subject,
+        html,
+      }),
+    });
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload?.message || "Error al enviar correo con Resend.");
+    }
+
+    return { skipped: false, payload };
+  } catch (error) {
+    console.error("Error al enviar notificación por correo:", error);
+    return { skipped: false, error };
+  }
+}
+
+async function createAdminNotificationLog(message) {
+  const { error } = await supabaseClient.from("admin_notificaciones").insert({
+    message,
+    tipo: "nuevo_registro",
+  });
+
+  if (error) {
+    console.error("No se pudo registrar la notificación para administrador:", error);
+  }
+}
+
+async function notifyAdminNewVolunteer(email) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+  if (!normalizedEmail) return;
+
+  const message = `Nuevo usuario registrado con el correo: ${normalizedEmail}`;
+
+  await createAdminNotificationLog(message);
+
+  const sent = await sendEmailNotification({
+    to: ADMIN_NOTIFICATION_EMAIL,
+    subject: "Nuevo voluntario registrado",
+    html: `<p>${message}</p>`,
+  });
+
+  if (sent?.error) {
+    showToast("Voluntario registrado, pero falló el aviso por correo al administrador.", "info");
+  }
+}
+
+async function notifyVolunteerFototipo({ email, nombre, fototipo }) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+  if (!normalizedEmail || !fototipo) return;
+
+  const details = getFototipoDetails(fototipo);
+  const safeName = nombre || "Voluntario";
+
+  const html = `
+    <h2>Resultado de tu fototipo de piel</h2>
+    <p>Hola ${safeName}, gracias por completar el formulario.</p>
+    <p><strong>Tu fototipo de piel es:</strong> ${fototipo}</p>
+    <p><strong>Descripción:</strong> ${details.descripcion}</p>
+    <p><strong>Recomendación:</strong> ${details.recomendacion}</p>
+  `;
+
+  const sent = await sendEmailNotification({
+    to: normalizedEmail,
+    subject: "Resultado de tu fototipo de piel",
+    html,
+  });
+
+  if (sent?.error) {
+    showToast("Formulario guardado, pero no se pudo enviar el correo del fototipo.", "info");
+  }
+}
+
+async function cargarAlertasAdmin() {
+  const lista = document.getElementById("lista-alertas-admin");
+  if (!lista) return;
+
+  if (!isLoggedIn || currentRole !== "admin") {
+    lista.innerHTML = "";
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("admin_notificaciones")
+    .select("id, message, created_at")
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    console.error("Error al cargar notificaciones de administrador:", error);
+    lista.innerHTML = "<li class=\"muted small\">No se pudieron cargar las notificaciones.</li>";
+    return;
+  }
+
+  if (!data?.length) {
+    lista.innerHTML = "<li class=\"muted small\">Sin notificaciones por ahora.</li>";
+    return;
+  }
+
+  lista.innerHTML = data
+    .map((item) => {
+      const fecha = item.created_at ? new Date(item.created_at).toLocaleString("es-MX") : "Sin fecha";
+      return `<li><strong>${item.message}</strong><span class=\"muted small\">${fecha}</span></li>`;
+    })
+    .join("");
 }
 
 function showToast(message, type = "error") {
@@ -182,6 +324,8 @@ registerForm.addEventListener("submit", async (e) => {
       nombre,
       role: "voluntario",
     });
+
+    await notifyAdminNewVolunteer(email);
   }
 
   registerForm.reset();
@@ -197,6 +341,8 @@ logoutBtn.addEventListener("click", async () => {
   currentProfile = null;
   userLabel.textContent = "Laboratorio de Óptica Biomédica UPT";
   logoutBtn.classList.add("hidden");
+  const listaAlertasAdmin = document.getElementById("lista-alertas-admin");
+  if (listaAlertasAdmin) listaAlertasAdmin.innerHTML = "";
   updateNavForRole(null);
   setAuthTab("login-panel");
   showView(GUEST_LANDING_VIEW);
@@ -288,6 +434,7 @@ async function initSession(user) {
 
   if (currentRole === "admin") {
     await cargarVoluntarios();
+    await cargarAlertasAdmin();
   }
 
   await syncFormAccessForCurrentAccount();
@@ -685,18 +832,10 @@ function calcularFototipo(total) {
 function llenarInfoFototipo(tipo) {
   const desc = document.getElementById("descripcionFototipo");
   const rec = document.getElementById("recomendacionFototipo");
-  const info = {
-    I: { d: "Piel muy clara, se quema con mucha facilidad.", r: "Usa SPF 50+ y evita el sol directo." },
-    II: { d: "Piel clara con alta sensibilidad al sol.", r: "Protección alta y reaplicación frecuente." },
-    III: { d: "Piel intermedia, puede quemarse y broncearse gradualmente.", r: "SPF 30-50 y protección en horas pico." },
-    IV: { d: "Piel morena clara, menor riesgo de quemadura severa.", r: "SPF 30 y cuidado continuo." },
-    "V y VI": { d: "Piel morena oscura/oscura, alta tolerancia al sol.", r: "SPF 15-30 para prevenir daño acumulado." },
-  };
+  const info = getFototipoDetails(tipo);
 
-  if (info[tipo]) {
-    desc.textContent = info[tipo].d;
-    rec.textContent = info[tipo].r;
-  }
+  desc.textContent = info.descripcion;
+  rec.textContent = info.recomendacion;
 }
 
 function mostrarResultadoBonito(tipo) {
@@ -783,6 +922,8 @@ async function guardarVoluntario() {
 
   clearSavedFormStepProgress();
   mostrarResultadoBonito(fototipo);
+
+  await notifyVolunteerFototipo({ email: correo, nombre: nombreConsentimiento, fototipo });
 
   if (currentRole === "admin") {
     await cargarVoluntarios();
@@ -885,6 +1026,13 @@ function actualizarDashboard() {
     chartEdad,
     Object.entries(gruposEdad).map(([label, value]) => ({ label, value }))
   );
+}
+
+const btnRefrescarAlertas = document.getElementById("btn-refrescar-alertas");
+if (btnRefrescarAlertas) {
+  btnRefrescarAlertas.addEventListener("click", () => {
+    cargarAlertasAdmin();
+  });
 }
 
 restoreSession();
