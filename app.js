@@ -195,7 +195,7 @@ logoutBtn.addEventListener("click", async () => {
   currentUserName = null;
   currentUserId = null;
   currentProfile = null;
-  userLabel.textContent = "No has iniciado sesión";
+  userLabel.textContent = "Laboratorio de Óptica Biomédica UPT";
   logoutBtn.classList.add("hidden");
   updateNavForRole(null);
   setAuthTab("login-panel");
