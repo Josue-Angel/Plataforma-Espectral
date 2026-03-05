@@ -1,3 +1,4 @@
+(() => {
 const supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
 const viewPermissions = {
@@ -28,6 +29,7 @@ const AUTH_LANDING_VIEW = "equipo";
 const ADMIN_EMAILS = ["admin@ejemplo.com"];
 const ADMIN_NOTIFICATION_EMAIL = "admin@ejemplo.com";
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
+const RESEND_API_KEY_VALUE = window.RESEND_API_KEY || "";
 const RESEND_API_KEY = window.RESEND_API_KEY || "";
 const FROM_EMAIL = window.NOTIFICATION_FROM_EMAIL || "onboarding@resend.dev";
 
@@ -56,8 +58,83 @@ function getFototipoDetails(tipo) {
   };
 }
 
+function isMissingColumnError(error, columnName) {
+  if (!error) return false;
+  if (error.code !== "PGRST204") return false;
+  return String(error.message || "").includes(`'${columnName}'`);
+}
+
+async function updateProfileCompletionState(userId, nombreConsentimiento) {
+  const payload = {
+    nombre_completo: nombreConsentimiento,
+    consentimiento: true,
+    test_fototipo_completado: true,
+  };
+
+  const { error } = await supabaseClient.from("perfiles").update(payload).eq("id", userId);
+  if (!error) return;
+
+  if (isMissingColumnError(error, "nombre_completo") || isMissingColumnError(error, "consentimiento")) {
+    const fallback = await supabaseClient
+      .from("perfiles")
+      .update({ test_fototipo_completado: true })
+      .eq("id", userId);
+
+    if (!fallback.error) return;
+
+    if (isMissingColumnError(fallback.error, "test_fototipo_completado")) {
+      console.warn("La tabla perfiles no contiene columnas de estado del formulario. Se continúa sin bloqueo por perfil.");
+      return;
+    }
+
+    console.error("No se pudo actualizar el perfil del voluntario:", fallback.error);
+    return;
+  }
+
+  if (isMissingColumnError(error, "test_fototipo_completado")) {
+    console.warn("La columna test_fototipo_completado no existe en perfiles.");
+    return;
+  }
+
+  console.error("No se pudo actualizar el perfil del voluntario:", error);
+}
+
+async function hasVolunteerCompletedForm() {
+  const correoFormulario = document.getElementById("correo")?.value?.trim().toLowerCase() || "";
+  const correoBusqueda = correoFormulario || String(currentUserEmail || "").trim().toLowerCase();
+
+  const perfilResp = await supabaseClient
+    .from("perfiles")
+    .select("test_fototipo_completado")
+    .eq("id", currentUserId)
+    .maybeSingle();
+
+  if (!perfilResp.error && perfilResp.data?.test_fototipo_completado) return true;
+
+  if (perfilResp.error && !isMissingColumnError(perfilResp.error, "test_fototipo_completado")) {
+    console.error("Error al consultar el estado del formulario en perfiles:", perfilResp.error);
+  }
+
+  if (!correoBusqueda) return false;
+
+  const { data: ultimo, error } = await supabaseClient
+    .from("voluntarios")
+    .select("id")
+    .eq("correo", correoBusqueda)
+    .order("id", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error al validar formulario completado en voluntarios:", error);
+    return false;
+  }
+
+  return Boolean(ultimo?.id);
+}
+
 async function sendEmailNotification({ to, subject, html }) {
-  if (!RESEND_API_KEY) {
+  if (!RESEND_API_KEY_VALUE) {
     console.warn("RESEND_API_KEY no configurada. Se omitió el envío de correo.");
     return { skipped: true, reason: "missing_api_key" };
   }
@@ -66,7 +143,7 @@ async function sendEmailNotification({ to, subject, html }) {
     const response = await fetch(RESEND_ENDPOINT, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+        Authorization: `Bearer ${RESEND_API_KEY_VALUE}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -1072,3 +1149,4 @@ if (btnRefrescarAlertas) {
 }
 
 restoreSession();
+})();
