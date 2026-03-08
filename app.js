@@ -23,6 +23,7 @@ const views = document.querySelectorAll(".view");
 const navLinks = document.querySelectorAll("#nav-links a");
 const userLabel = document.getElementById("user-label");
 const logoutBtn = document.getElementById("logout-btn");
+const headerEl = document.querySelector(".header");
 
 const GUEST_LANDING_VIEW = "inicio";
 const AUTH_LANDING_VIEW = "equipo";
@@ -287,6 +288,9 @@ function showView(viewId) {
     }
   }
 
+  document.body.classList.toggle("logged-in", isLoggedIn && viewId !== GUEST_LANDING_VIEW);
+  if (headerEl) headerEl.classList.toggle("header-auth", isLoggedIn && viewId !== GUEST_LANDING_VIEW);
+
   views.forEach((v) => v.classList.remove("active"));
   const target = document.getElementById(viewId);
   if (target) target.classList.add("active");
@@ -425,6 +429,7 @@ logoutBtn.addEventListener("click", async () => {
   updateNavForRole(null);
   setAuthTab("login-panel");
   showView(GUEST_LANDING_VIEW);
+  closeModal("modal-edicion");
 });
 
 function renderReadOnlyFormResult(fototipo) {
@@ -563,11 +568,18 @@ const inputEspectros = document.getElementById("vol-espectros");
 const inputImagenes = document.getElementById("vol-imagenes");
 const btnGuardarVol = document.getElementById("btn-guardar-vol");
 const btnCancelarEdicion = document.getElementById("btn-cancelar-edicion");
+const contadorVoluntarios = document.getElementById("contador-voluntarios");
+const inputBusquedaVoluntario = document.getElementById("busqueda-voluntario");
+const btnNuevoVoluntario = document.getElementById("btn-nuevo-voluntario");
 
-const detalleArchivosCard = document.getElementById("detalle-archivos");
-const detalleTitulo = document.getElementById("detalle-titulo");
-const detalleLista = document.getElementById("detalle-lista");
+const modalDetalles = document.getElementById("modal-detalles");
+const modalArchivos = document.getElementById("modal-archivos");
+const modalEdicion = document.getElementById("modal-edicion");
+const detalleVoluntario = document.getElementById("detalle-voluntario");
+const detalleArchivos = document.getElementById("detalle-archivos");
+
 let idEnEdicion = null;
+let voluntariosFiltrados = [];
 
 function normalizeFototipoForSelect(value) {
   if (!value) return "";
@@ -599,54 +611,133 @@ async function cargarVoluntarios() {
   }
 
   voluntariosCache = data || [];
-  renderVoluntarios();
+  aplicarFiltroVoluntarios();
   actualizarDashboard();
+}
+
+function applyVoluntariosCount() {
+  if (!contadorVoluntarios) return;
+  contadorVoluntarios.textContent = `Total: ${voluntariosFiltrados.length} voluntarios`;
+}
+
+function aplicarFiltroVoluntarios() {
+  const query = String(inputBusquedaVoluntario?.value || "").trim().toLowerCase();
+  voluntariosFiltrados = voluntariosCache.filter((v) => {
+    if (!query) return true;
+    const matricula = String(v.identificador || "").toLowerCase();
+    const correo = String(v.correo || "").toLowerCase();
+    return matricula.includes(query) || correo.includes(query);
+  });
+
+  renderVoluntarios();
+  applyVoluntariosCount();
+}
+
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.remove("hidden");
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.add("hidden");
 }
 
 function renderVoluntarios() {
   tablaVoluntarios.innerHTML = "";
 
-  voluntariosCache.forEach((v) => {
+  voluntariosFiltrados.forEach((v) => {
     const tr = document.createElement("tr");
-    const espectros = v.espectros || [];
-    const imagenes = v.imagenes || [];
 
     tr.innerHTML = `
       <td>${v.id}</td>
       <td>${v.identificador || ""}</td>
-      <td>${v.sexo || ""}</td>
-      <td>${v.edad || ""}</td>
-      <td>${v.carrera || ""}</td>
       <td>${v.correo || ""}</td>
-      <td>${v.fototipo_de_piel || ""}</td>
-      <td>${v.fecha || ""}</td>
-      <td>${espectros.length ? `<button class="btn btn-small" data-action="ver-espectros" data-id="${v.id}">Ver archivos (${espectros.length})</button>` : "<span class='small muted'>Sin espectros</span>"}</td>
-      <td>${imagenes.length ? `<button class="btn btn-small" data-action="ver-imagenes" data-id="${v.id}">Ver imágenes (${imagenes.length})</button>` : "<span class='small muted'>Sin imágenes</span>"}</td>
-      <td><button class="btn btn-small btn-outline" data-action="editar" data-id="${v.id}">Editar</button></td>
+      <td>
+        <div class="actions-inline">
+          <button class="btn btn-small btn-action-detail" data-action="ver-detalles" data-id="${v.id}">ℹ️ Ver detalles</button>
+          <button class="btn btn-small btn-action-files" data-action="ver-archivos" data-id="${v.id}">🖼️ Ver imágenes</button>
+          <button class="btn btn-small btn-outline" data-action="editar" data-id="${v.id}">✏️ Editar</button>
+        </div>
+      </td>
     `;
 
     tablaVoluntarios.appendChild(tr);
   });
 }
 
-function mostrarArchivos(vol, tipo) {
-  if (!vol) return;
-  const items = tipo === "espectros" ? vol.espectros || [] : vol.imagenes || [];
-  const bucket = tipo === "espectros" ? "espectros" : "imagenes";
-  const pathKey = tipo === "espectros" ? "espectro_path" : "imagen_path";
+function mostrarDetalles(vol) {
+  if (!vol || !detalleVoluntario) return;
 
-  detalleTitulo.textContent = `${tipo === "espectros" ? "Espectros" : "Imágenes"} de ${vol.identificador}`;
-  detalleLista.innerHTML = "";
+  detalleVoluntario.innerHTML = `
+    <p><strong>Matrícula:</strong><br>${vol.identificador || "-"}</p>
+    <p><strong>Sexo:</strong><br>${vol.sexo || "-"}</p>
+    <p><strong>Edad:</strong><br>${vol.edad ? `${vol.edad} años` : "-"}</p>
+    <p><strong>Carrera:</strong><br>${vol.carrera || "-"}</p>
+    <p><strong>Fototipo:</strong><br>${vol.fototipo_de_piel || "-"}</p>
+    <p><strong>Fecha de registro:</strong><br>${vol.fecha || "-"}</p>
+    <p class="full"><strong>Correo electrónico:</strong><br>${vol.correo || "-"}</p>
+  `;
 
-  items.forEach((item) => {
-    const path = item[pathKey];
-    const url = supabaseClient.storage.from(bucket).getPublicUrl(path).data.publicUrl;
-    const li = document.createElement("li");
-    li.innerHTML = `<a href="${url}" target="_blank">${path}</a>`;
-    detalleLista.appendChild(li);
-  });
+  openModal("modal-detalles");
+}
 
-  detalleArchivosCard.classList.remove("hidden");
+function renderFileBlock({ title, badgeText, desc, buttonText, items, bucket, pathKey, tone = "" }) {
+  const links = items
+    .map((item) => {
+      const path = item[pathKey];
+      const url = supabaseClient.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+      return `<li><a href="${url}" target="_blank" rel="noopener noreferrer">${path}</a></li>`;
+    })
+    .join("");
+
+  return `
+    <section class="file-block ${tone}">
+      <div class="file-block-header">
+        <h4>${title}</h4>
+        <span class="file-badge">${badgeText}</span>
+      </div>
+      <p class="muted">${desc}</p>
+      <div class="file-links-wrap">
+        <button type="button" class="btn btn-outline btn-small" disabled>${buttonText}</button>
+        <ul class="link-list">${links || "<li class='muted small'>Sin archivos disponibles.</li>"}</ul>
+      </div>
+    </section>
+  `;
+}
+
+function mostrarArchivos(vol) {
+  if (!vol || !detalleArchivos) return;
+
+  const espectros = vol.espectros || [];
+  const imagenes = vol.imagenes || [];
+
+  detalleArchivos.innerHTML = `
+    <p class="muted">Espectros e imágenes del voluntario ${vol.identificador || ""}</p>
+    ${renderFileBlock({
+      title: "Archivos de espectros (.txt)",
+      badgeText: `${espectros.length} archivos`,
+      desc: "Los archivos de espectros están almacenados en Supabase y pueden descargarse desde aquí.",
+      buttonText: `Ver archivos (${espectros.length})`,
+      items: espectros,
+      bucket: "espectros",
+      pathKey: "espectro_path",
+    })}
+    ${renderFileBlock({
+      title: "Imágenes (.png)",
+      badgeText: `${imagenes.length} imágenes`,
+      desc: "Las imágenes capturadas están disponibles para visualización y descarga.",
+      buttonText: `Ver imágenes (${imagenes.length})`,
+      items: imagenes,
+      bucket: "imagenes",
+      pathKey: "imagen_path",
+      tone: "tone-cyan",
+    })}
+  `;
+
+  openModal("modal-archivos");
 }
 
 tablaVoluntarios.addEventListener("click", (e) => {
@@ -657,8 +748,8 @@ tablaVoluntarios.addEventListener("click", (e) => {
   const vol = voluntariosCache.find((v) => v.id === id);
   const action = btn.dataset.action;
 
-  if (action === "ver-espectros") mostrarArchivos(vol, "espectros");
-  if (action === "ver-imagenes") mostrarArchivos(vol, "imagenes");
+  if (action === "ver-detalles") mostrarDetalles(vol);
+  if (action === "ver-archivos") mostrarArchivos(vol);
 
   if (action === "editar") {
     if (!isLoggedIn || currentRole !== "admin") {
@@ -666,7 +757,30 @@ tablaVoluntarios.addEventListener("click", (e) => {
       return;
     }
     cargarEnFormulario(vol);
+    openModal("modal-edicion");
   }
+});
+
+if (btnNuevoVoluntario) {
+  btnNuevoVoluntario.addEventListener("click", () => {
+    resetFormulario();
+    openModal("modal-edicion");
+  });
+}
+
+if (inputBusquedaVoluntario) {
+  inputBusquedaVoluntario.addEventListener("input", aplicarFiltroVoluntarios);
+}
+
+document.addEventListener("click", (e) => {
+  const closeBtn = e.target.closest("[data-close-modal]");
+  if (closeBtn) {
+    closeModal(closeBtn.dataset.closeModal);
+    return;
+  }
+
+  const modalBackdrop = e.target.classList?.contains("modal") ? e.target : null;
+  if (modalBackdrop?.id) closeModal(modalBackdrop.id);
 });
 
 function cargarEnFormulario(vol) {
@@ -693,7 +807,10 @@ function resetFormulario() {
   btnGuardarVol.textContent = "Guardar voluntario";
   btnCancelarEdicion.classList.add("hidden");
 }
-btnCancelarEdicion.addEventListener("click", resetFormulario);
+btnCancelarEdicion.addEventListener("click", () => {
+  resetFormulario();
+  closeModal("modal-edicion");
+});
 
 formVoluntario.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -758,8 +875,10 @@ formVoluntario.addEventListener("submit", async (e) => {
   }
 
   resetFormulario();
+  closeModal("modal-edicion");
   await cargarVoluntarios();
-});
+}
+);
 
 // Formulario fototipo
 const questionGroups = ["ojos", "cabello", "piel_base", "pecas", "quemadura", "bronceado", "horas_sol", "rostro", "ultima_vez", "regular"];

@@ -20,12 +20,12 @@
     <nav class="nav">
       <ul id="nav-links">
         
-        <li><a href="#" data-view="equipo" data-roles="admin,voluntario">Equipo y proyecto</a></li>
-        <li><a href="#" data-view="base-datos" data-roles="admin">Base de datos espectral</a></li>
-        <li><a href="#" data-view="formularios" data-roles="admin,voluntario">Formularios</a></li>
-        <li><a href="#" data-view="modelo-ia" data-roles="admin">Modelo de IA</a></li>
-        <li><a href="#" data-view="archivos" data-roles="admin,voluntario">Tesis y artículos</a></li>
-        <li><a href="#" data-view="dashboard" data-roles="admin">Dashboard</a></li>
+        <li><a href="#" data-view="equipo" data-roles="admin,voluntario"><span>👥</span>Equipo y proyecto</a></li>
+        <li><a href="#" data-view="base-datos" data-roles="admin"><span>🛢️</span>Base de datos espectral</a></li>
+        <li><a href="#" data-view="archivos" data-roles="admin,voluntario"><span>📄</span>Tesis y artículos</a></li>
+        <li><a href="#" data-view="dashboard" data-roles="admin"><span>📊</span>Dashboard</a></li>
+        <li><a href="#" data-view="formularios" data-roles="admin,voluntario"><span>📝</span>Formularios</a></li>
+        <li><a href="#" data-view="modelo-ia" data-roles="admin"><span>🤖</span>Modelo IA</a></li>
       </ul>
     </nav>
     <div class="user-info">
@@ -104,7 +104,7 @@
 
     <!-- EQUIPO Y PROYECTO -->
 <section id="equipo" class="view equipo-section">
-  <h2>Equipo de trabajo y descripción del proyecto</h2>
+  <h2 class="section-heading"><span class="title-icon">👥</span>Equipo de trabajo y descripción del proyecto</h2>
 
   <!-- Bloque ancho completo -->
   <article class="card clean-card full-width-card">
@@ -145,28 +145,31 @@
 
     <!-- BASE DE DATOS ESPECTRAL -->
     <section id="base-datos" class="view">
-      <h2>Base de datos espectral de voluntarios</h2>
+      <h2 class="section-heading"><span class="title-icon">🛢️</span>Base de datos espectral de voluntarios</h2>
       <p class="muted">
         Información de voluntarios ligada a sus espectros (<strong>archivos .txt</strong>)
         y a sus imágenes (<strong>archivos .png</strong>). Todos los datos se guardan en Supabase.
       </p>
 
+      <div class="db-toolbar card">
+        <label class="search-input">
+          <span>🔎</span>
+          <input type="search" id="busqueda-voluntario" placeholder="Buscar por matrícula, correo..." />
+        </label>
+        <button type="button" class="btn btn-outline btn-filter">Filtros</button>
+        <button type="button" class="btn btn-primary btn-small" id="btn-nuevo-voluntario">Nuevo</button>
+      </div>
+
       <div class="card">
         <h3>Voluntarios registrados</h3>
+        <p class="muted small" id="contador-voluntarios">Total: 0 voluntarios</p>
         <div class="table-wrapper">
           <table>
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Identificador</th>
-                <th>Sexo</th>
-                <th>Edad</th>
-                <th>Carrera</th>
-                <th>Correo</th>
-                <th>Fototipo</th>
-                <th>Fecha</th>
-                <th>Espectros</th>
-                <th>Imágenes</th>
+                <th>Matrícula</th>
+                <th>Correo electrónico</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -175,13 +178,26 @@
         </div>
       </div>
 
-      <div class="card hidden" id="detalle-archivos">
-        <h3 id="detalle-titulo">Archivos del voluntario</h3>
-        <ul id="detalle-lista" class="link-list"></ul>
+      <div class="modal hidden" id="modal-detalles">
+        <div class="modal-content">
+          <button class="modal-close" data-close-modal="modal-detalles">✕</button>
+          <h3>Detalles del voluntario</h3>
+          <div id="detalle-voluntario" class="modal-grid"></div>
+        </div>
       </div>
 
-      <div class="card">
-        <h3>Registrar / editar voluntario (solo Doctora/Administrador)</h3>
+      <div class="modal hidden" id="modal-archivos">
+        <div class="modal-content">
+          <button class="modal-close" data-close-modal="modal-archivos">✕</button>
+          <h3>Archivos e imágenes del voluntario</h3>
+          <div id="detalle-archivos"></div>
+        </div>
+      </div>
+
+      <div class="modal hidden" id="modal-edicion">
+        <div class="modal-content modal-content-large">
+          <button class="modal-close" data-close-modal="modal-edicion">✕</button>
+          <h3>Registrar / editar voluntario</h3>
         <form id="form-voluntario" class="form">
           <input type="hidden" id="vol-id" />
 
@@ -261,6 +277,7 @@
             El <strong>ID</strong> lo genera Supabase automáticamente.
           </p>
         </form>
+      </div>
       </div>
     </section>    
       
@@ -473,7 +490,7 @@
 
     <!-- MODELO IA -->
 <section id="modelo-ia" class="view">
-  <h2>Modelo de Inteligencia Artificial (entorno de inferencia)</h2>
+  <h2 class="section-heading"><span class="title-icon">🤖</span>Modelo de Inteligencia Artificial (entorno de inferencia)</h2>
   <p>
     Aquí se mostrará la interfaz web del modelo.
   </p>
@@ -497,7 +514,7 @@
 
     <!-- ARCHIVOS -->
 <section id="archivos" class="view scientific-section">
-  <h2 class="section-title">Tesis, artículos y archivos relevantes</h2>
+  <h2 class="section-title section-heading"><span class="title-icon">📄</span>Tesis, artículos y archivos relevantes</h2>
   <p class="section-subtitle">
     Repositorio de documentos clave del proyecto y material de referencia científica.
   </p>
@@ -572,7 +589,7 @@
 
     <!-- DASHBOARD -->
     <section id="dashboard" class="view">
-      <h2>Dashboard de estadísticas de voluntarios</h2>
+      <h2 class="section-heading"><span class="title-icon">📊</span>Dashboard de estadísticas de voluntarios</h2>
       <p class="muted">
         Los datos se calculan a partir de la base de datos almacenada en Supabase.
       </p>
