@@ -29,9 +29,15 @@ const GUEST_LANDING_VIEW = "inicio";
 const AUTH_LANDING_VIEW = "equipo";
 const ADMIN_EMAILS = ["admin@ejemplo.com"];
 const ADMIN_NOTIFICATION_EMAIL = "admin@ejemplo.com";
+const ADMIN_NOTIFICATIONS_STORAGE_KEY = "admin-notificaciones-local";
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const RESEND_API_KEY_VALUE = window.RESEND_API_KEY || "";
 const RESEND_API_KEY = window.RESEND_API_KEY || "";
+const BREVO_API_KEY = window.BREVO_API_KEY || "";
+const BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
+const SMTP2GO_API_KEY = window.SMTP2GO_API_KEY || "";
+const SMTP2GO_API_KEY_FALLBACK = (!SMTP2GO_API_KEY && /^api-/i.test(String(RESEND_API_KEY_VALUE || ""))) ? RESEND_API_KEY_VALUE : "";
+const SMTP2GO_ENDPOINT = "https://api.smtp2go.com/v3/email/send";
 const FROM_EMAIL = window.NOTIFICATION_FROM_EMAIL || "onboarding@resend.dev";
 
 function resolveRoleFromProfile(perfil, userEmail) {
@@ -65,6 +71,62 @@ function isMissingColumnError(error, columnName) {
   return String(error.message || "").includes(`'${columnName}'`);
 }
 
+function isMissingRelationError(error, tableName) {
+  if (!error) return false;
+  if (error.code !== "PGRST205") return false;
+  return String(error.message || "").includes(`'public.${tableName}'`);
+}
+
+function isInvalidInputError(error) {
+  if (!error) return false;
+  const code = String(error.code || "");
+  const status = String(error.status || "");
+  return code === "22P02" || code === "22023" || code === "PGRST100" || status === "400";
+}
+
+function shouldFallbackOnSchemaError(error, columnName = "") {
+  return isMissingColumnError(error, columnName) || isInvalidInputError(error);
+}
+
+function readLocalAdminNotifications() {
+  try {
+    const raw = localStorage.getItem(ADMIN_NOTIFICATIONS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn("No se pudo leer el respaldo local de notificaciones:", error);
+    return [];
+  }
+}
+
+function saveLocalAdminNotification(message, tipo = "general") {
+  const current = readLocalAdminNotifications();
+  const item = {
+    id: `local-${Date.now()}`,
+    message,
+    tipo,
+    created_at: new Date().toISOString(),
+  };
+
+  const next = [item, ...current].slice(0, 20);
+  localStorage.setItem(ADMIN_NOTIFICATIONS_STORAGE_KEY, JSON.stringify(next));
+}
+
+function renderAdminNotificationsList(lista, items, sourceLabel = "") {
+  if (!items?.length) {
+    lista.innerHTML = "<li class=\"muted small\">Sin notificaciones por ahora.</li>";
+    return;
+  }
+
+  const prefix = sourceLabel ? `<span class=\"muted small\">${sourceLabel}</span>` : "";
+  lista.innerHTML = items
+    .map((item) => {
+      const fecha = item.created_at ? new Date(item.created_at).toLocaleString("es-MX") : "Sin fecha";
+      return `<li><strong>${item.message}</strong><span class=\"muted small\">${fecha}</span>${prefix}</li>`;
+    })
+    .join("");
+}
+
 async function updateProfileCompletionState(userId, nombreConsentimiento) {
   const payload = {
     nombre_completo: nombreConsentimiento,
@@ -75,7 +137,7 @@ async function updateProfileCompletionState(userId, nombreConsentimiento) {
   const { error } = await supabaseClient.from("perfiles").update(payload).eq("id", userId);
   if (!error) return;
 
-  if (isMissingColumnError(error, "nombre_completo") || isMissingColumnError(error, "consentimiento")) {
+  if (shouldFallbackOnSchemaError(error, "nombre_completo") || shouldFallbackOnSchemaError(error, "consentimiento")) {
     const fallback = await supabaseClient
       .from("perfiles")
       .update({ test_fototipo_completado: true })
@@ -83,7 +145,7 @@ async function updateProfileCompletionState(userId, nombreConsentimiento) {
 
     if (!fallback.error) return;
 
-    if (isMissingColumnError(fallback.error, "test_fototipo_completado")) {
+    if (shouldFallbackOnSchemaError(fallback.error, "test_fototipo_completado")) {
       console.warn("La tabla perfiles no contiene columnas de estado del formulario. Se continúa sin bloqueo por perfil.");
       return;
     }
@@ -92,7 +154,7 @@ async function updateProfileCompletionState(userId, nombreConsentimiento) {
     return;
   }
 
-  if (isMissingColumnError(error, "test_fototipo_completado")) {
+  if (shouldFallbackOnSchemaError(error, "test_fototipo_completado")) {
     console.warn("La columna test_fototipo_completado no existe en perfiles.");
     return;
   }
@@ -101,9 +163,6 @@ async function updateProfileCompletionState(userId, nombreConsentimiento) {
 }
 
 async function hasVolunteerCompletedForm() {
-  const correoFormulario = document.getElementById("correo")?.value?.trim().toLowerCase() || "";
-  const correoBusqueda = correoFormulario || String(currentUserEmail || "").trim().toLowerCase();
-
   const perfilResp = await supabaseClient
     .from("perfiles")
     .select("test_fototipo_completado")
@@ -112,10 +171,25 @@ async function hasVolunteerCompletedForm() {
 
   if (!perfilResp.error && perfilResp.data?.test_fototipo_completado) return true;
 
-  if (perfilResp.error && !isMissingColumnError(perfilResp.error, "test_fototipo_completado")) {
+  if (perfilResp.error && !shouldFallbackOnSchemaError(perfilResp.error, "test_fototipo_completado")) {
     console.error("Error al consultar el estado del formulario en perfiles:", perfilResp.error);
   }
 
+  const porUsuario = await supabaseClient
+    .from("voluntarios")
+    .select("id")
+    .eq("user_id", currentUserId)
+    .order("id", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!porUsuario.error && porUsuario.data?.id) return true;
+
+  if (porUsuario.error && !shouldFallbackOnSchemaError(porUsuario.error, "user_id")) {
+    console.error("Error al validar formulario completado por user_id:", porUsuario.error);
+  }
+
+  const correoBusqueda = String(currentUserEmail || "").trim().toLowerCase();
   if (!correoBusqueda) return false;
 
   const { data: ultimo, error } = await supabaseClient
@@ -127,7 +201,7 @@ async function hasVolunteerCompletedForm() {
     .maybeSingle();
 
   if (error) {
-    console.error("Error al validar formulario completado en voluntarios:", error);
+    console.error("Error al validar formulario completado en voluntarios por correo:", error);
     return false;
   }
 
@@ -135,46 +209,131 @@ async function hasVolunteerCompletedForm() {
 }
 
 async function sendEmailNotification({ to, subject, html }) {
-  if (!RESEND_API_KEY_VALUE) {
-    console.warn("RESEND_API_KEY no configurada. Se omitió el envío de correo.");
-    return { skipped: true, reason: "missing_api_key" };
+  const normalizedTo = String(to || "").trim();
+  const providers = [];
+
+  if (SMTP2GO_API_KEY_FALLBACK) {
+    console.warn("Se detectó una clave con formato SMTP2GO en RESEND_API_KEY. Se usará como fallback de SMTP2GO.");
   }
 
-  try {
-    const response = await fetch(RESEND_ENDPOINT, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${RESEND_API_KEY_VALUE}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: FROM_EMAIL,
-        to: [to],
-        subject,
-        html,
-      }),
+  if (RESEND_API_KEY_VALUE) {
+    providers.push(async () => {
+      const response = await fetch(RESEND_ENDPOINT, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${RESEND_API_KEY_VALUE}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: FROM_EMAIL,
+          to: [normalizedTo],
+          subject,
+          html,
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.message || "Error al enviar correo con Resend.");
+      }
+
+      return { skipped: false, payload, provider: "resend" };
+    });
+  }
+
+  if (BREVO_API_KEY) {
+    providers.push(async () => {
+      const response = await fetch(BREVO_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "api-key": BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sender: { email: FROM_EMAIL, name: "Proyecto Espectral" },
+          to: [{ email: normalizedTo }],
+          subject,
+          htmlContent: html,
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.message || payload?.code || "Error al enviar correo con Brevo.");
+      }
+
+      return { skipped: false, payload, provider: "brevo" };
+    });
+  }
+
+  const smtp2goKey = SMTP2GO_API_KEY || SMTP2GO_API_KEY_FALLBACK;
+  if (smtp2goKey) {
+    providers.push(async () => {
+      const response = await fetch(SMTP2GO_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          api_key: smtp2goKey,
+          sender: FROM_EMAIL,
+          to: [normalizedTo],
+          subject,
+          html_body: html,
+        }),
+      });
+
+      const payload = await response.json();
+      const okByBody = payload?.data?.succeeded > 0 || payload?.succeeded > 0;
+      if (!response.ok || !okByBody) {
+        throw new Error(payload?.data?.error || payload?.error || "Error al enviar correo con SMTP2GO.");
+      }
+
+      return { skipped: false, payload, provider: "smtp2go" };
+    });
+  }
+
+  providers.push(async () => {
+    const fnName = window.SUPABASE_EMAIL_FUNCTION || "send-email";
+    const { data, error } = await supabaseClient.functions.invoke(fnName, {
+      body: { to: normalizedTo, subject, html, from: FROM_EMAIL },
     });
 
-    const payload = await response.json();
-    if (!response.ok) {
-      throw new Error(payload?.message || "Error al enviar correo con Resend.");
-    }
+    if (error) throw error;
+    return { skipped: false, payload: data, provider: "supabase-function" };
+  });
 
-    return { skipped: false, payload };
-  } catch (error) {
-    console.error("Error al enviar notificación por correo:", error);
-    return { skipped: false, error };
+  let lastError = null;
+  for (const sendWithProvider of providers) {
+    try {
+      return await sendWithProvider();
+    } catch (error) {
+      lastError = error;
+      console.warn("Proveedor de correo falló, se intenta siguiente fallback:", error);
+    }
   }
+
+  console.warn("No se pudo enviar correo con ningún proveedor configurado.", lastError);
+  return { skipped: true, reason: "email_provider_not_configured", error: lastError };
 }
 
-async function createAdminNotificationLog(message) {
-  const { error } = await supabaseClient.from("admin_notificaciones").insert({
+async function createAdminNotificationLog(message, tipo = "nuevo_registro") {
+  let { error } = await supabaseClient.from("admin_notificaciones").insert({
     message,
-    tipo: "nuevo_registro",
+    tipo,
   });
+
+  if (isMissingColumnError(error, "tipo")) {
+    const fallback = await supabaseClient.from("admin_notificaciones").insert({ message });
+    error = fallback.error;
+  }
+
+  if (isMissingRelationError(error, "admin_notificaciones")) {
+    saveLocalAdminNotification(message, tipo);
+    return;
+  }
 
   if (error) {
     console.error("No se pudo registrar la notificación para administrador:", error);
+    saveLocalAdminNotification(message, tipo);
   }
 }
 
@@ -194,7 +353,18 @@ async function notifyAdminNewVolunteer(email) {
 
   if (sent?.error) {
     showToast("Voluntario registrado, pero falló el aviso por correo al administrador.", "info");
+  } else if (sent?.skipped) {
+    showToast("Voluntario registrado. Configura RESEND_API_KEY (solo Resend), BREVO_API_KEY, SMTP2GO_API_KEY o función send-email para enviar correos.", "info");
   }
+}
+
+async function notifyAdminVolunteerCompletedForm({ email, fototipo }) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+  if (!normalizedEmail) return;
+
+  const message = `El voluntario con el correo "${normalizedEmail}" ha realizado el formulario, su fototipo de acuerdo al formulario es: "${fototipo || "No disponible"}".`;
+
+  await createAdminNotificationLog(message, "formulario_completado");
 }
 
 async function notifyVolunteerFototipo({ email, nombre, fototipo }) {
@@ -220,6 +390,8 @@ async function notifyVolunteerFototipo({ email, nombre, fototipo }) {
 
   if (sent?.error) {
     showToast("Formulario guardado, pero no se pudo enviar el correo del fototipo.", "info");
+  } else if (sent?.skipped) {
+    showToast("Formulario guardado. Configura RESEND_API_KEY (solo Resend), BREVO_API_KEY, SMTP2GO_API_KEY o función send-email para enviar el correo al voluntario.", "info");
   }
 }
 
@@ -239,22 +411,24 @@ async function cargarAlertasAdmin() {
     .limit(20);
 
   if (error) {
+    if (isMissingRelationError(error, "admin_notificaciones")) {
+      const localItems = readLocalAdminNotifications();
+      renderAdminNotificationsList(lista, localItems, "(respaldo local)");
+      return;
+    }
+
     console.error("Error al cargar notificaciones de administrador:", error);
+    const localItems = readLocalAdminNotifications();
+    if (localItems.length) {
+      renderAdminNotificationsList(lista, localItems, "(respaldo local)");
+      return;
+    }
+
     lista.innerHTML = "<li class=\"muted small\">No se pudieron cargar las notificaciones.</li>";
     return;
   }
 
-  if (!data?.length) {
-    lista.innerHTML = "<li class=\"muted small\">Sin notificaciones por ahora.</li>";
-    return;
-  }
-
-  lista.innerHTML = data
-    .map((item) => {
-      const fecha = item.created_at ? new Date(item.created_at).toLocaleString("es-MX") : "Sin fecha";
-      return `<li><strong>${item.message}</strong><span class=\"muted small\">${fecha}</span></li>`;
-    })
-    .join("");
+  renderAdminNotificationsList(lista, data);
 }
 
 function showToast(message, type = "error") {
@@ -430,6 +604,7 @@ logoutBtn.addEventListener("click", async () => {
   setAuthTab("login-panel");
   showView(GUEST_LANDING_VIEW);
   closeModal("modal-edicion");
+  resetSkinFormForCurrentSession();
 });
 
 function renderReadOnlyFormResult(fototipo) {
@@ -455,6 +630,25 @@ function renderReadOnlyFormResult(fototipo) {
   if (recEl) recEl.textContent = recomendaciones[fototipo] || "Mantén hábitos de protección solar adecuados.";
 
   statusCard.classList.remove("hidden");
+  statusCard.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function resetSkinFormForCurrentSession() {
+  const skinForm = document.querySelector(".skin-form");
+  const statusCard = document.getElementById("formEstadoCuenta");
+  const resultadoDiv = document.getElementById("resultadoFototipo");
+
+  if (skinForm) {
+    skinForm.reset();
+    skinForm.classList.remove("form-locked");
+  }
+
+  if (statusCard) {
+    statusCard.classList.add("hidden");
+    statusCard.innerHTML = "";
+  }
+
+  if (resultadoDiv) resultadoDiv.classList.add("hidden");
 }
 
 async function syncFormAccessForCurrentAccount() {
@@ -480,30 +674,51 @@ async function syncFormAccessForCurrentAccount() {
 
   if (!perfilResp.error) {
     perfil = perfilResp.data;
-  } else if (!isMissingColumnError(perfilResp.error, "test_fototipo_completado")) {
+  } else if (!shouldFallbackOnSchemaError(perfilResp.error, "test_fototipo_completado")) {
     console.error("Error al consultar perfiles:", perfilResp.error);
   }
 
   currentProfile = { ...(currentProfile || {}), ...(perfil || {}) };
 
   if (currentRole === "admin") {
-    setActiveFormStepById(readSavedFormStepProgress() || FORM_INITIAL_STEP);
+    clearSavedFormStepProgress();
+    setActiveFormStepById(FORM_INITIAL_STEP);
     return;
   }
 
   const completedFromProfile = Boolean(perfil?.test_fototipo_completado);
-  const correoBusqueda = String(currentUserEmail || "").trim().toLowerCase();
-  const { data: ultimoRegistro } = await supabaseClient
+  const porUsuario = await supabaseClient
     .from("voluntarios")
     .select("fototipo_de_piel")
-    .eq("correo", correoBusqueda)
+    .eq("user_id", currentUserId)
     .order("id", { ascending: false })
     .limit(1)
     .maybeSingle();
 
+  let ultimoRegistro = porUsuario.data;
+
+  if (!ultimoRegistro?.fototipo_de_piel) {
+    const correoBusqueda = String(currentUserEmail || "").trim().toLowerCase();
+    if (correoBusqueda) {
+      const porCorreo = await supabaseClient
+        .from("voluntarios")
+        .select("fototipo_de_piel")
+        .eq("correo", correoBusqueda)
+        .order("id", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!porCorreo.error) {
+        ultimoRegistro = porCorreo.data;
+      }
+    }
+  }
+
   if (completedFromProfile || ultimoRegistro?.fototipo_de_piel) {
     renderReadOnlyFormResult(ultimoRegistro?.fototipo_de_piel || "No disponible");
     skinForm.classList.add("form-locked");
+    const resultadoDiv = document.getElementById("resultadoFototipo");
+    if (resultadoDiv) resultadoDiv.classList.add("hidden");
     return;
   }
 
@@ -512,6 +727,7 @@ async function syncFormAccessForCurrentAccount() {
 
 async function initSession(user) {
   isLoggedIn = true;
+  resetSkinFormForCurrentSession();
   const { data: perfil } = await supabaseClient
     .from("perfiles")
     .select("nombre, role, test_fototipo_completado")
@@ -888,8 +1104,8 @@ function validarNombreCompleto(nombre) {
   return partes.length >= 2;
 }
 
-function validarCorreoUpt(correo) {
-  return /^[^\s@]+@upt\.edu\.mx$/i.test(correo);
+function validarCorreo(correo) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(correo || "").trim());
 }
 
 function getSelectedValue(name) {
@@ -933,8 +1149,8 @@ function validateCurrentStep(targetStep) {
       return false;
     }
 
-    if (!validarCorreoUpt(correo)) {
-      showToast("El correo debe ser válido y terminar en @upt.edu.mx.");
+    if (!validarCorreo(correo)) {
+      showToast("Captura un correo electrónico válido.");
       return false;
     }
 
@@ -1117,6 +1333,9 @@ async function guardarVoluntario() {
 
   const total = questionGroups.reduce((acc, q) => acc + getSelectedValue(q), 0);
   const fototipo = calcularFototipo(total);
+  const correoFormulario = currentRole === "admin"
+    ? correo
+    : String(currentUserEmail || correo).trim().toLowerCase();
 
   const { data: authData } = await supabaseClient.auth.getUser();
   const user = authData.user;
@@ -1133,13 +1352,13 @@ async function guardarVoluntario() {
     sexo,
     edad,
     carrera,
-    correo,
+    correo: correoFormulario,
     fototipo_de_piel: fototipo,
     fecha: new Date().toISOString().slice(0, 10),
   };
 
   let { error } = await supabaseClient.from("voluntarios").insert(payload);
-  if (isMissingColumnError(error, "user_id")) {
+  if (shouldFallbackOnSchemaError(error, "user_id")) {
     const fallbackPayload = { ...payload };
     delete fallbackPayload.user_id;
     const fallbackInsert = await supabaseClient.from("voluntarios").insert(fallbackPayload);
@@ -1155,11 +1374,12 @@ async function guardarVoluntario() {
   clearSavedFormStepProgress();
   mostrarResultadoBonito(fototipo);
 
-  await notifyVolunteerFototipo({ email: correo, nombre: nombreConsentimiento, fototipo });
+  await notifyVolunteerFototipo({ email: correoFormulario, nombre: nombreConsentimiento, fototipo });
 
   if (currentRole === "admin") {
     await cargarVoluntarios();
   } else {
+    await notifyAdminVolunteerCompletedForm({ email: correoFormulario, fototipo });
     await syncFormAccessForCurrentAccount();
   }
 }
