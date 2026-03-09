@@ -35,7 +35,7 @@ const RESEND_API_KEY_VALUE = window.RESEND_API_KEY || "";
 const RESEND_API_KEY = window.RESEND_API_KEY || "";
 const BREVO_API_KEY = window.BREVO_API_KEY || "";
 const BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
-const SMTP2GO_API_KEY = window.SMTP2GO_API_KEY || "";
+const SMTP2GO_API_KEY = window.SMTP2GO_API_KEY || "api-DB3E12DC8A3C402D9EC6BFDB86E590CC";
 const SMTP2GO_ENDPOINT = "https://api.smtp2go.com/v3/email/send";
 const FROM_EMAIL = window.NOTIFICATION_FROM_EMAIL || "onboarding@resend.dev";
 
