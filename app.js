@@ -29,6 +29,7 @@ const GUEST_LANDING_VIEW = "inicio";
 const AUTH_LANDING_VIEW = "equipo";
 const ADMIN_EMAILS = ["admin@ejemplo.com"];
 const ADMIN_NOTIFICATION_EMAIL = "admin@ejemplo.com";
+const ADMIN_NOTIFICATIONS_STORAGE_KEY = "admin-notificaciones-local";
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const RESEND_API_KEY_VALUE = window.RESEND_API_KEY || "";
 const RESEND_API_KEY = window.RESEND_API_KEY || "";
@@ -63,6 +64,50 @@ function isMissingColumnError(error, columnName) {
   if (!error) return false;
   if (error.code !== "PGRST204") return false;
   return String(error.message || "").includes(`'${columnName}'`);
+}
+
+function isMissingRelationError(error, tableName) {
+  if (!error) return false;
+  if (error.code !== "PGRST205") return false;
+  return String(error.message || "").includes(`'public.${tableName}'`);
+}
+
+function readLocalAdminNotifications() {
+  try {
+    const raw = localStorage.getItem(ADMIN_NOTIFICATIONS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn("No se pudo leer el respaldo local de notificaciones:", error);
+    return [];
+  }
+}
+
+function saveLocalAdminNotification(message) {
+  const current = readLocalAdminNotifications();
+  const item = {
+    id: `local-${Date.now()}`,
+    message,
+    created_at: new Date().toISOString(),
+  };
+
+  const next = [item, ...current].slice(0, 20);
+  localStorage.setItem(ADMIN_NOTIFICATIONS_STORAGE_KEY, JSON.stringify(next));
+}
+
+function renderAdminNotificationsList(lista, items, sourceLabel = "") {
+  if (!items?.length) {
+    lista.innerHTML = "<li class=\"muted small\">Sin notificaciones por ahora.</li>";
+    return;
+  }
+
+  const prefix = sourceLabel ? `<span class=\"muted small\">${sourceLabel}</span>` : "";
+  lista.innerHTML = items
+    .map((item) => {
+      const fecha = item.created_at ? new Date(item.created_at).toLocaleString("es-MX") : "Sin fecha";
+      return `<li><strong>${item.message}</strong><span class=\"muted small\">${fecha}</span>${prefix}</li>`;
+    })
+    .join("");
 }
 
 async function updateProfileCompletionState(userId, nombreConsentimiento) {
@@ -101,9 +146,6 @@ async function updateProfileCompletionState(userId, nombreConsentimiento) {
 }
 
 async function hasVolunteerCompletedForm() {
-  const correoFormulario = document.getElementById("correo")?.value?.trim().toLowerCase() || "";
-  const correoBusqueda = correoFormulario || String(currentUserEmail || "").trim().toLowerCase();
-
   const perfilResp = await supabaseClient
     .from("perfiles")
     .select("test_fototipo_completado")
@@ -116,6 +158,21 @@ async function hasVolunteerCompletedForm() {
     console.error("Error al consultar el estado del formulario en perfiles:", perfilResp.error);
   }
 
+  const porUsuario = await supabaseClient
+    .from("voluntarios")
+    .select("id")
+    .eq("user_id", currentUserId)
+    .order("id", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!porUsuario.error && porUsuario.data?.id) return true;
+
+  if (porUsuario.error && !isMissingColumnError(porUsuario.error, "user_id")) {
+    console.error("Error al validar formulario completado por user_id:", porUsuario.error);
+  }
+
+  const correoBusqueda = String(currentUserEmail || "").trim().toLowerCase();
   if (!correoBusqueda) return false;
 
   const { data: ultimo, error } = await supabaseClient
@@ -127,7 +184,7 @@ async function hasVolunteerCompletedForm() {
     .maybeSingle();
 
   if (error) {
-    console.error("Error al validar formulario completado en voluntarios:", error);
+    console.error("Error al validar formulario completado en voluntarios por correo:", error);
     return false;
   }
 
@@ -173,8 +230,14 @@ async function createAdminNotificationLog(message) {
     tipo: "nuevo_registro",
   });
 
+  if (isMissingRelationError(error, "admin_notificaciones")) {
+    saveLocalAdminNotification(message);
+    return;
+  }
+
   if (error) {
     console.error("No se pudo registrar la notificación para administrador:", error);
+    saveLocalAdminNotification(message);
   }
 }
 
@@ -239,22 +302,24 @@ async function cargarAlertasAdmin() {
     .limit(20);
 
   if (error) {
+    if (isMissingRelationError(error, "admin_notificaciones")) {
+      const localItems = readLocalAdminNotifications();
+      renderAdminNotificationsList(lista, localItems, "(respaldo local)");
+      return;
+    }
+
     console.error("Error al cargar notificaciones de administrador:", error);
+    const localItems = readLocalAdminNotifications();
+    if (localItems.length) {
+      renderAdminNotificationsList(lista, localItems, "(respaldo local)");
+      return;
+    }
+
     lista.innerHTML = "<li class=\"muted small\">No se pudieron cargar las notificaciones.</li>";
     return;
   }
 
-  if (!data?.length) {
-    lista.innerHTML = "<li class=\"muted small\">Sin notificaciones por ahora.</li>";
-    return;
-  }
-
-  lista.innerHTML = data
-    .map((item) => {
-      const fecha = item.created_at ? new Date(item.created_at).toLocaleString("es-MX") : "Sin fecha";
-      return `<li><strong>${item.message}</strong><span class=\"muted small\">${fecha}</span></li>`;
-    })
-    .join("");
+  renderAdminNotificationsList(lista, data);
 }
 
 function showToast(message, type = "error") {
@@ -455,6 +520,7 @@ function renderReadOnlyFormResult(fototipo) {
   if (recEl) recEl.textContent = recomendaciones[fototipo] || "Mantén hábitos de protección solar adecuados.";
 
   statusCard.classList.remove("hidden");
+  statusCard.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 async function syncFormAccessForCurrentAccount() {
@@ -492,18 +558,38 @@ async function syncFormAccessForCurrentAccount() {
   }
 
   const completedFromProfile = Boolean(perfil?.test_fototipo_completado);
-  const correoBusqueda = String(currentUserEmail || "").trim().toLowerCase();
-  const { data: ultimoRegistro } = await supabaseClient
+  const porUsuario = await supabaseClient
     .from("voluntarios")
     .select("fototipo_de_piel")
-    .eq("correo", correoBusqueda)
+    .eq("user_id", currentUserId)
     .order("id", { ascending: false })
     .limit(1)
     .maybeSingle();
 
+  let ultimoRegistro = porUsuario.data;
+
+  if (!ultimoRegistro?.fototipo_de_piel) {
+    const correoBusqueda = String(currentUserEmail || "").trim().toLowerCase();
+    if (correoBusqueda) {
+      const porCorreo = await supabaseClient
+        .from("voluntarios")
+        .select("fototipo_de_piel")
+        .eq("correo", correoBusqueda)
+        .order("id", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!porCorreo.error) {
+        ultimoRegistro = porCorreo.data;
+      }
+    }
+  }
+
   if (completedFromProfile || ultimoRegistro?.fototipo_de_piel) {
     renderReadOnlyFormResult(ultimoRegistro?.fototipo_de_piel || "No disponible");
     skinForm.classList.add("form-locked");
+    const resultadoDiv = document.getElementById("resultadoFototipo");
+    if (resultadoDiv) resultadoDiv.classList.add("hidden");
     return;
   }
 
@@ -888,8 +974,8 @@ function validarNombreCompleto(nombre) {
   return partes.length >= 2;
 }
 
-function validarCorreoUpt(correo) {
-  return /^[^\s@]+@upt\.edu\.mx$/i.test(correo);
+function validarCorreo(correo) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(correo || "").trim());
 }
 
 function getSelectedValue(name) {
@@ -933,8 +1019,8 @@ function validateCurrentStep(targetStep) {
       return false;
     }
 
-    if (!validarCorreoUpt(correo)) {
-      showToast("El correo debe ser válido y terminar en @upt.edu.mx.");
+    if (!validarCorreo(correo)) {
+      showToast("Captura un correo electrónico válido.");
       return false;
     }
 
@@ -1117,6 +1203,9 @@ async function guardarVoluntario() {
 
   const total = questionGroups.reduce((acc, q) => acc + getSelectedValue(q), 0);
   const fototipo = calcularFototipo(total);
+  const correoFormulario = currentRole === "admin"
+    ? correo
+    : String(currentUserEmail || correo).trim().toLowerCase();
 
   const { data: authData } = await supabaseClient.auth.getUser();
   const user = authData.user;
@@ -1133,7 +1222,7 @@ async function guardarVoluntario() {
     sexo,
     edad,
     carrera,
-    correo,
+    correo: correoFormulario,
     fototipo_de_piel: fototipo,
     fecha: new Date().toISOString().slice(0, 10),
   };
@@ -1155,7 +1244,7 @@ async function guardarVoluntario() {
   clearSavedFormStepProgress();
   mostrarResultadoBonito(fototipo);
 
-  await notifyVolunteerFototipo({ email: correo, nombre: nombreConsentimiento, fototipo });
+  await notifyVolunteerFototipo({ email: correoFormulario, nombre: nombreConsentimiento, fototipo });
 
   if (currentRole === "admin") {
     await cargarVoluntarios();
