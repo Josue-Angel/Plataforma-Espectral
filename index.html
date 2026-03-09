@@ -654,7 +654,11 @@
     window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3c3plb3pteHp3dWFqcnl3cW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODU2ODAsImV4cCI6MjA3OTg2MTY4MH0.XAj13G3Bwl3iy7gfnVyHddA6LMH4Yc9dnx9Im6Dx8xI';
     // Configuración opcional para envío de correos transaccionales.
     window.RESEND_API_KEY = window.RESEND_API_KEY || '';
+    window.BREVO_API_KEY = window.BREVO_API_KEY || '';
+    window.SMTP2GO_API_KEY = window.SMTP2GO_API_KEY || '';
     window.NOTIFICATION_FROM_EMAIL = window.NOTIFICATION_FROM_EMAIL || 'onboarding@resend.dev';
+    // Alternativa recomendada: función Edge de Supabase para envío de correo.
+    window.SUPABASE_EMAIL_FUNCTION = window.SUPABASE_EMAIL_FUNCTION || 'send-email';
   </script>
   <script src="app.js"></script>
 </body>
