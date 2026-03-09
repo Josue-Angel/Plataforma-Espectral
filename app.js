@@ -36,6 +36,7 @@ const RESEND_API_KEY = window.RESEND_API_KEY || "";
 const BREVO_API_KEY = window.BREVO_API_KEY || "";
 const BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
 const SMTP2GO_API_KEY = window.SMTP2GO_API_KEY || "api-DB3E12DC8A3C402D9EC6BFDB86E590CC";
+const SMTP2GO_API_KEY_FALLBACK = (!SMTP2GO_API_KEY && /^api-/i.test(String(RESEND_API_KEY_VALUE || ""))) ? RESEND_API_KEY_VALUE : "";
 const SMTP2GO_ENDPOINT = "https://api.smtp2go.com/v3/email/send";
 const FROM_EMAIL = window.NOTIFICATION_FROM_EMAIL || "onboarding@resend.dev";
 
@@ -79,7 +80,8 @@ function isMissingRelationError(error, tableName) {
 function isInvalidInputError(error) {
   if (!error) return false;
   const code = String(error.code || "");
-  return code === "22P02" || code === "22023" || code === "PGRST100";
+  const status = String(error.status || "");
+  return code === "22P02" || code === "22023" || code === "PGRST100" || status === "400";
 }
 
 function shouldFallbackOnSchemaError(error, columnName = "") {
@@ -210,6 +212,10 @@ async function sendEmailNotification({ to, subject, html }) {
   const normalizedTo = String(to || "").trim();
   const providers = [];
 
+  if (SMTP2GO_API_KEY_FALLBACK) {
+    console.warn("Se detectó una clave con formato SMTP2GO en RESEND_API_KEY. Se usará como fallback de SMTP2GO.");
+  }
+
   if (RESEND_API_KEY_VALUE) {
     providers.push(async () => {
       const response = await fetch(RESEND_ENDPOINT, {
@@ -260,13 +266,14 @@ async function sendEmailNotification({ to, subject, html }) {
     });
   }
 
-  if (SMTP2GO_API_KEY) {
+  const smtp2goKey = SMTP2GO_API_KEY || SMTP2GO_API_KEY_FALLBACK;
+  if (smtp2goKey) {
     providers.push(async () => {
       const response = await fetch(SMTP2GO_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          api_key: SMTP2GO_API_KEY,
+          api_key: smtp2goKey,
           sender: FROM_EMAIL,
           to: [normalizedTo],
           subject,
@@ -347,7 +354,7 @@ async function notifyAdminNewVolunteer(email) {
   if (sent?.error) {
     showToast("Voluntario registrado, pero falló el aviso por correo al administrador.", "info");
   } else if (sent?.skipped) {
-    showToast("Voluntario registrado. Configura RESEND_API_KEY, BREVO_API_KEY, SMTP2GO_API_KEY o función send-email para enviar correos.", "info");
+    showToast("Voluntario registrado. Configura RESEND_API_KEY (solo Resend), BREVO_API_KEY, SMTP2GO_API_KEY o función send-email para enviar correos.", "info");
   }
 }
 
@@ -384,7 +391,7 @@ async function notifyVolunteerFototipo({ email, nombre, fototipo }) {
   if (sent?.error) {
     showToast("Formulario guardado, pero no se pudo enviar el correo del fototipo.", "info");
   } else if (sent?.skipped) {
-    showToast("Formulario guardado. Configura RESEND_API_KEY, BREVO_API_KEY, SMTP2GO_API_KEY o función send-email para enviar el correo al voluntario.", "info");
+    showToast("Formulario guardado. Configura RESEND_API_KEY (solo Resend), BREVO_API_KEY, SMTP2GO_API_KEY o función send-email para enviar el correo al voluntario.", "info");
   }
 }
 
