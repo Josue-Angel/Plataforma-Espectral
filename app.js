@@ -224,10 +224,10 @@ async function sendEmailNotification({ to, subject, html }) {
   }
 }
 
-async function createAdminNotificationLog(message) {
+async function createAdminNotificationLog(message, tipo = "nuevo_registro") {
   const { error } = await supabaseClient.from("admin_notificaciones").insert({
     message,
-    tipo: "nuevo_registro",
+    tipo,
   });
 
   if (isMissingRelationError(error, "admin_notificaciones")) {
@@ -258,6 +258,16 @@ async function notifyAdminNewVolunteer(email) {
   if (sent?.error) {
     showToast("Voluntario registrado, pero falló el aviso por correo al administrador.", "info");
   }
+}
+
+async function notifyAdminVolunteerCompletedForm({ email, fototipo }) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+  if (!normalizedEmail) return;
+
+  const extra = fototipo ? ` (Fototipo: ${fototipo})` : "";
+  const message = `El usuario con correo ${normalizedEmail} completó su formulario${extra}.`;
+
+  await createAdminNotificationLog(message, "formulario_completado");
 }
 
 async function notifyVolunteerFototipo({ email, nombre, fototipo }) {
@@ -1249,6 +1259,7 @@ async function guardarVoluntario() {
   if (currentRole === "admin") {
     await cargarVoluntarios();
   } else {
+    await notifyAdminVolunteerCompletedForm({ email: correoFormulario, fototipo });
     await syncFormAccessForCurrentAccount();
   }
 }
