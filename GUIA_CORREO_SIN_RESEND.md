@@ -47,3 +47,9 @@ const fototipo = body.fototipo ?? body.tipoFototipo ?? body.fototipo_de_piel ?? 
 const recomendacion = body.recomendacion ?? body.recommendation ?? 'Sin recomendación disponible'
 const html = body.html ?? `<p><b>Tu Fototipo de Piel es:</b> ${fototipo}</p><p>${recomendacion}</p>`
 ```
+
+
+### Importante para conservar tu plantilla moderna en Edge
+Si quieres que se use el diseño moderno de tu función Edge para el correo de fototipo, **no envíes `html` desde el frontend** en ese caso.
+- `customHtml` solo debería usarse para correos administrativos u otros casos especiales.
+- Para fototipo, envía `to`, `nombre`, `fototipo`, `recomendacion` (y opcionalmente `subject`) y deja que Edge construya `finalHtml`.

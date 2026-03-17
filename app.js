@@ -289,18 +289,9 @@ async function notifyVolunteerFototipo({ email, nombre, fototipo }) {
   const details = getFototipoDetails(fototipo);
   const safeName = nombre || "Voluntario";
 
-  const html = `
-    <h2>Resultado de tu fototipo de piel</h2>
-    <p>Hola ${safeName}, gracias por completar el formulario.</p>
-    <p><strong>Tu fototipo de piel es:</strong> ${fototipo}</p>
-    <p><strong>Descripción:</strong> ${details.descripcion}</p>
-    <p><strong>Recomendación:</strong> ${details.recomendacion}</p>
-  `;
-
   const sent = await sendEmailNotification({
     to: normalizedEmail,
-    subject: "Resultado de tu fototipo de piel",
-    html,
+    subject: "🔬 Resultado de tu Fototipo de Piel",
     fototipo,
     recomendacion: details.recomendacion,
     nombre: safeName,
