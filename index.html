@@ -316,7 +316,7 @@
           <input type="text" id="nombreConsentimiento" required placeholder="Escribe tu nombre completo" />
 
           <div class="consent-box">
-            <label><input type="checkbox" id="aceptaConsentimiento" /> Autorizo el uso de mis datos personales con fines clínicos y de análisis dermatológico dentro de la Plataforma Espectral.</label>
+            <label><input type="checkbox" id="aceptaConsentimiento" /> He leído el consentimiento informado y acepto participar voluntariamente en este estudio. <a href="./consentimiento-informado.pdf" target="_blank" rel="noopener noreferrer">Ver consentimiento informado (PDF)</a></label>
             <label><input type="checkbox" id="aceptaConfidencialidad" /> Acepto el tratamiento confidencial de mis datos e imágenes recolectadas para investigación científica.</label>
           </div>
 
@@ -331,7 +331,7 @@
 
       <!-- SECCIÓN 1 -->
       <section class="step" id="step1">
-        <h2>Datos del Voluntario</h2>
+        <h2>Datos personales</h2>
 
         <div class="form-group">
           <input type="text" id="identificador" placeholder="Matrícula" required>
@@ -366,7 +366,7 @@
 
       <!-- SECCIÓN 2 -->
       <section class="step" id="step2">
-        <h2>Disposición Genética</h2>
+        <h2>Información genética</h2>
 
         <p>1. ¿Cuál es el color de tus ojos?</p>
         <label><input type="radio" name="ojos" value="0"> Azul claro, gris o verde</label>
@@ -396,7 +396,7 @@
         <label><input type="radio" name="pecas" value="3"> Algunas</label>
         <label><input type="radio" name="pecas" value="4"> Ninguna</label>
 
-        <p class="step-tip">Recomendación: usa protector solar diariamente y evita exposición prolongada en horas de alta radiación.</p>
+        <p class="step-tip">Recomendación: usa protector solar cada mañana, aunque esté nublado, para cuidar tu piel en el día a día.</p>
 
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
@@ -407,7 +407,7 @@
 
       <!-- SECCIÓN 3 -->
       <section class="step" id="step3">
-        <h2>Reacción a la Exposición Solar</h2>
+        <h2>Reacción al sol</h2>
 
         <p>5. ¿Qué sucede cuando tu piel se expone demasiado al sol?</p>
         <label><input type="radio" name="quemadura" value="0"> Enrojecimiento doloroso, ampollas y descamación</label>
@@ -437,7 +437,7 @@
         <label><input type="radio" name="rostro" value="3"> Muy resistente</label>
         <label><input type="radio" name="rostro" value="4"> Nunca tuve problema</label>
 
-        <p class="step-tip">Recomendación: incluso si tu piel se broncea fácil, mantener fotoprotección reduce daño acumulado y envejecimiento prematuro.</p>
+        <p class="step-tip">Recomendación: si vas a estar al sol, reaplica protector cada 2-3 horas y usa gorra o sombrero cuando puedas.</p>
 
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
@@ -448,7 +448,7 @@
 
       <!-- SECCIÓN 4 -->
       <section class="step" id="step4">
-        <h2>Hábitos de Bronceado</h2>
+        <h2>Hábitos diarios</h2>
 
         <p>9. ¿Cuándo fue la última vez que se bronceó?</p>
         <label><input type="radio" name="ultima_vez" value="0"> Hace más de 3 meses</label>
@@ -464,7 +464,7 @@
         <label><input type="radio" name="regular" value="3"> Frecuentemente</label>
         <label><input type="radio" name="regular" value="4"> Siempre</label>
 
-        <p class="step-tip">Recomendación final: hidrata tu piel, reaplica protector cada 2-3 horas y agenda revisiones dermatológicas periódicas.</p>
+        <p class="step-tip">Recomendación final: hidrata tu piel después del baño, evita tallarla fuerte y revisa lunares o manchas si notas cambios.</p>
 
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
@@ -652,12 +652,9 @@
     // REEMPLAZA con los datos de tu proyecto
     window.SUPABASE_URL = 'https://bwszeozmxzwuajrywqns.supabase.co';
     window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3c3plb3pteHp3dWFqcnl3cW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODU2ODAsImV4cCI6MjA3OTg2MTY4MH0.XAj13G3Bwl3iy7gfnVyHddA6LMH4Yc9dnx9Im6Dx8xI';
-    // Configuración opcional para envío de correos transaccionales.
-    window.RESEND_API_KEY = window.RESEND_API_KEY || '';
-    window.BREVO_API_KEY = window.BREVO_API_KEY || '';
-    window.SMTP2GO_API_KEY = window.SMTP2GO_API_KEY || 'api-DB3E12DC8A3C402D9EC6BFDB86E590CC';
-    window.NOTIFICATION_FROM_EMAIL = window.NOTIFICATION_FROM_EMAIL || 'soporte@plataforma.espectral';
-    // Alternativa recomendada: función Edge de Supabase para envío de correo.
+    // Configuración para envío de correos con Gmail + App Password (desde función Edge en Supabase).
+    window.GMAIL_USER = window.GMAIL_USER || '';
+    window.GMAIL_APP_PASSWORD = window.GMAIL_APP_PASSWORD || '';
     window.SUPABASE_EMAIL_FUNCTION = window.SUPABASE_EMAIL_FUNCTION || 'send-email';
   </script>
   <script src="app.js"></script>
