@@ -1,38 +1,55 @@
-# Guía rápida: envío de correos sin Resend
+# Guía rápida: envío de correos con Gmail + App Password
 
-Si aún no tienes cuenta en Resend, la opción más simple es usar **Brevo (plan gratuito)**.
+Esta app ahora utiliza un único flujo de correo: **función Edge de Supabase** con SMTP de Gmail y **App Password**.
 
-## 1) Crear cuenta Brevo
-1. Crea cuenta en https://www.brevo.com/
-2. Verifica un remitente (Sender) en Brevo (tu correo o dominio).
-3. Crea una API Key (SMTP & API -> API Keys).
+## 1) Preparar Gmail
+1. Activa la verificación en 2 pasos de tu cuenta de Google.
+2. Genera una contraseña de aplicación (App Password de 16 caracteres).
+3. Guarda estos valores:
+   - `GMAIL_USER` (tu correo Gmail)
+   - `GMAIL_APP_PASSWORD` (la contraseña de aplicación)
 
-## 2) Configurar la app
-En `index.html` configura:
+## 2) Configurar el frontend
+En `index.html` se usan estas variables:
 
 ```html
-window.BREVO_API_KEY = 'TU_API_KEY_BREVO';
-window.NOTIFICATION_FROM_EMAIL = 'remitente_verificado@tudominio.com';
+window.GMAIL_USER = 'tu_correo@gmail.com';
+window.GMAIL_APP_PASSWORD = 'tu_app_password_de_16_caracteres';
+window.SUPABASE_EMAIL_FUNCTION = 'send-email';
 ```
 
-> Si dejas `RESEND_API_KEY` vacío, la app intentará Brevo automáticamente.
+## 3) Configurar función Edge en Supabase (recomendado)
+La función `send-email` debe leer `GMAIL_USER` y `GMAIL_APP_PASSWORD` como secretos y enviar correo con Nodemailer.
 
-## 3) Flujo que ya funciona en la app
+Ejemplo recomendado para tu `send-email`:
+- Leer del body: `to`, `fototipo`, `recomendacion`, `nombre` (opcional `subject` y `html`).
+- Si llega `html`, usarlo directamente. Si no llega, construir HTML con `fototipo` y `recomendacion`.
+
+Flujo que cubre la app:
 - Registro de voluntario -> correo al admin.
 - Formulario completado -> correo al voluntario con su fototipo.
-- También se registra notificación en `admin_notificaciones`.
+- Registro en `admin_notificaciones`.
 
-## 4) Recomendación de seguridad (importante)
-Para producción, evita exponer claves en frontend.
-Usa una **Supabase Edge Function** (`send-email`) y guarda las claves como `secrets` en Supabase.
+## 4) Seguridad importante
+No uses claves reales en repositorio público.
+- Usa variables/secretos en Supabase para producción.
+- Rota el App Password si se expone.
 
 
-## 5) Opción directa con SMTP2GO
-Si solo tienes SMTP2GO, usa en `index.html`:
+### Si en el correo aparece `undefined`
+Normalmente pasa cuando la función Edge espera claves distintas.
+La app ahora envía estas variantes para mayor compatibilidad: `fototipo`, `tipoFototipo`, `fototipo_de_piel`, `recomendacion`, `recommendation`, además de `nombre`, `subject` y `html`.
 
-```html
-window.SMTP2GO_API_KEY = 'TU_API_KEY_SMTP2GO';
-window.NOTIFICATION_FROM_EMAIL = 'remitente@tudominio.com';
+En la función Edge usa algo como:
+```ts
+const body = await req.json()
+const fototipo = body.fototipo ?? body.tipoFototipo ?? body.fototipo_de_piel ?? 'No disponible'
+const recomendacion = body.recomendacion ?? body.recommendation ?? 'Sin recomendación disponible'
+const html = body.html ?? `<p><b>Tu Fototipo de Piel es:</b> ${fototipo}</p><p>${recomendacion}</p>`
 ```
 
-La app intentará SMTP2GO antes de la función Edge si la clave está definida.
+
+### Importante para conservar tu plantilla moderna en Edge
+Si quieres que se use el diseño moderno de tu función Edge para el correo de fototipo, **no envíes `html` desde el frontend** en ese caso.
+- `customHtml` solo debería usarse para correos administrativos u otros casos especiales.
+- Para fototipo, envía `to`, `nombre`, `fototipo`, `recomendacion` (y opcionalmente `subject`) y deja que Edge construya `finalHtml`.
