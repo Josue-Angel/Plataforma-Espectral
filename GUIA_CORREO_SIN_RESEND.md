@@ -34,3 +34,16 @@ Flujo que cubre la app:
 No uses claves reales en repositorio público.
 - Usa variables/secretos en Supabase para producción.
 - Rota el App Password si se expone.
+
+
+### Si en el correo aparece `undefined`
+Normalmente pasa cuando la función Edge espera claves distintas.
+La app ahora envía estas variantes para mayor compatibilidad: `fototipo`, `tipoFototipo`, `fototipo_de_piel`, `recomendacion`, `recommendation`, además de `nombre`, `subject` y `html`.
+
+En la función Edge usa algo como:
+```ts
+const body = await req.json()
+const fototipo = body.fototipo ?? body.tipoFototipo ?? body.fototipo_de_piel ?? 'No disponible'
+const recomendacion = body.recomendacion ?? body.recommendation ?? 'Sin recomendación disponible'
+const html = body.html ?? `<p><b>Tu Fototipo de Piel es:</b> ${fototipo}</p><p>${recomendacion}</p>`
+```

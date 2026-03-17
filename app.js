@@ -205,7 +205,18 @@ async function sendEmailNotification({ to, subject, html, fototipo, recomendacio
 
   try {
     const { data, error } = await supabaseClient.functions.invoke(fnName, {
-      body: { to: normalizedTo, subject, html, from: FROM_EMAIL, fototipo, recomendacion, nombre },
+      body: {
+        to: normalizedTo,
+        subject,
+        html,
+        from: FROM_EMAIL,
+        nombre,
+        fototipo,
+        recomendacion,
+        tipoFototipo: fototipo,
+        fototipo_de_piel: fototipo,
+        recommendation: recomendacion,
+      },
     });
 
     if (error) throw error;
@@ -250,6 +261,9 @@ async function notifyAdminNewVolunteer(email) {
     to: ADMIN_NOTIFICATION_EMAIL,
     subject: "Nuevo voluntario registrado",
     html: `<p>${message}</p>`,
+    nombre: "Administrador",
+    fototipo: "No aplica",
+    recomendacion: "Revisión informativa de nuevo registro.",
   });
 
   if (sent?.error) {
