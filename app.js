@@ -30,14 +30,7 @@ const AUTH_LANDING_VIEW = "equipo";
 const ADMIN_EMAILS = ["admin@ejemplo.com"];
 const ADMIN_NOTIFICATION_EMAIL = "admin@ejemplo.com";
 const ADMIN_NOTIFICATIONS_STORAGE_KEY = "admin-notificaciones-local";
-const RESEND_ENDPOINT = "https://api.resend.com/emails";
-const RESEND_API_KEY_VALUE = window.RESEND_API_KEY || "";
-const RESEND_API_KEY = window.RESEND_API_KEY || "";
-const BREVO_API_KEY = window.BREVO_API_KEY || "";
-const BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
-const SMTP2GO_API_KEY = window.SMTP2GO_API_KEY || "api-DB3E12DC8A3C402D9EC6BFDB86E590CC";
-const SMTP2GO_ENDPOINT = "https://api.smtp2go.com/v3/email/send";
-const FROM_EMAIL = window.NOTIFICATION_FROM_EMAIL || "onboarding@resend.dev";
+const FROM_EMAIL = window.GMAIL_USER || "";
 
 function resolveRoleFromProfile(perfil, userEmail) {
   const roleFromProfile = perfil?.role ? String(perfil.role).trim().toLowerCase() : "";
@@ -51,16 +44,16 @@ function resolveRoleFromProfile(perfil, userEmail) {
 
 function getFototipoDetails(tipo) {
   const info = {
-    I: { descripcion: "Piel muy clara, se quema con mucha facilidad.", recomendacion: "Usa SPF 50+ y evita el sol directo." },
-    II: { descripcion: "Piel clara con alta sensibilidad al sol.", recomendacion: "Protección alta y reaplicación frecuente." },
-    III: { descripcion: "Piel intermedia, puede quemarse y broncearse gradualmente.", recomendacion: "SPF 30-50 y protección en horas pico." },
-    IV: { descripcion: "Piel morena clara, menor riesgo de quemadura severa.", recomendacion: "SPF 30 y cuidado continuo." },
-    "V y VI": { descripcion: "Piel morena oscura/oscura, alta tolerancia al sol.", recomendacion: "SPF 15-30 para prevenir daño acumulado." },
+    I: { descripcion: "Piel muy clara, se quema con mucha facilidad.", recomendacion: "Procura usar bloqueador FPS 50+, gorra y buscar sombra cuando el sol esté fuerte." },
+    II: { descripcion: "Piel clara con alta sensibilidad al sol.", recomendacion: "Aplica protector antes de salir y reaplica cada 2-3 horas si estás al aire libre." },
+    III: { descripcion: "Piel intermedia, puede quemarse y broncearse gradualmente.", recomendacion: "Aunque te broncees, usa FPS 30+ diario y evita exponerte por periodos largos." },
+    IV: { descripcion: "Piel morena clara, menor riesgo de quemadura severa.", recomendacion: "Mantén una rutina simple: limpieza suave, hidratante y protector todos los días." },
+    "V y VI": { descripcion: "Piel morena oscura/oscura, alta tolerancia al sol.", recomendacion: "Tu piel también necesita cuidado solar: protector, hidratación y revisar manchas nuevas." },
   };
 
   return info[tipo] || {
     descripcion: "Fototipo no disponible.",
-    recomendacion: "Mantén hábitos de protección solar adecuados.",
+    recomendacion: "Usa protector solar, hidrata tu piel y evita exposición prolongada sin protección.",
   };
 }
 
@@ -206,106 +199,21 @@ async function hasVolunteerCompletedForm() {
   return Boolean(ultimo?.id);
 }
 
-async function sendEmailNotification({ to, subject, html }) {
+async function sendEmailNotification({ to, subject, html, fototipo, recomendacion, nombre }) {
   const normalizedTo = String(to || "").trim();
-  const providers = [];
+  const fnName = window.SUPABASE_EMAIL_FUNCTION || "send-email";
 
-  if (RESEND_API_KEY_VALUE) {
-    providers.push(async () => {
-      const response = await fetch(RESEND_ENDPOINT, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${RESEND_API_KEY_VALUE}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: FROM_EMAIL,
-          to: [normalizedTo],
-          subject,
-          html,
-        }),
-      });
-
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload?.message || "Error al enviar correo con Resend.");
-      }
-
-      return { skipped: false, payload, provider: "resend" };
-    });
-  }
-
-  if (BREVO_API_KEY) {
-    providers.push(async () => {
-      const response = await fetch(BREVO_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "api-key": BREVO_API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sender: { email: FROM_EMAIL, name: "Proyecto Espectral" },
-          to: [{ email: normalizedTo }],
-          subject,
-          htmlContent: html,
-        }),
-      });
-
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload?.message || payload?.code || "Error al enviar correo con Brevo.");
-      }
-
-      return { skipped: false, payload, provider: "brevo" };
-    });
-  }
-
-  if (SMTP2GO_API_KEY) {
-    providers.push(async () => {
-      const response = await fetch(SMTP2GO_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          api_key: SMTP2GO_API_KEY,
-          sender: FROM_EMAIL,
-          to: [normalizedTo],
-          subject,
-          html_body: html,
-        }),
-      });
-
-      const payload = await response.json();
-      const okByBody = payload?.data?.succeeded > 0 || payload?.succeeded > 0;
-      if (!response.ok || !okByBody) {
-        throw new Error(payload?.data?.error || payload?.error || "Error al enviar correo con SMTP2GO.");
-      }
-
-      return { skipped: false, payload, provider: "smtp2go" };
-    });
-  }
-
-  providers.push(async () => {
-    const fnName = window.SUPABASE_EMAIL_FUNCTION || "send-email";
+  try {
     const { data, error } = await supabaseClient.functions.invoke(fnName, {
-      body: { to: normalizedTo, subject, html, from: FROM_EMAIL },
+      body: { to: normalizedTo, subject, html, from: FROM_EMAIL, fototipo, recomendacion, nombre },
     });
 
     if (error) throw error;
-    return { skipped: false, payload: data, provider: "supabase-function" };
-  });
-
-  let lastError = null;
-  for (const sendWithProvider of providers) {
-    try {
-      return await sendWithProvider();
-    } catch (error) {
-      lastError = error;
-      console.warn("Proveedor de correo falló, se intenta siguiente fallback:", error);
-    }
+    return { skipped: false, payload: data, provider: "supabase-function-gmail" };
+  } catch (error) {
+    console.warn("No se pudo enviar correo usando la función de Supabase (Gmail App Password).", error);
+    return { skipped: true, reason: "gmail_supabase_function_not_configured", error };
   }
-
-  console.warn("No se pudo enviar correo con ningún proveedor configurado.", lastError);
-  return { skipped: true, reason: "email_provider_not_configured", error: lastError };
 }
 
 async function createAdminNotificationLog(message, tipo = "nuevo_registro") {
@@ -347,7 +255,7 @@ async function notifyAdminNewVolunteer(email) {
   if (sent?.error) {
     showToast("Voluntario registrado, pero falló el aviso por correo al administrador.", "info");
   } else if (sent?.skipped) {
-    showToast("Voluntario registrado. Configura RESEND_API_KEY, BREVO_API_KEY, SMTP2GO_API_KEY o función send-email para enviar correos.", "info");
+    showToast("Voluntario registrado. Configura la función de correo de Supabase con Gmail App Password para enviar correos.", "info");
   }
 }
 
@@ -379,12 +287,15 @@ async function notifyVolunteerFototipo({ email, nombre, fototipo }) {
     to: normalizedEmail,
     subject: "Resultado de tu fototipo de piel",
     html,
+    fototipo,
+    recomendacion: details.recomendacion,
+    nombre: safeName,
   });
 
   if (sent?.error) {
     showToast("Formulario guardado, pero no se pudo enviar el correo del fototipo.", "info");
   } else if (sent?.skipped) {
-    showToast("Formulario guardado. Configura RESEND_API_KEY, BREVO_API_KEY, SMTP2GO_API_KEY o función send-email para enviar el correo al voluntario.", "info");
+    showToast("Formulario guardado. Configura la función de correo de Supabase con Gmail App Password para enviar el correo al voluntario.", "info");
   }
 }
 
