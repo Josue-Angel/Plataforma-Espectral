@@ -333,29 +333,33 @@
       <section class="step" id="step1">
         <h2>Datos personales</h2>
 
-        <div class="form-group">
-          <input type="text" id="identificador" placeholder="Matrícula" required>
+        <div class="step-grid step-grid-two">
+          <div class="form-group">
+            <input type="text" id="identificador" placeholder="Matrícula" required>
+          </div>
+
+          <div class="form-group">
+            <input type="number" id="edad" placeholder="Edad" required>
+          </div>
+
+          <div class="form-group">
+            <select id="sexo" required>
+              <option value="">Seleccione género</option>
+              <option value="F">Femenino</option>
+              <option value="M">Masculino</option>
+            </select>
+          </div>
+        
+          <div class="form-group">
+            <input type="text" id="carrera" placeholder="Carrera / Facultad" required>
+          </div>
+
+          <div class="form-group full-row">
+            <input type="email" id="correo" placeholder="Correo institucional">
+          </div>
         </div>
 
-        <div class="form-group">
-          <input type="number" id="edad" placeholder="Edad" required>
-        </div>
-
-        <div class="form-group">
-          <select id="sexo" required>
-            <option value="">Seleccione género</option>
-            <option value="F">Femenino</option>
-            <option value="M">Masculino</option>
-          </select>
-        </div>
-      
-        <div class="form-group">
-          <input type="text" id="carrera" placeholder="Carrera / Facultad" required>
-        </div>
-
-        <div class="form-group">
-          <input type="email" id="correo" placeholder="Correo institucional">
-        </div>
+        <p class="step-tip">Recomendación: usa un correo que revises con frecuencia y ten a la mano tus datos para completar el registro sin prisas.</p>
 
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
@@ -369,34 +373,34 @@
         <h2>Información genética</h2>
 
         <p>1. ¿Cuál es el color de tus ojos?</p>
-        <label><input type="radio" name="ojos" value="0"> Azul claro, gris o verde</label>
-        <label><input type="radio" name="ojos" value="1"> Azul, gris o verde</label>
-        <label><input type="radio" name="ojos" value="2"> Azul</label>
-        <label><input type="radio" name="ojos" value="3"> Café claro</label>
-        <label><input type="radio" name="ojos" value="4"> Café oscuro o Negro</label>
+        <label class="option-card"><input type="radio" name="ojos" value="0"> Azul claro, gris o verde</label>
+        <label class="option-card"><input type="radio" name="ojos" value="1"> Azul, gris o verde</label>
+        <label class="option-card"><input type="radio" name="ojos" value="2"> Azul</label>
+        <label class="option-card"><input type="radio" name="ojos" value="3"> Café claro</label>
+        <label class="option-card"><input type="radio" name="ojos" value="4"> Café oscuro o Negro</label>
 
         <p>2. ¿Cuál es el color natural de tu cabello?</p>
-        <label><input type="radio" name="cabello" value="0"> Rojo castaño / Rojo cobrizo</label>
-        <label><input type="radio" name="cabello" value="1"> Rubio</label>
-        <label><input type="radio" name="cabello" value="2"> Café claro / Rubio oscuro</label>
-        <label><input type="radio" name="cabello" value="3"> Café oscuro</label>
-        <label><input type="radio" name="cabello" value="4"> Negro</label>
+        <label class="option-card"><input type="radio" name="cabello" value="0"> Rojo castaño / Rojo cobrizo</label>
+        <label class="option-card"><input type="radio" name="cabello" value="1"> Rubio</label>
+        <label class="option-card"><input type="radio" name="cabello" value="2"> Café claro / Rubio oscuro</label>
+        <label class="option-card"><input type="radio" name="cabello" value="3"> Café oscuro</label>
+        <label class="option-card"><input type="radio" name="cabello" value="4"> Negro</label>
 
         <p>3. ¿Cuál es el color de tu piel cuando no está bronceada?</p>
-        <label><input type="radio" name="piel_base" value="0"> Rojiza</label>
-        <label><input type="radio" name="piel_base" value="1"> Muy pálida</label>
-        <label><input type="radio" name="piel_base" value="2"> Pálida con tinte beige/durazno</label>
-        <label><input type="radio" name="piel_base" value="3"> Café claro</label>
-        <label><input type="radio" name="piel_base" value="4"> Café oscuro</label>
+        <label class="option-card"><input type="radio" name="piel_base" value="0"> Rojiza</label>
+        <label class="option-card"><input type="radio" name="piel_base" value="1"> Muy pálida</label>
+        <label class="option-card"><input type="radio" name="piel_base" value="2"> Pálida con tinte beige/durazno</label>
+        <label class="option-card"><input type="radio" name="piel_base" value="3"> Café claro</label>
+        <label class="option-card"><input type="radio" name="piel_base" value="4"> Café oscuro</label>
 
         <p>4. ¿Cuántas pecas tienes?</p>
-        <label><input type="radio" name="pecas" value="0"> Muchas</label>
-        <label><input type="radio" name="pecas" value="1"> Varias</label>
-        <label><input type="radio" name="pecas" value="2"> Pocas</label>
-        <label><input type="radio" name="pecas" value="3"> Algunas</label>
-        <label><input type="radio" name="pecas" value="4"> Ninguna</label>
+        <label class="option-card"><input type="radio" name="pecas" value="0"> Muchas</label>
+        <label class="option-card"><input type="radio" name="pecas" value="1"> Varias</label>
+        <label class="option-card"><input type="radio" name="pecas" value="2"> Pocas</label>
+        <label class="option-card"><input type="radio" name="pecas" value="3"> Algunas</label>
+        <label class="option-card"><input type="radio" name="pecas" value="4"> Ninguna</label>
 
-        <p class="step-tip">Recomendación: usa protector solar cada mañana, aunque esté nublado, para cuidar tu piel en el día a día.</p>
+        <p class="step-tip">Recomendación: para el día a día, lava tu rostro con un jabón suave y aplica protector solar antes de salir, incluso si está nublado.</p>
 
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
@@ -410,34 +414,34 @@
         <h2>Reacción al sol</h2>
 
         <p>5. ¿Qué sucede cuando tu piel se expone demasiado al sol?</p>
-        <label><input type="radio" name="quemadura" value="0"> Enrojecimiento doloroso, ampollas y descamación</label>
-        <label><input type="radio" name="quemadura" value="1"> Ampollas seguidas de descamación</label>
-        <label><input type="radio" name="quemadura" value="2"> Quemaduras y a veces descamación</label>
-        <label><input type="radio" name="quemadura" value="3"> Rara vez se quema</label>
-        <label><input type="radio" name="quemadura" value="4"> Nunca se quema</label>
+        <label class="option-card"><input type="radio" name="quemadura" value="0"> Enrojecimiento doloroso, ampollas y descamación</label>
+        <label class="option-card"><input type="radio" name="quemadura" value="1"> Ampollas seguidas de descamación</label>
+        <label class="option-card"><input type="radio" name="quemadura" value="2"> Quemaduras y a veces descamación</label>
+        <label class="option-card"><input type="radio" name="quemadura" value="3"> Rara vez se quema</label>
+        <label class="option-card"><input type="radio" name="quemadura" value="4"> Nunca se quema</label>
 
         <p>6. ¿En qué medida se broncea?</p>
-        <label><input type="radio" name="bronceado" value="0"> Apenas o nada</label>
-        <label><input type="radio" name="bronceado" value="1"> Poco</label>
-        <label><input type="radio" name="bronceado" value="2"> Razonable</label>
-        <label><input type="radio" name="bronceado" value="3"> Muy fácil</label>
-        <label><input type="radio" name="bronceado" value="4"> Oscuro rápidamente</label>
+        <label class="option-card"><input type="radio" name="bronceado" value="0"> Apenas o nada</label>
+        <label class="option-card"><input type="radio" name="bronceado" value="1"> Poco</label>
+        <label class="option-card"><input type="radio" name="bronceado" value="2"> Razonable</label>
+        <label class="option-card"><input type="radio" name="bronceado" value="3"> Muy fácil</label>
+        <label class="option-card"><input type="radio" name="bronceado" value="4"> Oscuro rápidamente</label>
 
         <p>7. ¿Se broncea después de varias horas?</p>
-        <label><input type="radio" name="horas_sol" value="0"> Nunca</label>
-        <label><input type="radio" name="horas_sol" value="1"> Raramente</label>
-        <label><input type="radio" name="horas_sol" value="2"> A veces</label>
-        <label><input type="radio" name="horas_sol" value="3"> Frecuentemente</label>
-        <label><input type="radio" name="horas_sol" value="4"> Siempre</label>
+        <label class="option-card"><input type="radio" name="horas_sol" value="0"> Nunca</label>
+        <label class="option-card"><input type="radio" name="horas_sol" value="1"> Raramente</label>
+        <label class="option-card"><input type="radio" name="horas_sol" value="2"> A veces</label>
+        <label class="option-card"><input type="radio" name="horas_sol" value="3"> Frecuentemente</label>
+        <label class="option-card"><input type="radio" name="horas_sol" value="4"> Siempre</label>
 
         <p>8. ¿Cómo reacciona la piel del rostro?</p>
-        <label><input type="radio" name="rostro" value="0"> Muy sensible</label>
-        <label><input type="radio" name="rostro" value="1"> Sensible</label>
-        <label><input type="radio" name="rostro" value="2"> Normal</label>
-        <label><input type="radio" name="rostro" value="3"> Muy resistente</label>
-        <label><input type="radio" name="rostro" value="4"> Nunca tuve problema</label>
+        <label class="option-card"><input type="radio" name="rostro" value="0"> Muy sensible</label>
+        <label class="option-card"><input type="radio" name="rostro" value="1"> Sensible</label>
+        <label class="option-card"><input type="radio" name="rostro" value="2"> Normal</label>
+        <label class="option-card"><input type="radio" name="rostro" value="3"> Muy resistente</label>
+        <label class="option-card"><input type="radio" name="rostro" value="4"> Nunca tuve problema</label>
 
-        <p class="step-tip">Recomendación: si vas a estar al sol, reaplica protector cada 2-3 horas y usa gorra o sombrero cuando puedas.</p>
+        <p class="step-tip">Recomendación: si pasarás tiempo afuera, lleva protector en tu mochila y reaplícalo cada 2-3 horas; una gorra también ayuda mucho.</p>
 
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
@@ -451,20 +455,20 @@
         <h2>Hábitos diarios</h2>
 
         <p>9. ¿Cuándo fue la última vez que se bronceó?</p>
-        <label><input type="radio" name="ultima_vez" value="0"> Hace más de 3 meses</label>
-        <label><input type="radio" name="ultima_vez" value="1"> Hace 2-3 meses</label>
-        <label><input type="radio" name="ultima_vez" value="2"> Hace 1-2 meses</label>
-        <label><input type="radio" name="ultima_vez" value="3"> Hace menos de un mes</label>
-        <label><input type="radio" name="ultima_vez" value="4"> Hace menos de 2 semanas</label>
+        <label class="option-card"><input type="radio" name="ultima_vez" value="0"> Hace más de 3 meses</label>
+        <label class="option-card"><input type="radio" name="ultima_vez" value="1"> Hace 2-3 meses</label>
+        <label class="option-card"><input type="radio" name="ultima_vez" value="2"> Hace 1-2 meses</label>
+        <label class="option-card"><input type="radio" name="ultima_vez" value="3"> Hace menos de un mes</label>
+        <label class="option-card"><input type="radio" name="ultima_vez" value="4"> Hace menos de 2 semanas</label>
 
         <p>10. ¿Se broncea al sol regularmente?</p>
-        <label><input type="radio" name="regular" value="0"> Nunca</label>
-        <label><input type="radio" name="regular" value="1"> Casi nunca</label>
-        <label><input type="radio" name="regular" value="2"> Algunas veces</label>
-        <label><input type="radio" name="regular" value="3"> Frecuentemente</label>
-        <label><input type="radio" name="regular" value="4"> Siempre</label>
+        <label class="option-card"><input type="radio" name="regular" value="0"> Nunca</label>
+        <label class="option-card"><input type="radio" name="regular" value="1"> Casi nunca</label>
+        <label class="option-card"><input type="radio" name="regular" value="2"> Algunas veces</label>
+        <label class="option-card"><input type="radio" name="regular" value="3"> Frecuentemente</label>
+        <label class="option-card"><input type="radio" name="regular" value="4"> Siempre</label>
 
-        <p class="step-tip">Recomendación final: hidrata tu piel después del baño, evita tallarla fuerte y revisa lunares o manchas si notas cambios.</p>
+        <p class="step-tip">Recomendación final: toma agua, duerme bien, hidrata tu piel después del baño y consulta a un profesional si notas cambios en manchas o lunares.</p>
 
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
@@ -653,8 +657,8 @@
     window.SUPABASE_URL = 'https://bwszeozmxzwuajrywqns.supabase.co';
     window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3c3plb3pteHp3dWFqcnl3cW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODU2ODAsImV4cCI6MjA3OTg2MTY4MH0.XAj13G3Bwl3iy7gfnVyHddA6LMH4Yc9dnx9Im6Dx8xI';
     // Configuración para envío de correos con Gmail + App Password (desde función Edge en Supabase).
-    window.GMAIL_USER = window.GMAIL_USER || 'plataforma.espectral@gmail.com';
-    window.GMAIL_APP_PASSWORD = window.GMAIL_APP_PASSWORD || 'rabp znub mopk ymzk';
+    window.GMAIL_USER = window.GMAIL_USER || '';
+    window.GMAIL_APP_PASSWORD = window.GMAIL_APP_PASSWORD || '';
     window.SUPABASE_EMAIL_FUNCTION = window.SUPABASE_EMAIL_FUNCTION || 'send-email';
   </script>
   <script src="app.js"></script>
