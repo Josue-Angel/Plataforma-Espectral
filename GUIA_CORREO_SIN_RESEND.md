@@ -1,38 +1,32 @@
-# Guía rápida: envío de correos sin Resend
+# Guía rápida: envío de correos con Gmail + App Password
 
-Si aún no tienes cuenta en Resend, la opción más simple es usar **Brevo (plan gratuito)**.
+Esta app ahora utiliza un único flujo de correo: **función Edge de Supabase** con SMTP de Gmail y **App Password**.
 
-## 1) Crear cuenta Brevo
-1. Crea cuenta en https://www.brevo.com/
-2. Verifica un remitente (Sender) en Brevo (tu correo o dominio).
-3. Crea una API Key (SMTP & API -> API Keys).
+## 1) Preparar Gmail
+1. Activa la verificación en 2 pasos de tu cuenta de Google.
+2. Genera una contraseña de aplicación (App Password de 16 caracteres).
+3. Guarda estos valores:
+   - `GMAIL_USER` (tu correo Gmail)
+   - `GMAIL_APP_PASSWORD` (la contraseña de aplicación)
 
-## 2) Configurar la app
-En `index.html` configura:
+## 2) Configurar el frontend
+En `index.html` se usan estas variables:
 
 ```html
-window.BREVO_API_KEY = 'TU_API_KEY_BREVO';
-window.NOTIFICATION_FROM_EMAIL = 'remitente_verificado@tudominio.com';
+window.GMAIL_USER = 'tu_correo@gmail.com';
+window.GMAIL_APP_PASSWORD = 'tu_app_password_de_16_caracteres';
+window.SUPABASE_EMAIL_FUNCTION = 'send-email';
 ```
 
-> Si dejas `RESEND_API_KEY` vacío, la app intentará Brevo automáticamente.
+## 3) Configurar función Edge en Supabase (recomendado)
+La función `send-email` debe leer `GMAIL_USER` y `GMAIL_APP_PASSWORD` como secretos y enviar correo con Nodemailer.
 
-## 3) Flujo que ya funciona en la app
+Flujo que cubre la app:
 - Registro de voluntario -> correo al admin.
 - Formulario completado -> correo al voluntario con su fototipo.
-- También se registra notificación en `admin_notificaciones`.
+- Registro en `admin_notificaciones`.
 
-## 4) Recomendación de seguridad (importante)
-Para producción, evita exponer claves en frontend.
-Usa una **Supabase Edge Function** (`send-email`) y guarda las claves como `secrets` en Supabase.
-
-
-## 5) Opción directa con SMTP2GO
-Si solo tienes SMTP2GO, usa en `index.html`:
-
-```html
-window.SMTP2GO_API_KEY = 'TU_API_KEY_SMTP2GO';
-window.NOTIFICATION_FROM_EMAIL = 'remitente@tudominio.com';
-```
-
-La app intentará SMTP2GO antes de la función Edge si la clave está definida.
+## 4) Seguridad importante
+No uses claves reales en repositorio público.
+- Usa variables/secretos en Supabase para producción.
+- Rota el App Password si se expone.
