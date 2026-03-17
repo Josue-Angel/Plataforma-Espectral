@@ -199,13 +199,13 @@ async function hasVolunteerCompletedForm() {
   return Boolean(ultimo?.id);
 }
 
-async function sendEmailNotification({ to, subject, html }) {
+async function sendEmailNotification({ to, subject, html, fototipo, recomendacion, nombre }) {
   const normalizedTo = String(to || "").trim();
   const fnName = window.SUPABASE_EMAIL_FUNCTION || "send-email";
 
   try {
     const { data, error } = await supabaseClient.functions.invoke(fnName, {
-      body: { to: normalizedTo, subject, html, from: FROM_EMAIL },
+      body: { to: normalizedTo, subject, html, from: FROM_EMAIL, fototipo, recomendacion, nombre },
     });
 
     if (error) throw error;
@@ -287,6 +287,9 @@ async function notifyVolunteerFototipo({ email, nombre, fototipo }) {
     to: normalizedEmail,
     subject: "Resultado de tu fototipo de piel",
     html,
+    fototipo,
+    recomendacion: details.recomendacion,
+    nombre: safeName,
   });
 
   if (sent?.error) {

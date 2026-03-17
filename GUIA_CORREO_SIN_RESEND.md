@@ -21,6 +21,10 @@ window.SUPABASE_EMAIL_FUNCTION = 'send-email';
 ## 3) Configurar función Edge en Supabase (recomendado)
 La función `send-email` debe leer `GMAIL_USER` y `GMAIL_APP_PASSWORD` como secretos y enviar correo con Nodemailer.
 
+Ejemplo recomendado para tu `send-email`:
+- Leer del body: `to`, `fototipo`, `recomendacion`, `nombre` (opcional `subject` y `html`).
+- Si llega `html`, usarlo directamente. Si no llega, construir HTML con `fototipo` y `recomendacion`.
+
 Flujo que cubre la app:
 - Registro de voluntario -> correo al admin.
 - Formulario completado -> correo al voluntario con su fototipo.
