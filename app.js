@@ -21,7 +21,6 @@ let currentProfile = null;
 const TRASH_RETENTION_MS = 5 * 24 * 60 * 60 * 1000;
 const VOLUNTEER_TRASH_STORAGE_KEY = "voluntarios-papelera";
 const DEV_SETTINGS_STORAGE_KEY = "dev-settings";
-const ARTICLES_STORAGE_KEY = "articulos-admin";
 const DEV_CONTENT_EDITS_STORAGE_KEY = "dev-content-edits";
 const GLOBAL_CONFIG_TABLE = "configuracion_global";
 const GLOBAL_SETTINGS_KEY = "ui_settings";
@@ -103,6 +102,15 @@ const FROM_EMAIL = window.GMAIL_USER || "";
 
 function canManageAsAdmin() {
   return currentRole === "admin" || currentRole === "desarrollador";
+}
+
+function escapeHtml(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function resolveRoleFromProfile(perfil, userEmail, authUser = null) {
@@ -674,10 +682,10 @@ function renderManagedArticles() {
     : "";
 
   ownList.innerHTML = propios.length
-    ? propios.map((item) => `<li class="doc-item"><strong class="doc-label">${item.anio} · Artículo:</strong> <a href="${item.url}" target="_blank" class="doc-link">${item.titulo}</a><div class="muted small">${item.autores} · ${item.fuente}</div>${manageActions(item)}</li>`).join("")
+    ? propios.map((item) => `<li class="doc-item"><strong class="doc-label">${escapeHtml(item.anio)} · Artículo:</strong> <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="doc-link">${escapeHtml(item.titulo)}</a><div class="muted small">${escapeHtml(item.autores)} · ${escapeHtml(item.fuente)}</div>${manageActions(item)}</li>`).join("")
     : "<li class='muted small'>Sin aportes propios registrados.</li>";
   refList.innerHTML = refs.length
-    ? refs.map((item) => `<li class="reference-item"><p class="reference-apa"><strong>${item.autores}</strong> (${item.anio}). <em>${item.titulo}</em> <span>${item.fuente}</span><br><a href="${item.url}" target="_blank" class="doi-link">${item.url}</a></p>${item.url2 ? `<div class="reference-links"><a href="${item.url2}" target="_blank" class="ref-btn">Enlace adicional</a></div>` : ""}${manageActions(item)}</li>`).join("")
+    ? refs.map((item) => `<li class="reference-item"><p class="reference-apa"><strong>${escapeHtml(item.autores)}</strong> (${escapeHtml(item.anio)}). <em>${escapeHtml(item.titulo)}</em> <span>${escapeHtml(item.fuente)}</span><br><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="doi-link">${escapeHtml(item.url)}</a></p>${item.url2 ? `<div class="reference-links"><a href="${escapeHtml(item.url2)}" target="_blank" rel="noopener noreferrer" class="ref-btn">Enlace adicional</a></div>` : ""}${manageActions(item)}</li>`).join("")
     : "<li class='muted small'>Sin referencias registradas.</li>";
 }
 
@@ -692,13 +700,7 @@ async function loadManagedArticles() {
     renderManagedArticles();
     return;
   }
-
-  try {
-    const localData = JSON.parse(localStorage.getItem(ARTICLES_STORAGE_KEY) || "[]");
-    managedArticlesCache = Array.isArray(localData) && localData.length ? localData : [...INITIAL_ARTICLES];
-  } catch (e) {
-    managedArticlesCache = [...INITIAL_ARTICLES];
-  }
+  managedArticlesCache = [];
   renderManagedArticles();
 }
 
@@ -816,7 +818,6 @@ if (formArticulo) {
       return;
     }
     const payload = {
-      id: `art-${Date.now()}`,
       tipo: document.getElementById("art-tipo").value,
       anio: Number(document.getElementById("art-anio").value),
       titulo: document.getElementById("art-titulo").value.trim(),
@@ -830,29 +831,21 @@ if (formArticulo) {
       return;
     }
     const editingId = inputArticuloIdEditando?.value;
-    const persistPayload = {
-      ...payload,
-      created_at: new Date().toISOString(),
-    };
     if (editingId) {
-      persistPayload.id = editingId;
-      const { error } = await supabaseClient.from("articulos_publicados").update(persistPayload).eq("id", editingId);
+      const { error } = await supabaseClient.from("articulos_publicados").update(payload).eq("id", editingId);
       if (error) {
-        managedArticlesCache = managedArticlesCache.map((item) => String(item.id) === String(editingId) ? { ...item, ...persistPayload } : item);
-        localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify(managedArticlesCache));
-      } else {
-        await loadManagedArticles();
+        showToast("No se pudo actualizar globalmente el artículo.", "error");
+        return;
       }
+      await loadManagedArticles();
       showToast("Artículo/Tesis actualizado correctamente.", "success");
     } else {
       const { error } = await supabaseClient.from("articulos_publicados").insert(payload);
       if (error) {
-        const current = Array.isArray(managedArticlesCache) ? managedArticlesCache : [];
-        localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify([...current, persistPayload]));
-        managedArticlesCache = [...current, persistPayload];
-      } else {
-        await loadManagedArticles();
+        showToast("No se pudo guardar globalmente el artículo.", "error");
+        return;
       }
+      await loadManagedArticles();
       showToast("Artículo/Tesis agregado correctamente.", "success");
     }
     formArticulo.reset();
@@ -875,9 +868,8 @@ if (btnAbrirModalArticulo) {
 async function deleteManagedArticle(itemId) {
   const { error } = await supabaseClient.from("articulos_publicados").delete().eq("id", itemId);
   if (error) {
-    const next = managedArticlesCache.filter((item) => String(item.id) !== String(itemId));
-    localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify(next));
-    managedArticlesCache = next;
+    showToast("No se pudo eliminar globalmente el artículo.", "error");
+    return;
   } else {
     await loadManagedArticles();
   }
@@ -948,6 +940,11 @@ if (btnSaveView) {
     settings.color = devColorTheme?.value || settings.color;
     settings.uiVariant = devUiVariant?.value || settings.uiVariant;
     settings.fontFamily = devFontFamily?.value || settings.fontFamily;
+    const savedGlobal = await saveGlobalDeveloperConfig(GLOBAL_SETTINGS_KEY, settings);
+    if (!savedGlobal) {
+      showToast("No se pudo aplicar el tema globalmente.", "error");
+      return;
+    }
     localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
     const savedGlobal = await saveGlobalDeveloperConfig(GLOBAL_SETTINGS_KEY, settings);
     applyDevSettings();
@@ -966,8 +963,12 @@ if (btnRestoreDefaults) {
     localStorage.removeItem(DEV_SETTINGS_STORAGE_KEY);
     localStorage.removeItem(DEV_CONTENT_EDITS_STORAGE_KEY);
     const settings = readDevSettings();
-    await saveGlobalDeveloperConfig(GLOBAL_SETTINGS_KEY, settings);
-    await saveGlobalDeveloperConfig(GLOBAL_CONTENT_KEY, {});
+    const savedTheme = await saveGlobalDeveloperConfig(GLOBAL_SETTINGS_KEY, settings);
+    const savedContent = await saveGlobalDeveloperConfig(GLOBAL_CONTENT_KEY, {});
+    if (!savedTheme || !savedContent) {
+      showToast("No se pudo restaurar globalmente.", "error");
+      return;
+    }
     if (devColorTheme) devColorTheme.value = settings.color;
     if (devUiVariant) devUiVariant.value = settings.uiVariant;
     if (devFontFamily) devFontFamily.value = settings.fontFamily;
@@ -988,7 +989,11 @@ if (btnDevSaveViewText) {
     saveCurrentViewEdits();
     const currentEdits = readDevContentEdits();
     const savedGlobal = await saveGlobalDeveloperConfig(GLOBAL_CONTENT_KEY, currentEdits);
-    showToast(savedGlobal ? "Texto de la vista guardado globalmente." : "Texto guardado localmente (sin persistencia global).", savedGlobal ? "success" : "info");
+    if (!savedGlobal) {
+      showToast("No se pudo guardar el texto globalmente.", "error");
+      return;
+    }
+    showToast("Texto de la vista guardado globalmente.", "success");
   });
 }
 
@@ -1180,12 +1185,13 @@ async function restoreSession() {
   if (data.session?.user) {
     await initSession(data.session.user);
   } else {
-  updateNavForRole(null);
-  renderManagedArticles();
-  setAuthTab("login-panel");
-  showView(GUEST_LANDING_VIEW);
-  toggleEditMode(false);
-  refreshDeveloperDock();
+    await loadGlobalDeveloperConfig();
+    updateNavForRole(null);
+    renderManagedArticles();
+    setAuthTab("login-panel");
+    showView(GUEST_LANDING_VIEW);
+    toggleEditMode(false);
+    refreshDeveloperDock();
   }
 }
 
