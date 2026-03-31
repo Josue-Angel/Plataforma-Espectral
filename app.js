@@ -21,8 +21,10 @@ let currentProfile = null;
 const TRASH_RETENTION_MS = 5 * 24 * 60 * 60 * 1000;
 const VOLUNTEER_TRASH_STORAGE_KEY = "voluntarios-papelera";
 const DEV_SETTINGS_STORAGE_KEY = "dev-settings";
-const ARTICLES_STORAGE_KEY = "articulos-admin";
 const DEV_CONTENT_EDITS_STORAGE_KEY = "dev-content-edits";
+const GLOBAL_CONFIG_TABLE = "configuracion_global";
+const GLOBAL_SETTINGS_KEY = "ui_settings";
+const GLOBAL_CONTENT_KEY = "content_edits";
 let currentViewId = "inicio";
 let isEditModeEnabled = false;
 let managedArticlesCache = [];
@@ -43,6 +45,15 @@ const FROM_EMAIL = window.GMAIL_USER || "";
 
 function canManageAsAdmin() {
   return currentRole === "admin" || currentRole === "desarrollador";
+}
+
+function escapeHtml(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function resolveRoleFromProfile(perfil, userEmail, authUser = null) {
@@ -441,11 +452,11 @@ navLinks.forEach((link) => {
 });
 
 const THEME_MAP = {
-  azul: { primary: "#2c5f8f", accent: "#3a87ad", bg: "#f3f7fb", surface: "#ffffff" },
-  verde: { primary: "#2f6b63", accent: "#4f8f84", bg: "#f3f8f6", surface: "#ffffff" },
-  morado: { primary: "#5f5d8d", accent: "#7a78a8", bg: "#f5f5fa", surface: "#ffffff" },
-  vino: { primary: "#7a4a5a", accent: "#946374", bg: "#faf5f7", surface: "#ffffff" },
-  rojo: { primary: "#8b4d4d", accent: "#a96666", bg: "#faf6f6", surface: "#ffffff" },
+  azul: { primary: "#1f4f9d", accent: "#3b82f6", dark: "#173b75", bg: "#ecf4ff", surface: "#ffffff", text: "#0b1d3b", muted: "#3f5f86", line: "#c9daf4", soft: "#dcecff" },
+  verde: { primary: "#1f7a54", accent: "#22c55e", dark: "#16583c", bg: "#eefcf5", surface: "#ffffff", text: "#0d2c20", muted: "#416b5a", line: "#bfe8d4", soft: "#daf7ea" },
+  morado: { primary: "#5b3aa8", accent: "#8b5cf6", dark: "#432b7b", bg: "#f4efff", surface: "#ffffff", text: "#24124d", muted: "#5f5290", line: "#d9c8fb", soft: "#e9defd" },
+  vino: { primary: "#8a2d4f", accent: "#be4b7b", dark: "#6b213d", bg: "#fff0f5", surface: "#ffffff", text: "#3f1024", muted: "#7f445e", line: "#f1c2d4", soft: "#f9dceb" },
+  rojo: { primary: "#a11d2d", accent: "#ef4444", dark: "#7b1521", bg: "#fff1f1", surface: "#ffffff", text: "#3a0d13", muted: "#7b3a43", line: "#f2c8cd", soft: "#fce1e4" },
 };
 
 const DEFAULT_DEV_SETTINGS = {
@@ -462,13 +473,90 @@ function readDevSettings() {
   }
 }
 
+async function requestGlobalChangeConfirmation(message) {
+  return new Promise((resolve) => {
+    const panel = document.createElement("div");
+    panel.style.position = "fixed";
+    panel.style.right = "1rem";
+    panel.style.bottom = "1rem";
+    panel.style.zIndex = "2000";
+    panel.style.width = "min(420px, calc(100vw - 2rem))";
+    panel.style.background = "var(--surface)";
+    panel.style.border = "1px solid var(--line)";
+    panel.style.borderRadius = "14px";
+    panel.style.boxShadow = "0 18px 40px rgba(2,6,23,.26)";
+    panel.style.padding = "1rem";
+    panel.innerHTML = `<p style="margin:0 0 .7rem 0;font-weight:600;">${message}</p>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end;">
+        <button type="button" class="btn btn-outline btn-small" data-confirm-action="cancelar">Cancelar</button>
+        <button type="button" class="btn btn-primary btn-small" data-confirm-action="confirmar">Confirmar</button>
+      </div>`;
+    document.body.appendChild(panel);
+    panel.addEventListener("click", (event) => {
+      const btn = event.target.closest("button[data-confirm-action]");
+      if (!btn) return;
+      const ok = btn.dataset.confirmAction === "confirmar";
+      panel.remove();
+      resolve(ok);
+    });
+  });
+}
+
+async function loadGlobalDeveloperConfig() {
+  try {
+    const settingsResp = await supabaseClient.from(GLOBAL_CONFIG_TABLE).select("valor").eq("clave", GLOBAL_SETTINGS_KEY).maybeSingle();
+    if (!settingsResp.error && settingsResp.data?.valor && typeof settingsResp.data.valor === "object") {
+      localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(settingsResp.data.valor));
+    }
+
+    const contentResp = await supabaseClient.from(GLOBAL_CONFIG_TABLE).select("valor").eq("clave", GLOBAL_CONTENT_KEY).maybeSingle();
+    if (!contentResp.error && contentResp.data?.valor && typeof contentResp.data.valor === "object") {
+      localStorage.setItem(DEV_CONTENT_EDITS_STORAGE_KEY, JSON.stringify(contentResp.data.valor));
+    }
+  } catch (error) {
+    console.warn("No se pudo cargar configuración global, se mantiene configuración local.", error);
+  }
+
+  try {
+    applyDevSettings();
+    const currentSettings = readDevSettings();
+    if (devColorTheme) devColorTheme.value = currentSettings.color;
+    if (devUiVariant) devUiVariant.value = currentSettings.uiVariant;
+    if (devFontFamily) devFontFamily.value = currentSettings.fontFamily;
+    views.forEach((view) => applyContentEditsForView(view.id));
+  } catch (error) {
+    console.warn("No se pudo aplicar configuración global en interfaz.", error);
+  }
+}
+
+async function saveGlobalDeveloperConfig(key, value) {
+  const payload = {
+    clave: key,
+    valor: value,
+    updated_by: currentUserId || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  const result = await supabaseClient.from(GLOBAL_CONFIG_TABLE).upsert(payload, { onConflict: "clave" });
+  if (!result.error) return true;
+  if (!isMissingRelationError(result.error, GLOBAL_CONFIG_TABLE)) {
+    console.warn("No se pudo guardar configuración global:", result.error);
+  }
+  return false;
+}
+
 function applyDevSettings() {
   const settings = readDevSettings();
   const theme = THEME_MAP[settings.color] || THEME_MAP.azul;
   document.documentElement.style.setProperty("--primary", theme.primary);
   document.documentElement.style.setProperty("--primary-2", theme.accent);
+  document.documentElement.style.setProperty("--primary-dark", theme.dark || theme.primary);
   document.documentElement.style.setProperty("--bg", theme.bg);
   document.documentElement.style.setProperty("--surface", theme.surface);
+  document.documentElement.style.setProperty("--text", theme.text);
+  document.documentElement.style.setProperty("--muted", theme.muted);
+  document.documentElement.style.setProperty("--line", theme.line);
+  document.documentElement.style.setProperty("--surface-soft", theme.soft);
   document.body.dataset.uiVariant = settings.uiVariant || "moderno";
   document.body.dataset.fontFamily = settings.fontFamily || "inter";
 }
@@ -476,8 +564,8 @@ function applyDevSettings() {
 function getEditableElements(viewId) {
   const view = document.getElementById(viewId);
   if (!view) return [];
-  const blocked = ".table-wrapper, #form-voluntario, #form-articulo, .modal-content, .doc-link, .doi-link, .reference-links, .stat-value";
-  return Array.from(view.querySelectorAll("h1,h2,h3,h4,p,label,.btn,legend"))
+  const blocked = ".table-wrapper, #form-voluntario, #form-articulo, .modal-content, .doc-link, .doi-link, .reference-links, .stat-value, .title-icon, .logo-icon";
+  return Array.from(view.querySelectorAll("h1,h2,h3,h4,p,legend,[data-heading],[data-section-label]"))
     .filter((el) => !el.closest(blocked) && el.textContent.trim().length > 0);
 }
 
@@ -503,10 +591,16 @@ function toggleEditMode(enabled) {
   isEditModeEnabled = enabled;
   document.body.classList.toggle("dev-editing", enabled);
   getEditableElements(currentViewId).forEach((el) => {
-    el.contentEditable = enabled ? "true" : "false";
+    el.contentEditable = enabled ? "plaintext-only" : "false";
     el.classList.toggle("dev-editable", enabled);
   });
 }
+
+document.addEventListener("beforeinput", (event) => {
+  const target = event.target;
+  if (!isEditModeEnabled || !(target instanceof HTMLElement) || !target.classList.contains("dev-editable")) return;
+  if (event.inputType && event.inputType.startsWith("format")) event.preventDefault();
+});
 
 function saveCurrentViewEdits() {
   const allEdits = readDevContentEdits();
@@ -534,33 +628,30 @@ function renderManagedArticles() {
   const items = managedArticlesCache;
   const propios = items.filter((i) => i.tipo === "propio");
   const refs = items.filter((i) => i.tipo === "referencia");
+  const manageActions = (item) => canManageAsAdmin()
+    ? `<div class="actions-inline article-actions"><button class="btn btn-small btn-outline" data-action="editar-articulo" data-id="${item.id}">Editar</button><button class="btn btn-small btn-danger" data-action="eliminar-articulo" data-id="${item.id}">Eliminar</button></div>`
+    : "";
 
   ownList.innerHTML = propios.length
-    ? propios.map((item) => `<li class="doc-item"><strong class="doc-label">${item.anio} · Artículo:</strong> <a href="${item.url}" target="_blank" class="doc-link">${item.titulo}</a><div class="muted small">${item.autores} · ${item.fuente}</div>${canManageAsAdmin() ? `<button class="btn btn-small btn-danger" data-action="eliminar-articulo" data-id="${item.id}">Eliminar</button>` : ""}</li>`).join("")
+    ? propios.map((item) => `<li class="doc-item"><strong class="doc-label">${escapeHtml(item.anio)} · Artículo:</strong> <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="doc-link">${escapeHtml(item.titulo)}</a><div class="muted small">${escapeHtml(item.autores)} · ${escapeHtml(item.fuente)}</div>${manageActions(item)}</li>`).join("")
     : "<li class='muted small'>Sin aportes propios registrados.</li>";
   refList.innerHTML = refs.length
-    ? refs.map((item) => `<li class="reference-item"><p class="reference-apa"><strong>${item.autores}</strong> (${item.anio}). <em>${item.titulo}</em> <span>${item.fuente}</span><br><a href="${item.url}" target="_blank" class="doi-link">${item.url}</a></p>${item.url2 ? `<div class="reference-links"><a href="${item.url2}" target="_blank" class="ref-btn">Enlace adicional</a></div>` : ""}${canManageAsAdmin() ? `<button class="btn btn-small btn-danger" data-action="eliminar-articulo" data-id="${item.id}">Eliminar</button>` : ""}</li>`).join("")
-    : "<li class='muted small'>Sin referencias administrables registradas.</li>";
+    ? refs.map((item) => `<li class="reference-item"><p class="reference-apa"><strong>${escapeHtml(item.autores)}</strong> (${escapeHtml(item.anio)}). <em>${escapeHtml(item.titulo)}</em> <span>${escapeHtml(item.fuente)}</span><br><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="doi-link">${escapeHtml(item.url)}</a></p>${item.url2 ? `<div class="reference-links"><a href="${escapeHtml(item.url2)}" target="_blank" rel="noopener noreferrer" class="ref-btn">Enlace adicional</a></div>` : ""}${manageActions(item)}</li>`).join("")
+    : "<li class='muted small'>Sin referencias registradas.</li>";
 }
 
 async function loadManagedArticles() {
   const { data, error } = await supabaseClient
     .from("articulos_publicados")
     .select("id, tipo, anio, titulo, autores, fuente, url, url2, created_at")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: true });
 
   if (!error && Array.isArray(data)) {
     managedArticlesCache = data;
     renderManagedArticles();
     return;
   }
-
-  try {
-    const localData = JSON.parse(localStorage.getItem(ARTICLES_STORAGE_KEY) || "[]");
-    managedArticlesCache = Array.isArray(localData) ? localData : [];
-  } catch (e) {
-    managedArticlesCache = [];
-  }
+  managedArticlesCache = [];
   renderManagedArticles();
 }
 
@@ -602,7 +693,16 @@ loginForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  if (data.user) await initSession(data.user);
+  if (data.user) {
+    try {
+      await initSession(data.user);
+    } catch (sessionError) {
+      console.error("Error al inicializar sesión:", sessionError);
+      showToast("Sesión iniciada, pero ocurrió un error al cargar la interfaz.", "error");
+      updateNavForRole(null);
+      showView(GUEST_LANDING_VIEW);
+    }
+  }
 });
 
 const registerForm = document.getElementById("register-form");
@@ -647,6 +747,29 @@ registerForm.addEventListener("submit", async (e) => {
 });
 
 const formArticulo = document.getElementById("form-articulo");
+const inputArticuloIdEditando = document.getElementById("art-id-editando");
+const tituloModalArticulo = document.getElementById("titulo-modal-articulo");
+
+function resetArticleModalState() {
+  if (inputArticuloIdEditando) inputArticuloIdEditando.value = "";
+  if (tituloModalArticulo) tituloModalArticulo.textContent = "Agregar artículo / tesis / dataset";
+}
+
+function openEditManagedArticle(itemId) {
+  const target = managedArticlesCache.find((item) => String(item.id) === String(itemId));
+  if (!target || !formArticulo) return;
+  if (inputArticuloIdEditando) inputArticuloIdEditando.value = target.id;
+  document.getElementById("art-tipo").value = target.tipo || "";
+  document.getElementById("art-anio").value = target.anio || "";
+  document.getElementById("art-titulo").value = target.titulo || "";
+  document.getElementById("art-autores").value = target.autores || "";
+  document.getElementById("art-fuente").value = target.fuente || "";
+  document.getElementById("art-url").value = target.url || "";
+  document.getElementById("art-url-secundaria").value = target.url2 || "";
+  if (tituloModalArticulo) tituloModalArticulo.textContent = "Editar artículo / tesis / dataset";
+  openModal("modal-articulo");
+}
+
 if (formArticulo) {
   formArticulo.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -655,7 +778,6 @@ if (formArticulo) {
       return;
     }
     const payload = {
-      id: `art-${Date.now()}`,
       tipo: document.getElementById("art-tipo").value,
       anio: Number(document.getElementById("art-anio").value),
       titulo: document.getElementById("art-titulo").value.trim(),
@@ -668,17 +790,28 @@ if (formArticulo) {
       showToast("Completa todos los campos obligatorios del artículo.");
       return;
     }
-    const { error } = await supabaseClient.from("articulos_publicados").insert(payload);
-    if (error) {
-      const current = Array.isArray(managedArticlesCache) ? managedArticlesCache : [];
-      localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify([payload, ...current]));
-      managedArticlesCache = [payload, ...current];
-    } else {
+    const editingId = inputArticuloIdEditando?.value;
+    if (editingId) {
+      const { error } = await supabaseClient.from("articulos_publicados").update(payload).eq("id", editingId);
+      if (error) {
+        showToast("No se pudo actualizar globalmente el artículo.", "error");
+        return;
+      }
       await loadManagedArticles();
+      showToast("Artículo/Tesis actualizado correctamente.", "success");
+    } else {
+      const { error } = await supabaseClient.from("articulos_publicados").insert(payload);
+      if (error) {
+        showToast("No se pudo guardar globalmente el artículo.", "error");
+        return;
+      }
+      await loadManagedArticles();
+      showToast("Artículo/Tesis agregado correctamente.", "success");
     }
     formArticulo.reset();
+    resetArticleModalState();
     closeModal("modal-articulo");
-    showToast("Artículo/Tesis agregado correctamente.", "success");
+    renderManagedArticles();
   });
 }
 
@@ -686,6 +819,8 @@ const btnAbrirModalArticulo = document.getElementById("btn-abrir-modal-articulo"
 if (btnAbrirModalArticulo) {
   btnAbrirModalArticulo.addEventListener("click", () => {
     if (!canManageAsAdmin()) return;
+    resetArticleModalState();
+    formArticulo?.reset();
     openModal("modal-articulo");
   });
 }
@@ -693,9 +828,8 @@ if (btnAbrirModalArticulo) {
 async function deleteManagedArticle(itemId) {
   const { error } = await supabaseClient.from("articulos_publicados").delete().eq("id", itemId);
   if (error) {
-    const next = managedArticlesCache.filter((item) => String(item.id) !== String(itemId));
-    localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify(next));
-    managedArticlesCache = next;
+    showToast("No se pudo eliminar globalmente el artículo.", "error");
+    return;
   } else {
     await loadManagedArticles();
   }
@@ -708,13 +842,23 @@ const listaAportesReferencias = document.getElementById("lista-aportes-referenci
   if (!lista) return;
   lista.addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-action='eliminar-articulo']");
-    if (!btn) return;
-    if (!canManageAsAdmin()) {
-      showToast("No tienes permiso para eliminar aportes.");
+    const editBtn = e.target.closest("button[data-action='editar-articulo']");
+    if (editBtn) {
+      if (!canManageAsAdmin()) {
+        showToast("No tienes permiso para editar aportes.");
+        return;
+      }
+      openEditManagedArticle(editBtn.dataset.id);
       return;
     }
-    deleteManagedArticle(btn.dataset.id);
-    showToast("Aporte eliminado correctamente.", "success");
+    if (btn) {
+      if (!canManageAsAdmin()) {
+        showToast("No tienes permiso para eliminar aportes.");
+        return;
+      }
+      deleteManagedArticle(btn.dataset.id);
+      showToast("Aporte eliminado correctamente.", "success");
+    }
   });
 });
 
@@ -745,12 +889,22 @@ if (btnTogglePalette) {
 }
 
 if (btnSaveView) {
-  btnSaveView.addEventListener("click", () => {
+  btnSaveView.addEventListener("click", async () => {
     if (currentRole !== "desarrollador") return;
+    const confirmed = await requestGlobalChangeConfirmation("¿Confirmas aplicar este tema de forma global para todos los usuarios?");
+    if (!confirmed) {
+      showToast("Cambio de tema cancelado.");
+      return;
+    }
     const settings = readDevSettings();
     settings.color = devColorTheme?.value || settings.color;
     settings.uiVariant = devUiVariant?.value || settings.uiVariant;
     settings.fontFamily = devFontFamily?.value || settings.fontFamily;
+    const savedGlobal = await saveGlobalDeveloperConfig(GLOBAL_SETTINGS_KEY, settings);
+    if (!savedGlobal) {
+      showToast("No se pudo aplicar el tema globalmente.", "error");
+      return;
+    }
     localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
     applyDevSettings();
     showToast("Tema global actualizado.", "success");
@@ -758,11 +912,22 @@ if (btnSaveView) {
 }
 
 if (btnRestoreDefaults) {
-  btnRestoreDefaults.addEventListener("click", () => {
+  btnRestoreDefaults.addEventListener("click", async () => {
     if (currentRole !== "desarrollador") return;
+    const confirmed = await requestGlobalChangeConfirmation("¿Confirmas restaurar la apariencia y textos originales de forma global?");
+    if (!confirmed) {
+      showToast("Restauración cancelada.");
+      return;
+    }
     localStorage.removeItem(DEV_SETTINGS_STORAGE_KEY);
     localStorage.removeItem(DEV_CONTENT_EDITS_STORAGE_KEY);
     const settings = readDevSettings();
+    const savedTheme = await saveGlobalDeveloperConfig(GLOBAL_SETTINGS_KEY, settings);
+    const savedContent = await saveGlobalDeveloperConfig(GLOBAL_CONTENT_KEY, {});
+    if (!savedTheme || !savedContent) {
+      showToast("No se pudo restaurar globalmente.", "error");
+      return;
+    }
     if (devColorTheme) devColorTheme.value = settings.color;
     if (devUiVariant) devUiVariant.value = settings.uiVariant;
     if (devFontFamily) devFontFamily.value = settings.fontFamily;
@@ -773,9 +938,20 @@ if (btnRestoreDefaults) {
 
 const btnDevSaveViewText = document.getElementById("btn-dev-save-view");
 if (btnDevSaveViewText) {
-  btnDevSaveViewText.addEventListener("click", () => {
+  btnDevSaveViewText.addEventListener("click", async () => {
     if (currentRole !== "desarrollador") return;
+    const confirmed = await requestGlobalChangeConfirmation("¿Confirmas guardar estos cambios de texto de forma global?");
+    if (!confirmed) {
+      showToast("Guardado de texto cancelado.");
+      return;
+    }
     saveCurrentViewEdits();
+    const currentEdits = readDevContentEdits();
+    const savedGlobal = await saveGlobalDeveloperConfig(GLOBAL_CONTENT_KEY, currentEdits);
+    if (!savedGlobal) {
+      showToast("No se pudo guardar el texto globalmente.", "error");
+      return;
+    }
     showToast("Texto de la vista guardado globalmente.", "success");
   });
 }
@@ -957,6 +1133,7 @@ async function initSession(user) {
   if (devUiVariant) devUiVariant.value = settings.uiVariant;
   if (devFontFamily) devFontFamily.value = settings.fontFamily;
   refreshDeveloperDock();
+  await loadGlobalDeveloperConfig();
 
   await syncFormAccessForCurrentAccount();
 }
@@ -965,14 +1142,24 @@ async function initSession(user) {
 async function restoreSession() {
   const { data } = await supabaseClient.auth.getSession();
   if (data.session?.user) {
-    await initSession(data.session.user);
+    try {
+      await initSession(data.session.user);
+    } catch (sessionError) {
+      console.error("Error al restaurar sesión:", sessionError);
+      updateNavForRole(null);
+      setAuthTab("login-panel");
+      showView(GUEST_LANDING_VIEW);
+      toggleEditMode(false);
+      refreshDeveloperDock();
+    }
   } else {
-  updateNavForRole(null);
-  renderManagedArticles();
-  setAuthTab("login-panel");
-  showView(GUEST_LANDING_VIEW);
-  toggleEditMode(false);
-  refreshDeveloperDock();
+    await loadGlobalDeveloperConfig();
+    updateNavForRole(null);
+    renderManagedArticles();
+    setAuthTab("login-panel");
+    showView(GUEST_LANDING_VIEW);
+    toggleEditMode(false);
+    refreshDeveloperDock();
   }
 }
 
