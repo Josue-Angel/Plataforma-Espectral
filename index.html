@@ -534,7 +534,7 @@
     <p class="muted">Opciones permitidas: 5 colores y 3 variantes de diseño.</p>
     <div class="grid-three">
       <label>Color global
-        <select id="dev-color-theme">
+        <select id="dev-color-theme-legacy">
           <option value="azul">Azul</option>
           <option value="rojo">Rojo</option>
           <option value="vino">Vino</option>
@@ -543,21 +543,21 @@
         </select>
       </label>
       <label>Diseño tesis/artículos
-        <select id="dev-articles-variant">
+        <select id="dev-articles-variant-legacy">
           <option value="v1">Variante 1</option>
           <option value="v2">Variante 2</option>
           <option value="v3">Variante 3</option>
         </select>
       </label>
       <label>Diseño dashboard
-        <select id="dev-dashboard-variant">
+        <select id="dev-dashboard-variant-legacy">
           <option value="v1">Variante 1</option>
           <option value="v2">Variante 2</option>
           <option value="v3">Variante 3</option>
         </select>
       </label>
     </div>
-    <button type="button" class="btn btn-primary" id="btn-guardar-tema-dev">Guardar apariencia</button>
+    <button type="button" class="btn btn-primary" id="btn-guardar-tema-dev-legacy">Guardar apariencia</button>
   </div>
 
   <div class="card">
@@ -620,64 +620,13 @@
     <!-- ============ PRODUCCIÓN PROPIA ============ -->
     <article class="card scientific-card">
     <h3>Producción propia</h3>
-      <ul class="doc-list">
-        <li class="doc-item">
-          <strong class="doc-label">Artículo:</strong>
-          <a href="https://www.milenio.com/opinion/varios-autores/universidad-politecnica-de-tulancingo/tratamiento-y-diagnostico-optico_2" target="_blank" class="doc-link">
-            Tratamiento y diagnóstico óptico
-          </a>
-        </li>
-        <li class="doc-item">
-          <strong class="doc-label">Artículo:</strong>
-          <a href="https://www.milenio.com/opinion/varios-autores/universidad-politecnica-de-tulancingo/caracterizar-el-melanoma-cutaneo" target="_blank" class="doc-link">
-            Caracterizar el melanoma cutáneo
-          </a>
-        </li>
-        <li class="doc-item">
-          <strong class="doc-label">Artículo:</strong>
-          <a href="https://www.milenio.com/opinion/varios-autores/universidad-politecnica-de-tulancingo/simulacion-esparcimiento-particulas-usadas-fabricacion-imitadores-melanoma-cutaneo" target="_blank" class="doc-link">
-            Simulación de esparcimiento de partículas en imitadores de melanoma cutáneo
-          </a>
-        </li>
-      </ul>
+      <ul id="lista-aportes-propios" class="doc-list"></ul>
     </article>
 
     <!-- ============ REFERENCIAS DE OTROS AUTORES ============ -->
     <article class="card scientific-card">
       <h3 class="card-title">Referencias de otros autores</h3>
-      <ul class="reference-list">
-
-        <!-- Referencia 1 -->
-        <li class="reference-item">
-          <p class="reference-apa">
-            <strong>Tschandl, P., Rosendahl, C., & Kittler, H.</strong> (2018).  
-            <em>The HAM10000 dataset: A large collection of multi-source dermatoscopic images of common pigmented skin lesions.</em>  
-            <span>Scientific Data, 5, 180161.</span>  
-            <br>
-            <a href="https://doi.org/10.1038/sdata.2018.161" target="_blank" class="doi-link">https://doi.org/10.1038/sdata.2018.161</a>
-          </p>
-
-          <div class="reference-links">
-            <a href="https://www.nature.com/articles/sdata2018161" target="_blank" class="ref-btn">Artículo</a>
-            <a href="https://www.isic-archive.com/" target="_blank" class="ref-btn">Dataset</a>
-          </div>
-        </li>
-
-        <!-- Referencia 2 -->
-        <li class="reference-item">
-          <p class="reference-apa">
-            <strong>Codella, N., Rotemberg, V., Tschandl, P., Celebi, M. E., Dusza, S., Gutman, D., Helba, B., … Halpern, A.</strong> (2019).  
-            <em>Skin Lesion Analysis Toward Melanoma Detection 2018: A Challenge Hosted by the International Skin Imaging Collaboration (ISIC).</em>  
-            <br>
-            <a href="https://arxiv.org/abs/1902.03368" target="_blank" class="doi-link">https://arxiv.org/abs/1902.03368</a>
-          </p>
-
-          <div class="reference-links">
-            <a href="https://arxiv.org/abs/1902.03368" target="_blank" class="ref-btn">Artículo</a>
-          </div>
-        </li>
-
-      </ul>
+      <ul id="lista-aportes-referencias" class="reference-list"></ul>
     </article>
   </div>
 
@@ -687,17 +636,12 @@
     <button type="button" class="btn btn-primary" id="btn-abrir-modal-articulo">+ Agregar artículo / referencia / dataset</button>
   </div>
 
-  <div class="card">
-    <h3>Aportes administrables</h3>
-    <ul id="lista-aportes-propios" class="doc-list"></ul>
-    <ul id="lista-aportes-referencias" class="reference-list"></ul>
-  </div>
-
   <div class="modal hidden" id="modal-articulo">
     <div class="modal-content modal-content-large">
       <button class="modal-close" data-close-modal="modal-articulo">✕</button>
-      <h3>Agregar artículo / tesis / dataset</h3>
+      <h3 id="titulo-modal-articulo">Agregar artículo / tesis / dataset</h3>
       <form id="form-articulo" class="form">
+        <input type="hidden" id="art-id-editando" />
         <div class="grid-three">
           <label>Tipo
             <select id="art-tipo" required>
