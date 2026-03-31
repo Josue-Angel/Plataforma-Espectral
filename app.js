@@ -9,7 +9,6 @@ const viewPermissions = {
   "modelo-ia": ["admin", "desarrollador"],
   archivos: ["admin", "desarrollador", "voluntario"],
   dashboard: ["admin", "desarrollador"],
-  "panel-desarrollador": ["desarrollador"],
 };
 
 let voluntariosCache = [];
@@ -23,6 +22,9 @@ const TRASH_RETENTION_MS = 5 * 24 * 60 * 60 * 1000;
 const VOLUNTEER_TRASH_STORAGE_KEY = "voluntarios-papelera";
 const DEV_SETTINGS_STORAGE_KEY = "dev-settings";
 const ARTICLES_STORAGE_KEY = "articulos-admin";
+const DEV_CONTENT_EDITS_STORAGE_KEY = "dev-content-edits";
+let currentViewId = "inicio";
+let isEditModeEnabled = false;
 
 const views = document.querySelectorAll(".view");
 const navLinks = document.querySelectorAll("#nav-links a");
@@ -395,6 +397,10 @@ function showView(viewId) {
   views.forEach((v) => v.classList.remove("active"));
   const target = document.getElementById(viewId);
   if (target) target.classList.add("active");
+  currentViewId = viewId;
+  applyContentEditsForView(viewId);
+  if (isEditModeEnabled) toggleEditMode(true);
+  refreshDeveloperDock();
 
   navLinks.forEach((link) => {
     link.classList.toggle("active-link", link.dataset.view === viewId);
@@ -434,21 +440,17 @@ navLinks.forEach((link) => {
 });
 
 const THEME_MAP = {
-  azul: { primary: "#2563eb", accent: "#0ea5c6" },
-  rojo: { primary: "#dc2626", accent: "#f97316" },
-  vino: { primary: "#9f1239", accent: "#be185d" },
-  morado: { primary: "#7e22ce", accent: "#a855f7" },
-  verde: { primary: "#15803d", accent: "#16a34a" },
+  azul: { primary: "#2c5f8f", accent: "#3a87ad", bg: "#f3f7fb", surface: "#ffffff" },
+  verde: { primary: "#2f6b63", accent: "#4f8f84", bg: "#f3f8f6", surface: "#ffffff" },
+  morado: { primary: "#5f5d8d", accent: "#7a78a8", bg: "#f5f5fa", surface: "#ffffff" },
+  vino: { primary: "#7a4a5a", accent: "#946374", bg: "#faf5f7", surface: "#ffffff" },
+  rojo: { primary: "#8b4d4d", accent: "#a96666", bg: "#faf6f6", surface: "#ffffff" },
 };
 
 const DEFAULT_DEV_SETTINGS = {
   color: "azul",
-  articlesVariant: "v1",
-  dashboardVariant: "v1",
-  equipoTitle: "Equipo de trabajo y descripción del proyecto",
-  equipoText: "Somos un equipo multidisciplinario integrado por profesores investigadores, ingenieros y estudiantes de la Universidad Politécnica de Tulancingo, enfocados en el diagnóstico temprano del melanoma cutáneo mediante técnicas espectrales e inteligencia artificial.",
-  dashboardTitle: "Dashboard de estadísticas de voluntarios",
-  question1: "1. ¿Cuál es el color de tus ojos?",
+  uiVariant: "moderno",
+  fontFamily: "inter",
 };
 
 function readDevSettings() {
@@ -464,17 +466,61 @@ function applyDevSettings() {
   const theme = THEME_MAP[settings.color] || THEME_MAP.azul;
   document.documentElement.style.setProperty("--primary", theme.primary);
   document.documentElement.style.setProperty("--primary-2", theme.accent);
-  document.body.dataset.articlesVariant = settings.articlesVariant;
-  document.body.dataset.dashboardVariant = settings.dashboardVariant;
+  document.documentElement.style.setProperty("--bg", theme.bg);
+  document.documentElement.style.setProperty("--surface", theme.surface);
+  document.body.dataset.uiVariant = settings.uiVariant || "moderno";
+  document.body.dataset.fontFamily = settings.fontFamily || "inter";
+}
 
-  const equipoHeadingText = document.querySelector("[data-heading='equipo']");
-  if (equipoHeadingText) equipoHeadingText.textContent = settings.equipoTitle;
-  const equipoText = document.querySelector("#equipo .full-width-card p");
-  if (equipoText) equipoText.textContent = settings.equipoText;
-  const dashboardHeadingText = document.querySelector("[data-heading='dashboard']");
-  if (dashboardHeadingText) dashboardHeadingText.textContent = settings.dashboardTitle;
-  const q1 = document.querySelector("#step2 p");
-  if (q1) q1.textContent = settings.question1;
+function getEditableElements(viewId) {
+  const view = document.getElementById(viewId);
+  if (!view) return [];
+  const blocked = "table, .reference-links, .doc-link, .doi-link, a[href], input, textarea, select, button, .stat-value";
+  return Array.from(view.querySelectorAll("h1,h2,h3,h4,p,span,small,label,strong,em,li"))
+    .filter((el) => !el.closest(blocked) && el.textContent.trim().length > 0);
+}
+
+function readDevContentEdits() {
+  try {
+    return JSON.parse(localStorage.getItem(DEV_CONTENT_EDITS_STORAGE_KEY) || "{}");
+  } catch (error) {
+    return {};
+  }
+}
+
+function applyContentEditsForView(viewId) {
+  const edits = readDevContentEdits();
+  const viewEdits = edits[viewId] || {};
+  getEditableElements(viewId).forEach((el, index) => {
+    if (Object.prototype.hasOwnProperty.call(viewEdits, index)) {
+      el.textContent = viewEdits[index];
+    }
+  });
+}
+
+function toggleEditMode(enabled) {
+  isEditModeEnabled = enabled;
+  document.body.classList.toggle("dev-editing", enabled);
+  getEditableElements(currentViewId).forEach((el) => {
+    el.contentEditable = enabled ? "true" : "false";
+    el.classList.toggle("dev-editable", enabled);
+  });
+}
+
+function saveCurrentViewEdits() {
+  const allEdits = readDevContentEdits();
+  allEdits[currentViewId] = {};
+  getEditableElements(currentViewId).forEach((el, index) => {
+    allEdits[currentViewId][index] = el.textContent;
+  });
+  localStorage.setItem(DEV_CONTENT_EDITS_STORAGE_KEY, JSON.stringify(allEdits));
+}
+
+function refreshDeveloperDock() {
+  const dock = document.getElementById("dev-edit-dock");
+  if (!dock) return;
+  const canShow = isLoggedIn && currentRole === "desarrollador" && currentViewId !== GUEST_LANDING_VIEW;
+  dock.classList.toggle("hidden", !canShow);
 }
 
 const DEFAULT_ARTICLES = [];
@@ -647,47 +693,34 @@ const listaAportesReferencias = document.getElementById("lista-aportes-referenci
   });
 });
 
-const btnGuardarTemaDev = document.getElementById("btn-guardar-tema-dev");
-if (btnGuardarTemaDev) {
-  btnGuardarTemaDev.addEventListener("click", () => {
+const btnToggleEdit = document.getElementById("btn-dev-toggle-edit");
+const btnSaveView = document.getElementById("btn-dev-save-view");
+const devEditControls = document.getElementById("dev-edit-controls");
+const devColorTheme = document.getElementById("dev-color-theme");
+const devUiVariant = document.getElementById("dev-ui-variant");
+const devFontFamily = document.getElementById("dev-font-family");
+
+if (btnToggleEdit) {
+  btnToggleEdit.addEventListener("click", () => {
     if (currentRole !== "desarrollador") return;
-    const current = readDevSettings();
-    current.color = document.getElementById("dev-color-theme").value;
-    current.articlesVariant = document.getElementById("dev-articles-variant").value;
-    current.dashboardVariant = document.getElementById("dev-dashboard-variant").value;
-    localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(current));
-    applyDevSettings();
-    showToast("Apariencia actualizada.", "success");
+    const enabled = !isEditModeEnabled;
+    toggleEditMode(enabled);
+    devEditControls?.classList.toggle("hidden", !enabled);
+    btnToggleEdit.textContent = enabled ? "✅ Salir de edición" : "✏️ Editar interfaz";
   });
 }
 
-const formDevContenido = document.getElementById("form-dev-contenido");
-if (formDevContenido) {
-  formDevContenido.addEventListener("submit", async (e) => {
-    e.preventDefault();
+if (btnSaveView) {
+  btnSaveView.addEventListener("click", () => {
     if (currentRole !== "desarrollador") return;
-    const pass = document.getElementById("dev-password-confirm").value.trim();
-    if (!pass) {
-      showToast("Confirma la contraseña para guardar cambios.");
-      return;
-    }
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email: currentUserEmail,
-      password: pass,
-    });
-    if (error) {
-      showToast("Contraseña inválida. No se guardaron cambios.");
-      return;
-    }
     const settings = readDevSettings();
-    settings.equipoTitle = document.getElementById("dev-section-equipo").value.trim() || settings.equipoTitle;
-    settings.equipoText = document.getElementById("dev-texto-equipo").value.trim() || settings.equipoText;
-    settings.question1 = document.getElementById("dev-pregunta-1").value.trim() || settings.question1;
-    settings.dashboardTitle = document.getElementById("dev-section-dashboard").value.trim() || settings.dashboardTitle;
+    settings.color = devColorTheme?.value || settings.color;
+    settings.uiVariant = devUiVariant?.value || settings.uiVariant;
+    settings.fontFamily = devFontFamily?.value || settings.fontFamily;
     localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    saveCurrentViewEdits();
     applyDevSettings();
-    formDevContenido.reset();
-    showToast("Contenido actualizado con confirmación.", "success");
+    showToast("Cambios visuales y de texto guardados.", "success");
   });
 }
 
@@ -863,23 +896,11 @@ async function initSession(user) {
     await cargarAlertasAdmin();
   }
 
-  if (currentRole === "desarrollador") {
-    const settings = readDevSettings();
-    const color = document.getElementById("dev-color-theme");
-    const art = document.getElementById("dev-articles-variant");
-    const dash = document.getElementById("dev-dashboard-variant");
-    const secEquipo = document.getElementById("dev-section-equipo");
-    const txtEquipo = document.getElementById("dev-texto-equipo");
-    const q1 = document.getElementById("dev-pregunta-1");
-    const secDash = document.getElementById("dev-section-dashboard");
-    if (color) color.value = settings.color;
-    if (art) art.value = settings.articlesVariant;
-    if (dash) dash.value = settings.dashboardVariant;
-    if (secEquipo) secEquipo.value = settings.equipoTitle;
-    if (txtEquipo) txtEquipo.value = settings.equipoText;
-    if (q1) q1.value = settings.question1;
-    if (secDash) secDash.value = settings.dashboardTitle;
-  }
+  const settings = readDevSettings();
+  if (devColorTheme) devColorTheme.value = settings.color;
+  if (devUiVariant) devUiVariant.value = settings.uiVariant;
+  if (devFontFamily) devFontFamily.value = settings.fontFamily;
+  refreshDeveloperDock();
 
   await syncFormAccessForCurrentAccount();
 }
@@ -892,8 +913,10 @@ async function restoreSession() {
   } else {
   updateNavForRole(null);
   renderManagedArticles();
-    setAuthTab("login-panel");
-    showView(GUEST_LANDING_VIEW);
+  setAuthTab("login-panel");
+  showView(GUEST_LANDING_VIEW);
+  toggleEditMode(false);
+  refreshDeveloperDock();
   }
 }
 

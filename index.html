@@ -26,7 +26,6 @@
         <li><a href="#" data-view="dashboard" data-roles="admin,desarrollador"><span>📊</span><span data-section-label="dashboard">Dashboard</span></a></li>
         <li><a href="#" data-view="formularios" data-roles="admin,desarrollador,voluntario"><span>📝</span><span data-section-label="formularios">Formularios</span></a></li>
         <li><a href="#" data-view="modelo-ia" data-roles="admin,desarrollador"><span>🤖</span><span data-section-label="modelo-ia">Modelo IA</span></a></li>
-        <li><a href="#" data-view="panel-desarrollador" data-roles="desarrollador"><span>🛠️</span>Panel desarrollador</a></li>
       </ul>
     </nav>
     <div class="user-info">
@@ -793,6 +792,35 @@
 
 
   <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+  <div id="dev-edit-dock" class="dev-edit-dock hidden">
+    <button type="button" class="btn btn-primary" id="btn-dev-toggle-edit">✏️ Editar interfaz</button>
+    <div id="dev-edit-controls" class="dev-edit-controls hidden">
+      <label>Color
+        <select id="dev-color-theme">
+          <option value="azul">Azul científico</option>
+          <option value="verde">Verde clínico</option>
+          <option value="morado">Morado sobrio</option>
+          <option value="vino">Vino institucional</option>
+          <option value="rojo">Rojo controlado</option>
+        </select>
+      </label>
+      <label>Diseño
+        <select id="dev-ui-variant">
+          <option value="moderno">Moderno</option>
+          <option value="cientifico">Científico</option>
+          <option value="informativo">Informativo</option>
+        </select>
+      </label>
+      <label>Tipografía
+        <select id="dev-font-family">
+          <option value="inter">Inter</option>
+          <option value="source">Source Sans 3</option>
+          <option value="ibm">IBM Plex Sans</option>
+        </select>
+      </label>
+      <button type="button" class="btn btn-danger" id="btn-dev-save-view">Guardar cambios</button>
+    </div>
+  </div>
 
   <!-- Supabase + app -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
