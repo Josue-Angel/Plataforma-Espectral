@@ -20,12 +20,13 @@
     <nav class="nav">
       <ul id="nav-links">
         
-        <li><a href="#" data-view="equipo" data-roles="admin,voluntario"><span>👥</span>Equipo y proyecto</a></li>
-        <li><a href="#" data-view="base-datos" data-roles="admin"><span>🛢️</span>Base de datos espectral</a></li>
-        <li><a href="#" data-view="archivos" data-roles="admin,voluntario"><span>📄</span>Tesis y artículos</a></li>
-        <li><a href="#" data-view="dashboard" data-roles="admin"><span>📊</span>Dashboard</a></li>
-        <li><a href="#" data-view="formularios" data-roles="admin,voluntario"><span>📝</span>Formularios</a></li>
-        <li><a href="#" data-view="modelo-ia" data-roles="admin"><span>🤖</span>Modelo IA</a></li>
+        <li><a href="#" data-view="equipo" data-roles="admin,desarrollador,voluntario"><span>👥</span><span data-section-label="equipo">Equipo y proyecto</span></a></li>
+        <li><a href="#" data-view="base-datos" data-roles="admin,desarrollador"><span>🛢️</span><span data-section-label="base-datos">Base de datos espectral</span></a></li>
+        <li><a href="#" data-view="archivos" data-roles="admin,desarrollador,voluntario"><span>📄</span><span data-section-label="archivos">Tesis y artículos</span></a></li>
+        <li><a href="#" data-view="dashboard" data-roles="admin,desarrollador"><span>📊</span><span data-section-label="dashboard">Dashboard</span></a></li>
+        <li><a href="#" data-view="formularios" data-roles="admin,desarrollador,voluntario"><span>📝</span><span data-section-label="formularios">Formularios</span></a></li>
+        <li><a href="#" data-view="modelo-ia" data-roles="admin,desarrollador"><span>🤖</span><span data-section-label="modelo-ia">Modelo IA</span></a></li>
+        <li><a href="#" data-view="panel-desarrollador" data-roles="desarrollador"><span>🛠️</span>Panel desarrollador</a></li>
       </ul>
     </nav>
     <div class="user-info">
@@ -157,6 +158,7 @@
           <input type="search" id="busqueda-voluntario" placeholder="Buscar por matrícula, correo..." />
         </label>
         <button type="button" class="btn btn-outline btn-filter">Filtros</button>
+        <button type="button" class="btn btn-outline btn-small" id="btn-papelera-voluntarios">Papelera</button>
         <button type="button" class="btn btn-primary btn-small" id="btn-nuevo-voluntario">Nuevo</button>
       </div>
 
@@ -167,7 +169,7 @@
           <table>
             <thead>
               <tr>
-                <th>ID</th>
+                <th>Folio visible</th>
                 <th>Matrícula</th>
                 <th>Correo electrónico</th>
                 <th>Acciones</th>
@@ -278,6 +280,40 @@
           </p>
         </form>
       </div>
+      </div>
+
+      <div class="modal hidden" id="modal-confirmar-eliminacion">
+        <div class="modal-content">
+          <button class="modal-close" data-close-modal="modal-confirmar-eliminacion">✕</button>
+          <h3>Confirmar eliminación</h3>
+          <p class="muted" id="texto-eliminar-voluntario">¿Deseas enviar este voluntario a la papelera?</p>
+          <div class="form-actions">
+            <button type="button" class="btn btn-danger" id="btn-confirmar-eliminar-vol">Mover a papelera (5 días)</button>
+            <button type="button" class="btn btn-outline" data-close-modal="modal-confirmar-eliminacion">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal hidden" id="modal-papelera">
+        <div class="modal-content modal-content-large">
+          <button class="modal-close" data-close-modal="modal-papelera">✕</button>
+          <h3>Papelera de voluntarios</h3>
+          <p class="muted small">Los elementos permanecen 5 días y luego se eliminan de forma permanente.</p>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID real</th>
+                  <th>Matrícula</th>
+                  <th>Eliminado el</th>
+                  <th>Expira</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-papelera-voluntarios"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </section>    
       
@@ -492,6 +528,63 @@
 
 </section>
 
+<section id="panel-desarrollador" class="view">
+  <h2 class="section-heading"><span class="title-icon">🛠️</span>Panel de desarrollador</h2>
+  <div class="card">
+    <h3>Personalización controlada</h3>
+    <p class="muted">Opciones permitidas: 5 colores y 3 variantes de diseño.</p>
+    <div class="grid-three">
+      <label>Color global
+        <select id="dev-color-theme">
+          <option value="azul">Azul</option>
+          <option value="rojo">Rojo</option>
+          <option value="vino">Vino</option>
+          <option value="morado">Morado</option>
+          <option value="verde">Verde</option>
+        </select>
+      </label>
+      <label>Diseño tesis/artículos
+        <select id="dev-articles-variant">
+          <option value="v1">Variante 1</option>
+          <option value="v2">Variante 2</option>
+          <option value="v3">Variante 3</option>
+        </select>
+      </label>
+      <label>Diseño dashboard
+        <select id="dev-dashboard-variant">
+          <option value="v1">Variante 1</option>
+          <option value="v2">Variante 2</option>
+          <option value="v3">Variante 3</option>
+        </select>
+      </label>
+    </div>
+    <button type="button" class="btn btn-primary" id="btn-guardar-tema-dev">Guardar apariencia</button>
+  </div>
+
+  <div class="card">
+    <h3>Edición de contenido sensible</h3>
+    <p class="muted small">Se solicita confirmación y contraseña para guardar cambios.</p>
+    <form id="form-dev-contenido" class="form">
+      <label>Título sección Equipo y proyecto
+        <input type="text" id="dev-section-equipo" />
+      </label>
+      <label>Texto "¿Quiénes somos?"
+        <textarea id="dev-texto-equipo" rows="4"></textarea>
+      </label>
+      <label>Pregunta 1 del formulario
+        <input type="text" id="dev-pregunta-1" />
+      </label>
+      <label>Nombre de sección Dashboard
+        <input type="text" id="dev-section-dashboard" />
+      </label>
+      <label>Confirma contraseña de desarrollador
+        <input type="password" id="dev-password-confirm" required />
+      </label>
+      <button type="submit" class="btn btn-danger">Guardar contenido</button>
+    </form>
+  </div>
+</section>
+
     <!-- MODELO IA -->
 <section id="modelo-ia" class="view">
   <h2 class="section-heading"><span class="title-icon">🤖</span>Modelo de Inteligencia Artificial (entorno de inferencia)</h2>
@@ -587,6 +680,49 @@
 
       </ul>
     </article>
+  </div>
+
+  <div class="card hidden" id="admin-archivo-manager">
+    <h3>Gestión de tesis y artículos</h3>
+    <p class="muted small">Solo administrador/desarrollador. Mantén la estructura requerida para evitar inconsistencias.</p>
+    <form id="form-articulo" class="form">
+      <div class="grid-three">
+        <label>Tipo
+          <select id="art-tipo" required>
+            <option value="">Selecciona</option>
+            <option value="propio">Producción propia</option>
+            <option value="referencia">Referencia externa</option>
+          </select>
+        </label>
+        <label>Año
+          <input type="number" id="art-anio" min="1900" max="2100" required />
+        </label>
+        <label>Título
+          <input type="text" id="art-titulo" required />
+        </label>
+      </div>
+      <label>Autores (formato APA, separados por coma)
+        <input type="text" id="art-autores" required />
+      </label>
+      <label>Fuente / revista / medio
+        <input type="text" id="art-fuente" required />
+      </label>
+      <div class="grid-two">
+        <label>URL principal
+          <input type="url" id="art-url" required />
+        </label>
+        <label>URL secundaria (dataset/opcional)
+          <input type="url" id="art-url-secundaria" />
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary">Agregar artículo/tesis</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Aportes administrables</h3>
+    <ul id="lista-aportes-propios" class="doc-list"></ul>
+    <ul id="lista-aportes-referencias" class="reference-list"></ul>
   </div>
 </section>
 
