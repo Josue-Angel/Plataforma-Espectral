@@ -23,6 +23,9 @@ const VOLUNTEER_TRASH_STORAGE_KEY = "voluntarios-papelera";
 const DEV_SETTINGS_STORAGE_KEY = "dev-settings";
 const ARTICLES_STORAGE_KEY = "articulos-admin";
 const DEV_CONTENT_EDITS_STORAGE_KEY = "dev-content-edits";
+const GLOBAL_CONFIG_TABLE = "configuracion_global";
+const GLOBAL_SETTINGS_KEY = "ui_settings";
+const GLOBAL_CONTENT_KEY = "content_edits";
 let currentViewId = "inicio";
 let isEditModeEnabled = false;
 let managedArticlesCache = [];
@@ -519,6 +522,70 @@ function readDevSettings() {
   }
 }
 
+async function requestGlobalChangeConfirmation(message) {
+  return new Promise((resolve) => {
+    const panel = document.createElement("div");
+    panel.style.position = "fixed";
+    panel.style.right = "1rem";
+    panel.style.bottom = "1rem";
+    panel.style.zIndex = "2000";
+    panel.style.width = "min(420px, calc(100vw - 2rem))";
+    panel.style.background = "var(--surface)";
+    panel.style.border = "1px solid var(--line)";
+    panel.style.borderRadius = "14px";
+    panel.style.boxShadow = "0 18px 40px rgba(2,6,23,.26)";
+    panel.style.padding = "1rem";
+    panel.innerHTML = `<p style="margin:0 0 .7rem 0;font-weight:600;">${message}</p>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end;">
+        <button type="button" class="btn btn-outline btn-small" data-confirm-action="cancelar">Cancelar</button>
+        <button type="button" class="btn btn-primary btn-small" data-confirm-action="confirmar">Confirmar</button>
+      </div>`;
+    document.body.appendChild(panel);
+    panel.addEventListener("click", (event) => {
+      const btn = event.target.closest("button[data-confirm-action]");
+      if (!btn) return;
+      const ok = btn.dataset.confirmAction === "confirmar";
+      panel.remove();
+      resolve(ok);
+    });
+  });
+}
+
+async function loadGlobalDeveloperConfig() {
+  const settingsResp = await supabaseClient.from(GLOBAL_CONFIG_TABLE).select("valor").eq("clave", GLOBAL_SETTINGS_KEY).maybeSingle();
+  if (!settingsResp.error && settingsResp.data?.valor) {
+    localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(settingsResp.data.valor));
+  }
+
+  const contentResp = await supabaseClient.from(GLOBAL_CONFIG_TABLE).select("valor").eq("clave", GLOBAL_CONTENT_KEY).maybeSingle();
+  if (!contentResp.error && contentResp.data?.valor) {
+    localStorage.setItem(DEV_CONTENT_EDITS_STORAGE_KEY, JSON.stringify(contentResp.data.valor));
+  }
+
+  applyDevSettings();
+  const currentSettings = readDevSettings();
+  if (devColorTheme) devColorTheme.value = currentSettings.color;
+  if (devUiVariant) devUiVariant.value = currentSettings.uiVariant;
+  if (devFontFamily) devFontFamily.value = currentSettings.fontFamily;
+  views.forEach((view) => applyContentEditsForView(view.id));
+}
+
+async function saveGlobalDeveloperConfig(key, value) {
+  const payload = {
+    clave: key,
+    valor: value,
+    updated_by: currentUserId || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  const result = await supabaseClient.from(GLOBAL_CONFIG_TABLE).upsert(payload, { onConflict: "clave" });
+  if (!result.error) return true;
+  if (!isMissingRelationError(result.error, GLOBAL_CONFIG_TABLE)) {
+    console.warn("No se pudo guardar configuración global:", result.error);
+  }
+  return false;
+}
+
 function applyDevSettings() {
   const settings = readDevSettings();
   const theme = THEME_MAP[settings.color] || THEME_MAP.azul;
@@ -870,24 +937,37 @@ if (btnTogglePalette) {
 }
 
 if (btnSaveView) {
-  btnSaveView.addEventListener("click", () => {
+  btnSaveView.addEventListener("click", async () => {
     if (currentRole !== "desarrollador") return;
+    const confirmed = await requestGlobalChangeConfirmation("¿Confirmas aplicar este tema de forma global para todos los usuarios?");
+    if (!confirmed) {
+      showToast("Cambio de tema cancelado.");
+      return;
+    }
     const settings = readDevSettings();
     settings.color = devColorTheme?.value || settings.color;
     settings.uiVariant = devUiVariant?.value || settings.uiVariant;
     settings.fontFamily = devFontFamily?.value || settings.fontFamily;
     localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    const savedGlobal = await saveGlobalDeveloperConfig(GLOBAL_SETTINGS_KEY, settings);
     applyDevSettings();
-    showToast("Tema global actualizado.", "success");
+    showToast(savedGlobal ? "Tema global actualizado." : "Tema aplicado localmente (sin persistencia global).", savedGlobal ? "success" : "info");
   });
 }
 
 if (btnRestoreDefaults) {
-  btnRestoreDefaults.addEventListener("click", () => {
+  btnRestoreDefaults.addEventListener("click", async () => {
     if (currentRole !== "desarrollador") return;
+    const confirmed = await requestGlobalChangeConfirmation("¿Confirmas restaurar la apariencia y textos originales de forma global?");
+    if (!confirmed) {
+      showToast("Restauración cancelada.");
+      return;
+    }
     localStorage.removeItem(DEV_SETTINGS_STORAGE_KEY);
     localStorage.removeItem(DEV_CONTENT_EDITS_STORAGE_KEY);
     const settings = readDevSettings();
+    await saveGlobalDeveloperConfig(GLOBAL_SETTINGS_KEY, settings);
+    await saveGlobalDeveloperConfig(GLOBAL_CONTENT_KEY, {});
     if (devColorTheme) devColorTheme.value = settings.color;
     if (devUiVariant) devUiVariant.value = settings.uiVariant;
     if (devFontFamily) devFontFamily.value = settings.fontFamily;
@@ -898,10 +978,17 @@ if (btnRestoreDefaults) {
 
 const btnDevSaveViewText = document.getElementById("btn-dev-save-view");
 if (btnDevSaveViewText) {
-  btnDevSaveViewText.addEventListener("click", () => {
+  btnDevSaveViewText.addEventListener("click", async () => {
     if (currentRole !== "desarrollador") return;
+    const confirmed = await requestGlobalChangeConfirmation("¿Confirmas guardar estos cambios de texto de forma global?");
+    if (!confirmed) {
+      showToast("Guardado de texto cancelado.");
+      return;
+    }
     saveCurrentViewEdits();
-    showToast("Texto de la vista guardado globalmente.", "success");
+    const currentEdits = readDevContentEdits();
+    const savedGlobal = await saveGlobalDeveloperConfig(GLOBAL_CONTENT_KEY, currentEdits);
+    showToast(savedGlobal ? "Texto de la vista guardado globalmente." : "Texto guardado localmente (sin persistencia global).", savedGlobal ? "success" : "info");
   });
 }
 
@@ -1082,6 +1169,7 @@ async function initSession(user) {
   if (devUiVariant) devUiVariant.value = settings.uiVariant;
   if (devFontFamily) devFontFamily.value = settings.fontFamily;
   refreshDeveloperDock();
+  await loadGlobalDeveloperConfig();
 
   await syncFormAccessForCurrentAccount();
 }
