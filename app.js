@@ -28,6 +28,63 @@ const GLOBAL_CONTENT_KEY = "content_edits";
 let currentViewId = "inicio";
 let isEditModeEnabled = false;
 let managedArticlesCache = [];
+const INITIAL_ARTICLES = [
+  {
+    id: "art-seed-propio-1",
+    tipo: "propio",
+    anio: 2023,
+    titulo: "Tratamiento y diagnóstico óptico",
+    autores: "Universidad Politécnica de Tulancingo",
+    fuente: "Milenio",
+    url: "https://www.milenio.com/opinion/varios-autores/universidad-politecnica-de-tulancingo/tratamiento-y-diagnostico-optico_2",
+    url2: "",
+    created_at: "2023-01-01T00:00:00.000Z",
+  },
+  {
+    id: "art-seed-propio-2",
+    tipo: "propio",
+    anio: 2023,
+    titulo: "Caracterizar el melanoma cutáneo",
+    autores: "Universidad Politécnica de Tulancingo",
+    fuente: "Milenio",
+    url: "https://www.milenio.com/opinion/varios-autores/universidad-politecnica-de-tulancingo/caracterizar-el-melanoma-cutaneo",
+    url2: "",
+    created_at: "2023-01-02T00:00:00.000Z",
+  },
+  {
+    id: "art-seed-propio-3",
+    tipo: "propio",
+    anio: 2023,
+    titulo: "Simulación de esparcimiento de partículas en imitadores de melanoma cutáneo",
+    autores: "Universidad Politécnica de Tulancingo",
+    fuente: "Milenio",
+    url: "https://www.milenio.com/opinion/varios-autores/universidad-politecnica-de-tulancingo/simulacion-esparcimiento-particulas-usadas-fabricacion-imitadores-melanoma-cutaneo",
+    url2: "",
+    created_at: "2023-01-03T00:00:00.000Z",
+  },
+  {
+    id: "art-seed-ref-1",
+    tipo: "referencia",
+    anio: 2018,
+    titulo: "The HAM10000 dataset: A large collection of multi-source dermatoscopic images of common pigmented skin lesions.",
+    autores: "Tschandl, P., Rosendahl, C., & Kittler, H.",
+    fuente: "Scientific Data, 5, 180161.",
+    url: "https://doi.org/10.1038/sdata.2018.161",
+    url2: "https://www.nature.com/articles/sdata2018161",
+    created_at: "2018-01-01T00:00:00.000Z",
+  },
+  {
+    id: "art-seed-ref-2",
+    tipo: "referencia",
+    anio: 2019,
+    titulo: "Skin Lesion Analysis Toward Melanoma Detection 2018: A Challenge Hosted by the International Skin Imaging Collaboration (ISIC).",
+    autores: "Codella, N., Rotemberg, V., Tschandl, P., Celebi, M. E., Dusza, S., Gutman, D., Helba, B., … Halpern, A.",
+    fuente: "arXiv",
+    url: "https://arxiv.org/abs/1902.03368",
+    url2: "",
+    created_at: "2019-01-01T00:00:00.000Z",
+  },
+];
 
 const views = document.querySelectorAll(".view");
 const navLinks = document.querySelectorAll("#nav-links a");
@@ -647,7 +704,7 @@ async function loadManagedArticles() {
     .order("created_at", { ascending: true });
 
   if (!error && Array.isArray(data)) {
-    managedArticlesCache = data;
+    managedArticlesCache = data.length ? data : [...INITIAL_ARTICLES];
     renderManagedArticles();
     return;
   }
@@ -906,8 +963,9 @@ if (btnSaveView) {
       return;
     }
     localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    const savedGlobal = await saveGlobalDeveloperConfig(GLOBAL_SETTINGS_KEY, settings);
     applyDevSettings();
-    showToast("Tema global actualizado.", "success");
+    showToast(savedGlobal ? "Tema global actualizado." : "Tema aplicado localmente (sin persistencia global).", savedGlobal ? "success" : "info");
   });
 }
 
