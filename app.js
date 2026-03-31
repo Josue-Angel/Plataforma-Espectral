@@ -498,11 +498,11 @@ navLinks.forEach((link) => {
 });
 
 const THEME_MAP = {
-  azul: { primary: "#1f4f9d", accent: "#3b82f6", bg: "#ecf4ff", surface: "#ffffff", text: "#0b1d3b", muted: "#3f5f86", line: "#c9daf4", soft: "#dcecff" },
-  verde: { primary: "#1f7a54", accent: "#22c55e", bg: "#eefcf5", surface: "#ffffff", text: "#0d2c20", muted: "#416b5a", line: "#bfe8d4", soft: "#daf7ea" },
-  morado: { primary: "#5b3aa8", accent: "#8b5cf6", bg: "#f4efff", surface: "#ffffff", text: "#24124d", muted: "#5f5290", line: "#d9c8fb", soft: "#e9defd" },
-  vino: { primary: "#8a2d4f", accent: "#be4b7b", bg: "#fff0f5", surface: "#ffffff", text: "#3f1024", muted: "#7f445e", line: "#f1c2d4", soft: "#f9dceb" },
-  rojo: { primary: "#a11d2d", accent: "#ef4444", bg: "#fff1f1", surface: "#ffffff", text: "#3a0d13", muted: "#7b3a43", line: "#f2c8cd", soft: "#fce1e4" },
+  azul: { primary: "#1f4f9d", accent: "#3b82f6", dark: "#173b75", bg: "#ecf4ff", surface: "#ffffff", text: "#0b1d3b", muted: "#3f5f86", line: "#c9daf4", soft: "#dcecff" },
+  verde: { primary: "#1f7a54", accent: "#22c55e", dark: "#16583c", bg: "#eefcf5", surface: "#ffffff", text: "#0d2c20", muted: "#416b5a", line: "#bfe8d4", soft: "#daf7ea" },
+  morado: { primary: "#5b3aa8", accent: "#8b5cf6", dark: "#432b7b", bg: "#f4efff", surface: "#ffffff", text: "#24124d", muted: "#5f5290", line: "#d9c8fb", soft: "#e9defd" },
+  vino: { primary: "#8a2d4f", accent: "#be4b7b", dark: "#6b213d", bg: "#fff0f5", surface: "#ffffff", text: "#3f1024", muted: "#7f445e", line: "#f1c2d4", soft: "#f9dceb" },
+  rojo: { primary: "#a11d2d", accent: "#ef4444", dark: "#7b1521", bg: "#fff1f1", surface: "#ffffff", text: "#3a0d13", muted: "#7b3a43", line: "#f2c8cd", soft: "#fce1e4" },
 };
 
 const DEFAULT_DEV_SETTINGS = {
@@ -524,6 +524,7 @@ function applyDevSettings() {
   const theme = THEME_MAP[settings.color] || THEME_MAP.azul;
   document.documentElement.style.setProperty("--primary", theme.primary);
   document.documentElement.style.setProperty("--primary-2", theme.accent);
+  document.documentElement.style.setProperty("--primary-dark", theme.dark || theme.primary);
   document.documentElement.style.setProperty("--bg", theme.bg);
   document.documentElement.style.setProperty("--surface", theme.surface);
   document.documentElement.style.setProperty("--text", theme.text);
