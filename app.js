@@ -25,6 +25,7 @@ const ARTICLES_STORAGE_KEY = "articulos-admin";
 const DEV_CONTENT_EDITS_STORAGE_KEY = "dev-content-edits";
 let currentViewId = "inicio";
 let isEditModeEnabled = false;
+let managedArticlesCache = [];
 
 const views = document.querySelectorAll(".view");
 const navLinks = document.querySelectorAll("#nav-links a");
@@ -475,8 +476,8 @@ function applyDevSettings() {
 function getEditableElements(viewId) {
   const view = document.getElementById(viewId);
   if (!view) return [];
-  const blocked = "table, .reference-links, .doc-link, .doi-link, a[href], input, textarea, select, button, .stat-value";
-  return Array.from(view.querySelectorAll("h1,h2,h3,h4,p,span,small,label,strong,em,li"))
+  const blocked = ".table-wrapper, #form-voluntario, #form-articulo, .modal-content, .doc-link, .doi-link, .reference-links, .stat-value";
+  return Array.from(view.querySelectorAll("h1,h2,h3,h4,p,label,.btn,legend"))
     .filter((el) => !el.closest(blocked) && el.textContent.trim().length > 0);
 }
 
@@ -518,27 +519,19 @@ function saveCurrentViewEdits() {
 
 function refreshDeveloperDock() {
   const dock = document.getElementById("dev-edit-dock");
-  if (!dock) return;
+  const paletteDock = document.getElementById("dev-palette-dock");
+  if (!dock || !paletteDock) return;
   const canShow = isLoggedIn && currentRole === "desarrollador" && currentViewId !== GUEST_LANDING_VIEW;
   dock.classList.toggle("hidden", !canShow);
-}
-
-const DEFAULT_ARTICLES = [];
-
-function readManagedArticles() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(ARTICLES_STORAGE_KEY) || "[]");
-    return Array.isArray(parsed) ? parsed : DEFAULT_ARTICLES;
-  } catch (error) {
-    return DEFAULT_ARTICLES;
-  }
+  paletteDock.classList.toggle("hidden", !canShow);
+  if (!canShow && isEditModeEnabled) toggleEditMode(false);
 }
 
 function renderManagedArticles() {
   const ownList = document.getElementById("lista-aportes-propios");
   const refList = document.getElementById("lista-aportes-referencias");
   if (!ownList || !refList) return;
-  const items = readManagedArticles();
+  const items = managedArticlesCache;
   const propios = items.filter((i) => i.tipo === "propio");
   const refs = items.filter((i) => i.tipo === "referencia");
 
@@ -548,6 +541,27 @@ function renderManagedArticles() {
   refList.innerHTML = refs.length
     ? refs.map((item) => `<li class="reference-item"><p class="reference-apa"><strong>${item.autores}</strong> (${item.anio}). <em>${item.titulo}</em> <span>${item.fuente}</span><br><a href="${item.url}" target="_blank" class="doi-link">${item.url}</a></p>${item.url2 ? `<div class="reference-links"><a href="${item.url2}" target="_blank" class="ref-btn">Enlace adicional</a></div>` : ""}${canManageAsAdmin() ? `<button class="btn btn-small btn-danger" data-action="eliminar-articulo" data-id="${item.id}">Eliminar</button>` : ""}</li>`).join("")
     : "<li class='muted small'>Sin referencias administrables registradas.</li>";
+}
+
+async function loadManagedArticles() {
+  const { data, error } = await supabaseClient
+    .from("articulos_publicados")
+    .select("id, tipo, anio, titulo, autores, fuente, url, url2, created_at")
+    .order("created_at", { ascending: false });
+
+  if (!error && Array.isArray(data)) {
+    managedArticlesCache = data;
+    renderManagedArticles();
+    return;
+  }
+
+  try {
+    const localData = JSON.parse(localStorage.getItem(ARTICLES_STORAGE_KEY) || "[]");
+    managedArticlesCache = Array.isArray(localData) ? localData : [];
+  } catch (e) {
+    managedArticlesCache = [];
+  }
+  renderManagedArticles();
 }
 
 const tabButtons = document.querySelectorAll(".tab-auth");
@@ -634,7 +648,7 @@ registerForm.addEventListener("submit", async (e) => {
 
 const formArticulo = document.getElementById("form-articulo");
 if (formArticulo) {
-  formArticulo.addEventListener("submit", (e) => {
+  formArticulo.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!canManageAsAdmin()) {
       showToast("No tienes permisos para agregar artículos.");
@@ -654,11 +668,16 @@ if (formArticulo) {
       showToast("Completa todos los campos obligatorios del artículo.");
       return;
     }
-    const current = readManagedArticles();
-    localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify([payload, ...current]));
+    const { error } = await supabaseClient.from("articulos_publicados").insert(payload);
+    if (error) {
+      const current = Array.isArray(managedArticlesCache) ? managedArticlesCache : [];
+      localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify([payload, ...current]));
+      managedArticlesCache = [payload, ...current];
+    } else {
+      await loadManagedArticles();
+    }
     formArticulo.reset();
     closeModal("modal-articulo");
-    renderManagedArticles();
     showToast("Artículo/Tesis agregado correctamente.", "success");
   });
 }
@@ -671,9 +690,15 @@ if (btnAbrirModalArticulo) {
   });
 }
 
-function deleteManagedArticle(itemId) {
-  const next = readManagedArticles().filter((item) => item.id !== itemId);
-  localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify(next));
+async function deleteManagedArticle(itemId) {
+  const { error } = await supabaseClient.from("articulos_publicados").delete().eq("id", itemId);
+  if (error) {
+    const next = managedArticlesCache.filter((item) => String(item.id) !== String(itemId));
+    localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify(next));
+    managedArticlesCache = next;
+  } else {
+    await loadManagedArticles();
+  }
   renderManagedArticles();
 }
 
@@ -694,11 +719,13 @@ const listaAportesReferencias = document.getElementById("lista-aportes-referenci
 });
 
 const btnToggleEdit = document.getElementById("btn-dev-toggle-edit");
-const btnSaveView = document.getElementById("btn-dev-save-view");
+const btnSaveView = document.getElementById("btn-dev-save-theme");
 const devEditControls = document.getElementById("dev-edit-controls");
 const devColorTheme = document.getElementById("dev-color-theme");
 const devUiVariant = document.getElementById("dev-ui-variant");
 const devFontFamily = document.getElementById("dev-font-family");
+const btnTogglePalette = document.getElementById("btn-dev-toggle-palette");
+const btnRestoreDefaults = document.getElementById("btn-dev-restore-defaults");
 
 if (btnToggleEdit) {
   btnToggleEdit.addEventListener("click", () => {
@@ -710,6 +737,13 @@ if (btnToggleEdit) {
   });
 }
 
+if (btnTogglePalette) {
+  btnTogglePalette.addEventListener("click", () => {
+    if (currentRole !== "desarrollador") return;
+    devEditControls?.classList.toggle("hidden");
+  });
+}
+
 if (btnSaveView) {
   btnSaveView.addEventListener("click", () => {
     if (currentRole !== "desarrollador") return;
@@ -718,9 +752,31 @@ if (btnSaveView) {
     settings.uiVariant = devUiVariant?.value || settings.uiVariant;
     settings.fontFamily = devFontFamily?.value || settings.fontFamily;
     localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-    saveCurrentViewEdits();
     applyDevSettings();
-    showToast("Cambios visuales y de texto guardados.", "success");
+    showToast("Tema global actualizado.", "success");
+  });
+}
+
+if (btnRestoreDefaults) {
+  btnRestoreDefaults.addEventListener("click", () => {
+    if (currentRole !== "desarrollador") return;
+    localStorage.removeItem(DEV_SETTINGS_STORAGE_KEY);
+    localStorage.removeItem(DEV_CONTENT_EDITS_STORAGE_KEY);
+    const settings = readDevSettings();
+    if (devColorTheme) devColorTheme.value = settings.color;
+    if (devUiVariant) devUiVariant.value = settings.uiVariant;
+    if (devFontFamily) devFontFamily.value = settings.fontFamily;
+    applyDevSettings();
+    window.location.reload();
+  });
+}
+
+const btnDevSaveViewText = document.getElementById("btn-dev-save-view");
+if (btnDevSaveViewText) {
+  btnDevSaveViewText.addEventListener("click", () => {
+    if (currentRole !== "desarrollador") return;
+    saveCurrentViewEdits();
+    showToast("Texto de la vista guardado globalmente.", "success");
   });
 }
 
@@ -1758,6 +1814,6 @@ if (btnRefrescarAlertas) {
 }
 
 applyDevSettings();
-renderManagedArticles();
+loadManagedArticles();
 restoreSession();
 })();

@@ -794,6 +794,10 @@
   <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
   <div id="dev-edit-dock" class="dev-edit-dock hidden">
     <button type="button" class="btn btn-primary" id="btn-dev-toggle-edit">✏️ Editar interfaz</button>
+    <button type="button" class="btn btn-danger" id="btn-dev-save-view">Guardar texto de esta vista</button>
+  </div>
+  <div id="dev-palette-dock" class="dev-palette-dock hidden">
+    <button type="button" class="btn btn-primary btn-palette-emoji" id="btn-dev-toggle-palette">🎨</button>
     <div id="dev-edit-controls" class="dev-edit-controls hidden">
       <label>Color
         <select id="dev-color-theme">
@@ -818,7 +822,8 @@
           <option value="ibm">IBM Plex Sans</option>
         </select>
       </label>
-      <button type="button" class="btn btn-danger" id="btn-dev-save-view">Guardar cambios</button>
+      <button type="button" class="btn btn-primary" id="btn-dev-save-theme">Guardar tema</button>
+      <button type="button" class="btn btn-outline" id="btn-dev-restore-defaults">Restaurar</button>
     </div>
   </div>
 
