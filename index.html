@@ -20,12 +20,12 @@
     <nav class="nav">
       <ul id="nav-links">
         
-        <li><a href="#" data-view="equipo" data-roles="admin,voluntario"><span>👥</span>Equipo y proyecto</a></li>
-        <li><a href="#" data-view="base-datos" data-roles="admin"><span>🛢️</span>Base de datos espectral</a></li>
-        <li><a href="#" data-view="archivos" data-roles="admin,voluntario"><span>📄</span>Tesis y artículos</a></li>
-        <li><a href="#" data-view="dashboard" data-roles="admin"><span>📊</span>Dashboard</a></li>
-        <li><a href="#" data-view="formularios" data-roles="admin,voluntario"><span>📝</span>Formularios</a></li>
-        <li><a href="#" data-view="modelo-ia" data-roles="admin"><span>🤖</span>Modelo IA</a></li>
+        <li><a href="#" data-view="equipo" data-roles="admin,desarrollador,voluntario"><span>👥</span><span data-section-label="equipo">Equipo y proyecto</span></a></li>
+        <li><a href="#" data-view="base-datos" data-roles="admin,desarrollador"><span>🛢️</span><span data-section-label="base-datos">Base de datos espectral</span></a></li>
+        <li><a href="#" data-view="archivos" data-roles="admin,desarrollador,voluntario"><span>📄</span><span data-section-label="archivos">Tesis y artículos</span></a></li>
+        <li><a href="#" data-view="dashboard" data-roles="admin,desarrollador"><span>📊</span><span data-section-label="dashboard">Dashboard</span></a></li>
+        <li><a href="#" data-view="formularios" data-roles="admin,desarrollador,voluntario"><span>📝</span><span data-section-label="formularios">Formularios</span></a></li>
+        <li><a href="#" data-view="modelo-ia" data-roles="admin,desarrollador"><span>🤖</span><span data-section-label="modelo-ia">Modelo IA</span></a></li>
       </ul>
     </nav>
     <div class="user-info">
@@ -104,7 +104,7 @@
 
     <!-- EQUIPO Y PROYECTO -->
 <section id="equipo" class="view equipo-section">
-  <h2 class="section-heading"><span class="title-icon">👥</span>Equipo de trabajo y descripción del proyecto</h2>
+  <h2 class="section-heading"><span class="title-icon">👥</span><span data-heading="equipo">Equipo de trabajo y descripción del proyecto</span></h2>
 
   <!-- Bloque ancho completo -->
   <article class="card clean-card full-width-card">
@@ -157,6 +157,7 @@
           <input type="search" id="busqueda-voluntario" placeholder="Buscar por matrícula, correo..." />
         </label>
         <button type="button" class="btn btn-outline btn-filter">Filtros</button>
+        <button type="button" class="btn btn-outline btn-small" id="btn-papelera-voluntarios">Papelera</button>
         <button type="button" class="btn btn-primary btn-small" id="btn-nuevo-voluntario">Nuevo</button>
       </div>
 
@@ -167,7 +168,7 @@
           <table>
             <thead>
               <tr>
-                <th>ID</th>
+                <th>Folio visible</th>
                 <th>Matrícula</th>
                 <th>Correo electrónico</th>
                 <th>Acciones</th>
@@ -278,6 +279,40 @@
           </p>
         </form>
       </div>
+      </div>
+
+      <div class="modal hidden" id="modal-confirmar-eliminacion">
+        <div class="modal-content">
+          <button class="modal-close" data-close-modal="modal-confirmar-eliminacion">✕</button>
+          <h3>Confirmar eliminación</h3>
+          <p class="muted" id="texto-eliminar-voluntario">¿Deseas enviar este voluntario a la papelera?</p>
+          <div class="form-actions">
+            <button type="button" class="btn btn-danger" id="btn-confirmar-eliminar-vol">Mover a papelera (5 días)</button>
+            <button type="button" class="btn btn-outline" data-close-modal="modal-confirmar-eliminacion">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal hidden" id="modal-papelera">
+        <div class="modal-content modal-content-large">
+          <button class="modal-close" data-close-modal="modal-papelera">✕</button>
+          <h3>Papelera de voluntarios</h3>
+          <p class="muted small">Los elementos permanecen 5 días y luego se eliminan de forma permanente.</p>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID real</th>
+                  <th>Matrícula</th>
+                  <th>Eliminado el</th>
+                  <th>Expira</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-papelera-voluntarios"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </section>    
       
@@ -518,7 +553,7 @@
 
     <!-- ARCHIVOS -->
 <section id="archivos" class="view scientific-section">
-  <h2 class="section-title section-heading"><span class="title-icon">📄</span>Tesis, artículos y archivos relevantes</h2>
+  <h2 class="section-title section-heading"><span class="title-icon">📄</span><span data-heading="archivos">Tesis, artículos y archivos relevantes</span></h2>
   <p class="section-subtitle">
     Repositorio de documentos clave del proyecto y material de referencia científica.
   </p>
@@ -588,12 +623,63 @@
       </ul>
     </article>
   </div>
+
+  <div class="card hidden" id="admin-archivo-manager">
+    <h3>Gestión de tesis y artículos</h3>
+    <p class="muted small">Solo administrador/desarrollador. Usa el botón para abrir el formulario en ventana flotante.</p>
+    <button type="button" class="btn btn-primary" id="btn-abrir-modal-articulo">+ Agregar artículo / referencia / dataset</button>
+  </div>
+
+  <div class="card">
+    <h3>Aportes administrables</h3>
+    <ul id="lista-aportes-propios" class="doc-list"></ul>
+    <ul id="lista-aportes-referencias" class="reference-list"></ul>
+  </div>
+
+  <div class="modal hidden" id="modal-articulo">
+    <div class="modal-content modal-content-large">
+      <button class="modal-close" data-close-modal="modal-articulo">✕</button>
+      <h3>Agregar artículo / tesis / dataset</h3>
+      <form id="form-articulo" class="form">
+        <div class="grid-three">
+          <label>Tipo
+            <select id="art-tipo" required>
+              <option value="">Selecciona</option>
+              <option value="propio">Producción propia</option>
+              <option value="referencia">Referencia externa</option>
+            </select>
+          </label>
+          <label>Año
+            <input type="number" id="art-anio" min="1900" max="2100" required />
+          </label>
+          <label>Título
+            <input type="text" id="art-titulo" required />
+          </label>
+        </div>
+        <label>Autores (formato APA, separados por coma)
+          <input type="text" id="art-autores" required />
+        </label>
+        <label>Fuente / revista / medio
+          <input type="text" id="art-fuente" required />
+        </label>
+        <div class="grid-two">
+          <label>URL principal
+            <input type="url" id="art-url" required />
+          </label>
+          <label>URL secundaria (dataset/opcional)
+            <input type="url" id="art-url-secundaria" />
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </form>
+    </div>
+  </div>
 </section>
 
 
     <!-- DASHBOARD -->
     <section id="dashboard" class="view">
-      <h2 class="section-heading"><span class="title-icon">📊</span>Dashboard de estadísticas de voluntarios</h2>
+      <h2 class="section-heading"><span class="title-icon">📊</span><span data-heading="dashboard">Dashboard de estadísticas de voluntarios</span></h2>
       <p class="muted">
         Los datos se calculan a partir de la base de datos almacenada en Supabase.
       </p>
@@ -649,6 +735,35 @@
 
 
   <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+  <div id="dev-edit-dock" class="dev-edit-dock hidden">
+    <button type="button" class="btn btn-primary" id="btn-dev-toggle-edit">✏️ Editar interfaz</button>
+    <div id="dev-edit-controls" class="dev-edit-controls hidden">
+      <label>Color
+        <select id="dev-color-theme">
+          <option value="azul">Azul científico</option>
+          <option value="verde">Verde clínico</option>
+          <option value="morado">Morado sobrio</option>
+          <option value="vino">Vino institucional</option>
+          <option value="rojo">Rojo controlado</option>
+        </select>
+      </label>
+      <label>Diseño
+        <select id="dev-ui-variant">
+          <option value="moderno">Moderno</option>
+          <option value="cientifico">Científico</option>
+          <option value="informativo">Informativo</option>
+        </select>
+      </label>
+      <label>Tipografía
+        <select id="dev-font-family">
+          <option value="inter">Inter</option>
+          <option value="source">Source Sans 3</option>
+          <option value="ibm">IBM Plex Sans</option>
+        </select>
+      </label>
+      <button type="button" class="btn btn-danger" id="btn-dev-save-view">Guardar cambios</button>
+    </div>
+  </div>
 
   <!-- Supabase + app -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

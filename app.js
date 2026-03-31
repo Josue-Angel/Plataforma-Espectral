@@ -2,13 +2,13 @@
 const supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
 const viewPermissions = {
-  inicio: ["admin", "voluntario"],
-  equipo: ["admin", "voluntario"],
-  "base-datos": ["admin"],
-  formularios: ["admin", "voluntario"],
-  "modelo-ia": ["admin"],
-  archivos: ["admin", "voluntario"],
-  dashboard: ["admin"],
+  inicio: ["admin", "desarrollador", "voluntario"],
+  equipo: ["admin", "desarrollador", "voluntario"],
+  "base-datos": ["admin", "desarrollador"],
+  formularios: ["admin", "desarrollador", "voluntario"],
+  "modelo-ia": ["admin", "desarrollador"],
+  archivos: ["admin", "desarrollador", "voluntario"],
+  dashboard: ["admin", "desarrollador"],
 };
 
 let voluntariosCache = [];
@@ -18,6 +18,13 @@ let currentUserName = null;
 let currentUserId = null;
 let currentUserEmail = null;
 let currentProfile = null;
+const TRASH_RETENTION_MS = 5 * 24 * 60 * 60 * 1000;
+const VOLUNTEER_TRASH_STORAGE_KEY = "voluntarios-papelera";
+const DEV_SETTINGS_STORAGE_KEY = "dev-settings";
+const ARTICLES_STORAGE_KEY = "articulos-admin";
+const DEV_CONTENT_EDITS_STORAGE_KEY = "dev-content-edits";
+let currentViewId = "inicio";
+let isEditModeEnabled = false;
 
 const views = document.querySelectorAll(".view");
 const navLinks = document.querySelectorAll("#nav-links a");
@@ -28,16 +35,29 @@ const headerEl = document.querySelector(".header");
 const GUEST_LANDING_VIEW = "inicio";
 const AUTH_LANDING_VIEW = "equipo";
 const ADMIN_EMAILS = ["admin@ejemplo.com"];
+const DEVELOPER_EMAILS = ["dev@ejemplo.com"];
 const ADMIN_NOTIFICATION_EMAIL = "admin@ejemplo.com";
 const ADMIN_NOTIFICATIONS_STORAGE_KEY = "admin-notificaciones-local";
 const FROM_EMAIL = window.GMAIL_USER || "";
 
-function resolveRoleFromProfile(perfil, userEmail) {
+function canManageAsAdmin() {
+  return currentRole === "admin" || currentRole === "desarrollador";
+}
+
+function resolveRoleFromProfile(perfil, userEmail, authUser = null) {
   const roleFromProfile = perfil?.role ? String(perfil.role).trim().toLowerCase() : "";
-  if (roleFromProfile === "admin" || roleFromProfile === "voluntario") return roleFromProfile;
+  if (roleFromProfile === "admin" || roleFromProfile === "voluntario" || roleFromProfile === "desarrollador") return roleFromProfile;
+
+  const roleFromMetadata = String(
+    authUser?.app_metadata?.role || authUser?.user_metadata?.role || ""
+  ).trim().toLowerCase();
+  if (roleFromMetadata === "admin" || roleFromMetadata === "voluntario" || roleFromMetadata === "desarrollador") {
+    return roleFromMetadata;
+  }
 
   const normalizedEmail = String(userEmail || "").trim().toLowerCase();
   if (ADMIN_EMAILS.includes(normalizedEmail)) return "admin";
+  if (DEVELOPER_EMAILS.includes(normalizedEmail)) return "desarrollador";
 
   return "voluntario";
 }
@@ -308,7 +328,7 @@ async function cargarAlertasAdmin() {
   const lista = document.getElementById("lista-alertas-admin");
   if (!lista) return;
 
-  if (!isLoggedIn || currentRole !== "admin") {
+  if (!isLoggedIn || !canManageAsAdmin()) {
     lista.innerHTML = "";
     return;
   }
@@ -377,6 +397,10 @@ function showView(viewId) {
   views.forEach((v) => v.classList.remove("active"));
   const target = document.getElementById(viewId);
   if (target) target.classList.add("active");
+  currentViewId = viewId;
+  applyContentEditsForView(viewId);
+  if (isEditModeEnabled) toggleEditMode(true);
+  refreshDeveloperDock();
 
   navLinks.forEach((link) => {
     link.classList.toggle("active-link", link.dataset.view === viewId);
@@ -414,6 +438,117 @@ navLinks.forEach((link) => {
     showView(link.dataset.view);
   });
 });
+
+const THEME_MAP = {
+  azul: { primary: "#2c5f8f", accent: "#3a87ad", bg: "#f3f7fb", surface: "#ffffff" },
+  verde: { primary: "#2f6b63", accent: "#4f8f84", bg: "#f3f8f6", surface: "#ffffff" },
+  morado: { primary: "#5f5d8d", accent: "#7a78a8", bg: "#f5f5fa", surface: "#ffffff" },
+  vino: { primary: "#7a4a5a", accent: "#946374", bg: "#faf5f7", surface: "#ffffff" },
+  rojo: { primary: "#8b4d4d", accent: "#a96666", bg: "#faf6f6", surface: "#ffffff" },
+};
+
+const DEFAULT_DEV_SETTINGS = {
+  color: "azul",
+  uiVariant: "moderno",
+  fontFamily: "inter",
+};
+
+function readDevSettings() {
+  try {
+    return { ...DEFAULT_DEV_SETTINGS, ...(JSON.parse(localStorage.getItem(DEV_SETTINGS_STORAGE_KEY) || "{}")) };
+  } catch (error) {
+    return { ...DEFAULT_DEV_SETTINGS };
+  }
+}
+
+function applyDevSettings() {
+  const settings = readDevSettings();
+  const theme = THEME_MAP[settings.color] || THEME_MAP.azul;
+  document.documentElement.style.setProperty("--primary", theme.primary);
+  document.documentElement.style.setProperty("--primary-2", theme.accent);
+  document.documentElement.style.setProperty("--bg", theme.bg);
+  document.documentElement.style.setProperty("--surface", theme.surface);
+  document.body.dataset.uiVariant = settings.uiVariant || "moderno";
+  document.body.dataset.fontFamily = settings.fontFamily || "inter";
+}
+
+function getEditableElements(viewId) {
+  const view = document.getElementById(viewId);
+  if (!view) return [];
+  const blocked = "table, .reference-links, .doc-link, .doi-link, a[href], input, textarea, select, button, .stat-value";
+  return Array.from(view.querySelectorAll("h1,h2,h3,h4,p,span,small,label,strong,em,li"))
+    .filter((el) => !el.closest(blocked) && el.textContent.trim().length > 0);
+}
+
+function readDevContentEdits() {
+  try {
+    return JSON.parse(localStorage.getItem(DEV_CONTENT_EDITS_STORAGE_KEY) || "{}");
+  } catch (error) {
+    return {};
+  }
+}
+
+function applyContentEditsForView(viewId) {
+  const edits = readDevContentEdits();
+  const viewEdits = edits[viewId] || {};
+  getEditableElements(viewId).forEach((el, index) => {
+    if (Object.prototype.hasOwnProperty.call(viewEdits, index)) {
+      el.textContent = viewEdits[index];
+    }
+  });
+}
+
+function toggleEditMode(enabled) {
+  isEditModeEnabled = enabled;
+  document.body.classList.toggle("dev-editing", enabled);
+  getEditableElements(currentViewId).forEach((el) => {
+    el.contentEditable = enabled ? "true" : "false";
+    el.classList.toggle("dev-editable", enabled);
+  });
+}
+
+function saveCurrentViewEdits() {
+  const allEdits = readDevContentEdits();
+  allEdits[currentViewId] = {};
+  getEditableElements(currentViewId).forEach((el, index) => {
+    allEdits[currentViewId][index] = el.textContent;
+  });
+  localStorage.setItem(DEV_CONTENT_EDITS_STORAGE_KEY, JSON.stringify(allEdits));
+}
+
+function refreshDeveloperDock() {
+  const dock = document.getElementById("dev-edit-dock");
+  if (!dock) return;
+  const canShow = isLoggedIn && currentRole === "desarrollador" && currentViewId !== GUEST_LANDING_VIEW;
+  dock.classList.toggle("hidden", !canShow);
+}
+
+const DEFAULT_ARTICLES = [];
+
+function readManagedArticles() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(ARTICLES_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed : DEFAULT_ARTICLES;
+  } catch (error) {
+    return DEFAULT_ARTICLES;
+  }
+}
+
+function renderManagedArticles() {
+  const ownList = document.getElementById("lista-aportes-propios");
+  const refList = document.getElementById("lista-aportes-referencias");
+  if (!ownList || !refList) return;
+  const items = readManagedArticles();
+  const propios = items.filter((i) => i.tipo === "propio");
+  const refs = items.filter((i) => i.tipo === "referencia");
+
+  ownList.innerHTML = propios.length
+    ? propios.map((item) => `<li class="doc-item"><strong class="doc-label">${item.anio} · Artículo:</strong> <a href="${item.url}" target="_blank" class="doc-link">${item.titulo}</a><div class="muted small">${item.autores} · ${item.fuente}</div>${canManageAsAdmin() ? `<button class="btn btn-small btn-danger" data-action="eliminar-articulo" data-id="${item.id}">Eliminar</button>` : ""}</li>`).join("")
+    : "<li class='muted small'>Sin aportes propios registrados.</li>";
+  refList.innerHTML = refs.length
+    ? refs.map((item) => `<li class="reference-item"><p class="reference-apa"><strong>${item.autores}</strong> (${item.anio}). <em>${item.titulo}</em> <span>${item.fuente}</span><br><a href="${item.url}" target="_blank" class="doi-link">${item.url}</a></p>${item.url2 ? `<div class="reference-links"><a href="${item.url2}" target="_blank" class="ref-btn">Enlace adicional</a></div>` : ""}${canManageAsAdmin() ? `<button class="btn btn-small btn-danger" data-action="eliminar-articulo" data-id="${item.id}">Eliminar</button>` : ""}</li>`).join("")
+    : "<li class='muted small'>Sin referencias administrables registradas.</li>";
+}
 
 const tabButtons = document.querySelectorAll(".tab-auth");
 const loginPanel = document.getElementById("login-panel");
@@ -496,6 +631,98 @@ registerForm.addEventListener("submit", async (e) => {
   registerForm.reset();
   regSuccess.classList.remove("hidden");
 });
+
+const formArticulo = document.getElementById("form-articulo");
+if (formArticulo) {
+  formArticulo.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!canManageAsAdmin()) {
+      showToast("No tienes permisos para agregar artículos.");
+      return;
+    }
+    const payload = {
+      id: `art-${Date.now()}`,
+      tipo: document.getElementById("art-tipo").value,
+      anio: Number(document.getElementById("art-anio").value),
+      titulo: document.getElementById("art-titulo").value.trim(),
+      autores: document.getElementById("art-autores").value.trim(),
+      fuente: document.getElementById("art-fuente").value.trim(),
+      url: document.getElementById("art-url").value.trim(),
+      url2: document.getElementById("art-url-secundaria").value.trim(),
+    };
+    if (!payload.tipo || !payload.titulo || !payload.autores || !payload.fuente || !payload.url || !payload.anio) {
+      showToast("Completa todos los campos obligatorios del artículo.");
+      return;
+    }
+    const current = readManagedArticles();
+    localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify([payload, ...current]));
+    formArticulo.reset();
+    closeModal("modal-articulo");
+    renderManagedArticles();
+    showToast("Artículo/Tesis agregado correctamente.", "success");
+  });
+}
+
+const btnAbrirModalArticulo = document.getElementById("btn-abrir-modal-articulo");
+if (btnAbrirModalArticulo) {
+  btnAbrirModalArticulo.addEventListener("click", () => {
+    if (!canManageAsAdmin()) return;
+    openModal("modal-articulo");
+  });
+}
+
+function deleteManagedArticle(itemId) {
+  const next = readManagedArticles().filter((item) => item.id !== itemId);
+  localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify(next));
+  renderManagedArticles();
+}
+
+const listaAportesPropios = document.getElementById("lista-aportes-propios");
+const listaAportesReferencias = document.getElementById("lista-aportes-referencias");
+[listaAportesPropios, listaAportesReferencias].forEach((lista) => {
+  if (!lista) return;
+  lista.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action='eliminar-articulo']");
+    if (!btn) return;
+    if (!canManageAsAdmin()) {
+      showToast("No tienes permiso para eliminar aportes.");
+      return;
+    }
+    deleteManagedArticle(btn.dataset.id);
+    showToast("Aporte eliminado correctamente.", "success");
+  });
+});
+
+const btnToggleEdit = document.getElementById("btn-dev-toggle-edit");
+const btnSaveView = document.getElementById("btn-dev-save-view");
+const devEditControls = document.getElementById("dev-edit-controls");
+const devColorTheme = document.getElementById("dev-color-theme");
+const devUiVariant = document.getElementById("dev-ui-variant");
+const devFontFamily = document.getElementById("dev-font-family");
+
+if (btnToggleEdit) {
+  btnToggleEdit.addEventListener("click", () => {
+    if (currentRole !== "desarrollador") return;
+    const enabled = !isEditModeEnabled;
+    toggleEditMode(enabled);
+    devEditControls?.classList.toggle("hidden", !enabled);
+    btnToggleEdit.textContent = enabled ? "✅ Salir de edición" : "✏️ Editar interfaz";
+  });
+}
+
+if (btnSaveView) {
+  btnSaveView.addEventListener("click", () => {
+    if (currentRole !== "desarrollador") return;
+    const settings = readDevSettings();
+    settings.color = devColorTheme?.value || settings.color;
+    settings.uiVariant = devUiVariant?.value || settings.uiVariant;
+    settings.fontFamily = devFontFamily?.value || settings.fontFamily;
+    localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    saveCurrentViewEdits();
+    applyDevSettings();
+    showToast("Cambios visuales y de texto guardados.", "success");
+  });
+}
 
 logoutBtn.addEventListener("click", async () => {
   await supabaseClient.auth.signOut();
@@ -589,7 +816,7 @@ async function syncFormAccessForCurrentAccount() {
 
   currentProfile = { ...(currentProfile || {}), ...(perfil || {}) };
 
-  if (currentRole === "admin") {
+  if (canManageAsAdmin()) {
     clearSavedFormStepProgress();
     setActiveFormStepById(FORM_INITIAL_STEP);
     return;
@@ -643,23 +870,37 @@ async function initSession(user) {
     .eq("id", user.id)
     .maybeSingle();
 
-  currentRole = resolveRoleFromProfile(perfil, user.email);
+  currentRole = resolveRoleFromProfile(perfil, user.email, user);
   currentUserName = perfil?.nombre || user.email;
   currentUserId = user.id;
   currentUserEmail = user.email || null;
   currentProfile = perfil || null;
 
-  userLabel.textContent = `${currentUserName} (${currentRole === "admin" ? "Doctora/Administrador" : "Voluntario"})`;
+  const roleLabel = currentRole === "admin"
+    ? "Doctora/Administrador"
+    : currentRole === "desarrollador"
+      ? "Desarrollador"
+      : "Voluntario";
+  userLabel.textContent = `${currentUserName} (${roleLabel})`;
   logoutBtn.classList.remove("hidden");
   updateNavForRole(currentRole);
+  const adminArchivoManager = document.getElementById("admin-archivo-manager");
+  if (adminArchivoManager) adminArchivoManager.classList.toggle("hidden", !canManageAsAdmin());
+  renderManagedArticles();
 
   // Redirección automática tras login a la sección Equipo y proyecto.
   showView(AUTH_LANDING_VIEW);
 
-  if (currentRole === "admin") {
+  if (currentRole === "admin" || currentRole === "desarrollador") {
     await cargarVoluntarios();
     await cargarAlertasAdmin();
   }
+
+  const settings = readDevSettings();
+  if (devColorTheme) devColorTheme.value = settings.color;
+  if (devUiVariant) devUiVariant.value = settings.uiVariant;
+  if (devFontFamily) devFontFamily.value = settings.fontFamily;
+  refreshDeveloperDock();
 
   await syncFormAccessForCurrentAccount();
 }
@@ -670,9 +911,12 @@ async function restoreSession() {
   if (data.session?.user) {
     await initSession(data.session.user);
   } else {
-    updateNavForRole(null);
-    setAuthTab("login-panel");
-    showView(GUEST_LANDING_VIEW);
+  updateNavForRole(null);
+  renderManagedArticles();
+  setAuthTab("login-panel");
+  showView(GUEST_LANDING_VIEW);
+  toggleEditMode(false);
+  refreshDeveloperDock();
   }
 }
 
@@ -696,6 +940,10 @@ const btnCancelarEdicion = document.getElementById("btn-cancelar-edicion");
 const contadorVoluntarios = document.getElementById("contador-voluntarios");
 const inputBusquedaVoluntario = document.getElementById("busqueda-voluntario");
 const btnNuevoVoluntario = document.getElementById("btn-nuevo-voluntario");
+const btnPapeleraVoluntarios = document.getElementById("btn-papelera-voluntarios");
+const tablaPapeleraVoluntarios = document.getElementById("tabla-papelera-voluntarios");
+const btnConfirmarEliminarVol = document.getElementById("btn-confirmar-eliminar-vol");
+const textoEliminarVoluntario = document.getElementById("texto-eliminar-voluntario");
 
 const modalDetalles = document.getElementById("modal-detalles");
 const modalArchivos = document.getElementById("modal-archivos");
@@ -705,6 +953,7 @@ const detalleArchivos = document.getElementById("detalle-archivos");
 
 let idEnEdicion = null;
 let voluntariosFiltrados = [];
+let idPendienteEliminar = null;
 
 function normalizeFototipoForSelect(value) {
   if (!value) return "";
@@ -713,7 +962,47 @@ function normalizeFototipoForSelect(value) {
   return mapping[clean] || "";
 }
 
+function readTrashVolunteers() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(VOLUNTEER_TRASH_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveTrashVolunteers(items) {
+  localStorage.setItem(VOLUNTEER_TRASH_STORAGE_KEY, JSON.stringify(items));
+}
+
+async function hardDeleteVolunteer(voluntarioId) {
+  await supabaseClient.from("espectros").delete().eq("voluntario_id", voluntarioId);
+  await supabaseClient.from("imagenes").delete().eq("voluntario_id", voluntarioId);
+  const { error } = await supabaseClient.from("voluntarios").delete().eq("id", voluntarioId);
+  return !error;
+}
+
+async function purgeExpiredTrash() {
+  const now = Date.now();
+  const items = readTrashVolunteers();
+  const keep = [];
+  for (const item of items) {
+    if (now - Number(item.deletedAt || 0) >= TRASH_RETENTION_MS) {
+      await hardDeleteVolunteer(item.id);
+    } else {
+      keep.push(item);
+    }
+  }
+  saveTrashVolunteers(keep);
+}
+
+function getActiveTrashIds() {
+  const now = Date.now();
+  return new Set(readTrashVolunteers().filter((item) => now - Number(item.deletedAt || 0) < TRASH_RETENTION_MS).map((item) => item.id));
+}
+
 async function cargarVoluntarios() {
+  await purgeExpiredTrash();
   const { data, error } = await supabaseClient
     .from("voluntarios")
     .select(`
@@ -735,7 +1024,8 @@ async function cargarVoluntarios() {
     return;
   }
 
-  voluntariosCache = data || [];
+  const trashIds = getActiveTrashIds();
+  voluntariosCache = (data || []).filter((item) => !trashIds.has(item.id));
   aplicarFiltroVoluntarios();
   actualizarDashboard();
 }
@@ -773,11 +1063,11 @@ function closeModal(id) {
 function renderVoluntarios() {
   tablaVoluntarios.innerHTML = "";
 
-  voluntariosFiltrados.forEach((v) => {
+  voluntariosFiltrados.forEach((v, index) => {
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
-      <td>${v.id}</td>
+      <td><strong>${index + 1}</strong><br><span class="muted small">ID real: ${v.id}</span></td>
       <td>${v.identificador || ""}</td>
       <td>${v.correo || ""}</td>
       <td>
@@ -785,6 +1075,7 @@ function renderVoluntarios() {
           <button class="btn btn-small btn-action-detail" data-action="ver-detalles" data-id="${v.id}">ℹ️ Ver detalles</button>
           <button class="btn btn-small btn-action-files" data-action="ver-archivos" data-id="${v.id}">🖼️ Ver imágenes</button>
           <button class="btn btn-small btn-outline" data-action="editar" data-id="${v.id}">✏️ Editar</button>
+          <button class="btn btn-small btn-danger" data-action="eliminar" data-id="${v.id}">🗑️ Eliminar</button>
         </div>
       </td>
     `;
@@ -877,12 +1168,24 @@ tablaVoluntarios.addEventListener("click", (e) => {
   if (action === "ver-archivos") mostrarArchivos(vol);
 
   if (action === "editar") {
-    if (!isLoggedIn || currentRole !== "admin") {
+    if (!isLoggedIn || !canManageAsAdmin()) {
       showToast("Solo la Doctora/Administrador puede editar voluntarios.");
       return;
     }
     cargarEnFormulario(vol);
     openModal("modal-edicion");
+  }
+
+  if (action === "eliminar") {
+    if (!isLoggedIn || !canManageAsAdmin()) {
+      showToast("No tienes permiso para eliminar voluntarios.");
+      return;
+    }
+    idPendienteEliminar = id;
+    if (textoEliminarVoluntario) {
+      textoEliminarVoluntario.textContent = `¿Deseas enviar a papelera al voluntario ${vol?.identificador || id}? Podrá recuperarse durante 5 días.`;
+    }
+    openModal("modal-confirmar-eliminacion");
   }
 });
 
@@ -890,6 +1193,64 @@ if (btnNuevoVoluntario) {
   btnNuevoVoluntario.addEventListener("click", () => {
     resetFormulario();
     openModal("modal-edicion");
+  });
+}
+
+if (btnConfirmarEliminarVol) {
+  btnConfirmarEliminarVol.addEventListener("click", async () => {
+    if (!idPendienteEliminar) return;
+    const currentTrash = readTrashVolunteers();
+    if (!currentTrash.some((item) => item.id === idPendienteEliminar)) {
+      currentTrash.push({ id: idPendienteEliminar, deletedAt: Date.now() });
+      saveTrashVolunteers(currentTrash);
+    }
+    closeModal("modal-confirmar-eliminacion");
+    idPendienteEliminar = null;
+    await cargarVoluntarios();
+    showToast("Voluntario enviado a papelera. Se eliminará definitivamente en 5 días.", "success");
+  });
+}
+
+function renderTrashTable() {
+  if (!tablaPapeleraVoluntarios) return;
+  const now = Date.now();
+  const trash = readTrashVolunteers().filter((item) => now - Number(item.deletedAt || 0) < TRASH_RETENTION_MS);
+  if (!trash.length) {
+    tablaPapeleraVoluntarios.innerHTML = "<tr><td colspan='5' class='muted small'>No hay elementos en papelera.</td></tr>";
+    return;
+  }
+  tablaPapeleraVoluntarios.innerHTML = trash.map((item) => {
+    const original = voluntariosCache.find((v) => v.id === item.id);
+    const deletedAt = new Date(item.deletedAt).toLocaleString("es-MX");
+    const expiresAt = new Date(item.deletedAt + TRASH_RETENTION_MS).toLocaleString("es-MX");
+    return `<tr>
+      <td>${item.id}</td>
+      <td>${original?.identificador || "Oculto temporalmente"}</td>
+      <td>${deletedAt}</td>
+      <td>${expiresAt}</td>
+      <td><button class="btn btn-small btn-primary" data-action="restaurar-vol" data-id="${item.id}">Restaurar</button></td>
+    </tr>`;
+  }).join("");
+}
+
+if (btnPapeleraVoluntarios) {
+  btnPapeleraVoluntarios.addEventListener("click", async () => {
+    await purgeExpiredTrash();
+    renderTrashTable();
+    openModal("modal-papelera");
+  });
+}
+
+if (tablaPapeleraVoluntarios) {
+  tablaPapeleraVoluntarios.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action='restaurar-vol']");
+    if (!btn) return;
+    const id = Number(btn.dataset.id);
+    const next = readTrashVolunteers().filter((item) => item.id !== id);
+    saveTrashVolunteers(next);
+    renderTrashTable();
+    await cargarVoluntarios();
+    showToast("Voluntario restaurado correctamente.", "success");
   });
 }
 
@@ -940,7 +1301,7 @@ btnCancelarEdicion.addEventListener("click", () => {
 formVoluntario.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  if (!isLoggedIn || currentRole !== "admin") {
+  if (!isLoggedIn || !canManageAsAdmin()) {
     showToast("Solo la Doctora/Administrador puede registrar o editar voluntarios.");
     return;
   }
@@ -1211,7 +1572,7 @@ async function guardarVoluntario() {
     return;
   }
 
-  if (currentRole !== "admin") {
+  if (!canManageAsAdmin()) {
     const completed = await hasVolunteerCompletedForm();
     if (completed) {
       showToast("Ya has realizado este formulario con tu cuenta.", "info");
@@ -1242,7 +1603,7 @@ async function guardarVoluntario() {
 
   const total = questionGroups.reduce((acc, q) => acc + getSelectedValue(q), 0);
   const fototipo = calcularFototipo(total);
-  const correoFormulario = currentRole === "admin"
+  const correoFormulario = canManageAsAdmin()
     ? correo
     : String(currentUserEmail || correo).trim().toLowerCase();
 
@@ -1285,7 +1646,7 @@ async function guardarVoluntario() {
 
   await notifyVolunteerFototipo({ email: correoFormulario, nombre: nombreConsentimiento, fototipo });
 
-  if (currentRole === "admin") {
+  if (canManageAsAdmin()) {
     await cargarVoluntarios();
   } else {
     await notifyAdminVolunteerCompletedForm({ email: correoFormulario, fototipo });
@@ -1396,5 +1757,7 @@ if (btnRefrescarAlertas) {
   });
 }
 
+applyDevSettings();
+renderManagedArticles();
 restoreSession();
 })();
