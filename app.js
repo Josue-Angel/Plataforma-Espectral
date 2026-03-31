@@ -560,22 +560,30 @@ async function requestGlobalChangeConfirmation(message) {
 }
 
 async function loadGlobalDeveloperConfig() {
-  const settingsResp = await supabaseClient.from(GLOBAL_CONFIG_TABLE).select("valor").eq("clave", GLOBAL_SETTINGS_KEY).maybeSingle();
-  if (!settingsResp.error && settingsResp.data?.valor) {
-    localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(settingsResp.data.valor));
+  try {
+    const settingsResp = await supabaseClient.from(GLOBAL_CONFIG_TABLE).select("valor").eq("clave", GLOBAL_SETTINGS_KEY).maybeSingle();
+    if (!settingsResp.error && settingsResp.data?.valor && typeof settingsResp.data.valor === "object") {
+      localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(settingsResp.data.valor));
+    }
+
+    const contentResp = await supabaseClient.from(GLOBAL_CONFIG_TABLE).select("valor").eq("clave", GLOBAL_CONTENT_KEY).maybeSingle();
+    if (!contentResp.error && contentResp.data?.valor && typeof contentResp.data.valor === "object") {
+      localStorage.setItem(DEV_CONTENT_EDITS_STORAGE_KEY, JSON.stringify(contentResp.data.valor));
+    }
+  } catch (error) {
+    console.warn("No se pudo cargar configuración global, se mantiene configuración local.", error);
   }
 
-  const contentResp = await supabaseClient.from(GLOBAL_CONFIG_TABLE).select("valor").eq("clave", GLOBAL_CONTENT_KEY).maybeSingle();
-  if (!contentResp.error && contentResp.data?.valor) {
-    localStorage.setItem(DEV_CONTENT_EDITS_STORAGE_KEY, JSON.stringify(contentResp.data.valor));
+  try {
+    applyDevSettings();
+    const currentSettings = readDevSettings();
+    if (devColorTheme) devColorTheme.value = currentSettings.color;
+    if (devUiVariant) devUiVariant.value = currentSettings.uiVariant;
+    if (devFontFamily) devFontFamily.value = currentSettings.fontFamily;
+    views.forEach((view) => applyContentEditsForView(view.id));
+  } catch (error) {
+    console.warn("No se pudo aplicar configuración global en interfaz.", error);
   }
-
-  applyDevSettings();
-  const currentSettings = readDevSettings();
-  if (devColorTheme) devColorTheme.value = currentSettings.color;
-  if (devUiVariant) devUiVariant.value = currentSettings.uiVariant;
-  if (devFontFamily) devFontFamily.value = currentSettings.fontFamily;
-  views.forEach((view) => applyContentEditsForView(view.id));
 }
 
 async function saveGlobalDeveloperConfig(key, value) {
@@ -742,7 +750,16 @@ loginForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  if (data.user) await initSession(data.user);
+  if (data.user) {
+    try {
+      await initSession(data.user);
+    } catch (sessionError) {
+      console.error("Error al inicializar sesión:", sessionError);
+      showToast("Sesión iniciada, pero ocurrió un error al cargar la interfaz.", "error");
+      updateNavForRole(null);
+      showView(GUEST_LANDING_VIEW);
+    }
+  }
 });
 
 const registerForm = document.getElementById("register-form");
@@ -1183,7 +1200,16 @@ async function initSession(user) {
 async function restoreSession() {
   const { data } = await supabaseClient.auth.getSession();
   if (data.session?.user) {
-    await initSession(data.session.user);
+    try {
+      await initSession(data.session.user);
+    } catch (sessionError) {
+      console.error("Error al restaurar sesión:", sessionError);
+      updateNavForRole(null);
+      setAuthTab("login-panel");
+      showView(GUEST_LANDING_VIEW);
+      toggleEditMode(false);
+      refreshDeveloperDock();
+    }
   } else {
     await loadGlobalDeveloperConfig();
     updateNavForRole(null);
