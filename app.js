@@ -957,8 +957,8 @@ if (btnSaveView) {
     settings.color = devColorTheme?.value || settings.color;
     settings.uiVariant = devUiVariant?.value || settings.uiVariant;
     settings.fontFamily = devFontFamily?.value || settings.fontFamily;
-    const savedGlobal = await saveGlobalDeveloperConfig(GLOBAL_SETTINGS_KEY, settings);
-    if (!savedGlobal) {
+    const savedThemeGlobal = await saveGlobalDeveloperConfig(GLOBAL_SETTINGS_KEY, settings);
+    if (!savedThemeGlobal) {
       showToast("No se pudo aplicar el tema globalmente.", "error");
       return;
     }
@@ -1005,8 +1005,8 @@ if (btnDevSaveViewText) {
     }
     saveCurrentViewEdits();
     const currentEdits = readDevContentEdits();
-    const savedGlobal = await saveGlobalDeveloperConfig(GLOBAL_CONTENT_KEY, currentEdits);
-    if (!savedGlobal) {
+    const savedTextGlobal = await saveGlobalDeveloperConfig(GLOBAL_CONTENT_KEY, currentEdits);
+    if (!savedTextGlobal) {
       showToast("No se pudo guardar el texto globalmente.", "error");
       return;
     }
