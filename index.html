@@ -105,7 +105,7 @@
 
     <!-- EQUIPO Y PROYECTO -->
 <section id="equipo" class="view equipo-section">
-  <h2 class="section-heading"><span class="title-icon">👥</span>Equipo de trabajo y descripción del proyecto</h2>
+  <h2 class="section-heading"><span class="title-icon">👥</span><span data-heading="equipo">Equipo de trabajo y descripción del proyecto</span></h2>
 
   <!-- Bloque ancho completo -->
   <article class="card clean-card full-width-card">
@@ -611,7 +611,7 @@
 
     <!-- ARCHIVOS -->
 <section id="archivos" class="view scientific-section">
-  <h2 class="section-title section-heading"><span class="title-icon">📄</span>Tesis, artículos y archivos relevantes</h2>
+  <h2 class="section-title section-heading"><span class="title-icon">📄</span><span data-heading="archivos">Tesis, artículos y archivos relevantes</span></h2>
   <p class="section-subtitle">
     Repositorio de documentos clave del proyecto y material de referencia científica.
   </p>
@@ -684,39 +684,8 @@
 
   <div class="card hidden" id="admin-archivo-manager">
     <h3>Gestión de tesis y artículos</h3>
-    <p class="muted small">Solo administrador/desarrollador. Mantén la estructura requerida para evitar inconsistencias.</p>
-    <form id="form-articulo" class="form">
-      <div class="grid-three">
-        <label>Tipo
-          <select id="art-tipo" required>
-            <option value="">Selecciona</option>
-            <option value="propio">Producción propia</option>
-            <option value="referencia">Referencia externa</option>
-          </select>
-        </label>
-        <label>Año
-          <input type="number" id="art-anio" min="1900" max="2100" required />
-        </label>
-        <label>Título
-          <input type="text" id="art-titulo" required />
-        </label>
-      </div>
-      <label>Autores (formato APA, separados por coma)
-        <input type="text" id="art-autores" required />
-      </label>
-      <label>Fuente / revista / medio
-        <input type="text" id="art-fuente" required />
-      </label>
-      <div class="grid-two">
-        <label>URL principal
-          <input type="url" id="art-url" required />
-        </label>
-        <label>URL secundaria (dataset/opcional)
-          <input type="url" id="art-url-secundaria" />
-        </label>
-      </div>
-      <button type="submit" class="btn btn-primary">Agregar artículo/tesis</button>
-    </form>
+    <p class="muted small">Solo administrador/desarrollador. Usa el botón para abrir el formulario en ventana flotante.</p>
+    <button type="button" class="btn btn-primary" id="btn-abrir-modal-articulo">+ Agregar artículo / referencia / dataset</button>
   </div>
 
   <div class="card">
@@ -724,12 +693,51 @@
     <ul id="lista-aportes-propios" class="doc-list"></ul>
     <ul id="lista-aportes-referencias" class="reference-list"></ul>
   </div>
+
+  <div class="modal hidden" id="modal-articulo">
+    <div class="modal-content modal-content-large">
+      <button class="modal-close" data-close-modal="modal-articulo">✕</button>
+      <h3>Agregar artículo / tesis / dataset</h3>
+      <form id="form-articulo" class="form">
+        <div class="grid-three">
+          <label>Tipo
+            <select id="art-tipo" required>
+              <option value="">Selecciona</option>
+              <option value="propio">Producción propia</option>
+              <option value="referencia">Referencia externa</option>
+            </select>
+          </label>
+          <label>Año
+            <input type="number" id="art-anio" min="1900" max="2100" required />
+          </label>
+          <label>Título
+            <input type="text" id="art-titulo" required />
+          </label>
+        </div>
+        <label>Autores (formato APA, separados por coma)
+          <input type="text" id="art-autores" required />
+        </label>
+        <label>Fuente / revista / medio
+          <input type="text" id="art-fuente" required />
+        </label>
+        <div class="grid-two">
+          <label>URL principal
+            <input type="url" id="art-url" required />
+          </label>
+          <label>URL secundaria (dataset/opcional)
+            <input type="url" id="art-url-secundaria" />
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </form>
+    </div>
+  </div>
 </section>
 
 
     <!-- DASHBOARD -->
     <section id="dashboard" class="view">
-      <h2 class="section-heading"><span class="title-icon">📊</span>Dashboard de estadísticas de voluntarios</h2>
+      <h2 class="section-heading"><span class="title-icon">📊</span><span data-heading="dashboard">Dashboard de estadísticas de voluntarios</span></h2>
       <p class="muted">
         Los datos se calculan a partir de la base de datos almacenada en Supabase.
       </p>

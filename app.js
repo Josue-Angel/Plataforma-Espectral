@@ -33,6 +33,7 @@ const headerEl = document.querySelector(".header");
 const GUEST_LANDING_VIEW = "inicio";
 const AUTH_LANDING_VIEW = "equipo";
 const ADMIN_EMAILS = ["admin@ejemplo.com"];
+const DEVELOPER_EMAILS = ["dev@ejemplo.com"];
 const ADMIN_NOTIFICATION_EMAIL = "admin@ejemplo.com";
 const ADMIN_NOTIFICATIONS_STORAGE_KEY = "admin-notificaciones-local";
 const FROM_EMAIL = window.GMAIL_USER || "";
@@ -41,12 +42,20 @@ function canManageAsAdmin() {
   return currentRole === "admin" || currentRole === "desarrollador";
 }
 
-function resolveRoleFromProfile(perfil, userEmail) {
+function resolveRoleFromProfile(perfil, userEmail, authUser = null) {
   const roleFromProfile = perfil?.role ? String(perfil.role).trim().toLowerCase() : "";
   if (roleFromProfile === "admin" || roleFromProfile === "voluntario" || roleFromProfile === "desarrollador") return roleFromProfile;
 
+  const roleFromMetadata = String(
+    authUser?.app_metadata?.role || authUser?.user_metadata?.role || ""
+  ).trim().toLowerCase();
+  if (roleFromMetadata === "admin" || roleFromMetadata === "voluntario" || roleFromMetadata === "desarrollador") {
+    return roleFromMetadata;
+  }
+
   const normalizedEmail = String(userEmail || "").trim().toLowerCase();
   if (ADMIN_EMAILS.includes(normalizedEmail)) return "admin";
+  if (DEVELOPER_EMAILS.includes(normalizedEmail)) return "desarrollador";
 
   return "voluntario";
 }
@@ -458,12 +467,12 @@ function applyDevSettings() {
   document.body.dataset.articlesVariant = settings.articlesVariant;
   document.body.dataset.dashboardVariant = settings.dashboardVariant;
 
-  const equipoHeading = document.querySelector("#equipo .section-heading");
-  if (equipoHeading) equipoHeading.lastElementChild.textContent = settings.equipoTitle;
+  const equipoHeadingText = document.querySelector("[data-heading='equipo']");
+  if (equipoHeadingText) equipoHeadingText.textContent = settings.equipoTitle;
   const equipoText = document.querySelector("#equipo .full-width-card p");
   if (equipoText) equipoText.textContent = settings.equipoText;
-  const dashboardHeading = document.querySelector("#dashboard .section-heading");
-  if (dashboardHeading) dashboardHeading.lastElementChild.textContent = settings.dashboardTitle;
+  const dashboardHeadingText = document.querySelector("[data-heading='dashboard']");
+  if (dashboardHeadingText) dashboardHeadingText.textContent = settings.dashboardTitle;
   const q1 = document.querySelector("#step2 p");
   if (q1) q1.textContent = settings.question1;
 }
@@ -488,10 +497,10 @@ function renderManagedArticles() {
   const refs = items.filter((i) => i.tipo === "referencia");
 
   ownList.innerHTML = propios.length
-    ? propios.map((item) => `<li class="doc-item"><strong class="doc-label">${item.anio} · Artículo:</strong> <a href="${item.url}" target="_blank" class="doc-link">${item.titulo}</a><div class="muted small">${item.autores} · ${item.fuente}</div></li>`).join("")
+    ? propios.map((item) => `<li class="doc-item"><strong class="doc-label">${item.anio} · Artículo:</strong> <a href="${item.url}" target="_blank" class="doc-link">${item.titulo}</a><div class="muted small">${item.autores} · ${item.fuente}</div>${canManageAsAdmin() ? `<button class="btn btn-small btn-danger" data-action="eliminar-articulo" data-id="${item.id}">Eliminar</button>` : ""}</li>`).join("")
     : "<li class='muted small'>Sin aportes propios registrados.</li>";
   refList.innerHTML = refs.length
-    ? refs.map((item) => `<li class="reference-item"><p class="reference-apa"><strong>${item.autores}</strong> (${item.anio}). <em>${item.titulo}</em> <span>${item.fuente}</span><br><a href="${item.url}" target="_blank" class="doi-link">${item.url}</a></p>${item.url2 ? `<div class="reference-links"><a href="${item.url2}" target="_blank" class="ref-btn">Enlace adicional</a></div>` : ""}</li>`).join("")
+    ? refs.map((item) => `<li class="reference-item"><p class="reference-apa"><strong>${item.autores}</strong> (${item.anio}). <em>${item.titulo}</em> <span>${item.fuente}</span><br><a href="${item.url}" target="_blank" class="doi-link">${item.url}</a></p>${item.url2 ? `<div class="reference-links"><a href="${item.url2}" target="_blank" class="ref-btn">Enlace adicional</a></div>` : ""}${canManageAsAdmin() ? `<button class="btn btn-small btn-danger" data-action="eliminar-articulo" data-id="${item.id}">Eliminar</button>` : ""}</li>`).join("")
     : "<li class='muted small'>Sin referencias administrables registradas.</li>";
 }
 
@@ -602,10 +611,41 @@ if (formArticulo) {
     const current = readManagedArticles();
     localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify([payload, ...current]));
     formArticulo.reset();
+    closeModal("modal-articulo");
     renderManagedArticles();
     showToast("Artículo/Tesis agregado correctamente.", "success");
   });
 }
+
+const btnAbrirModalArticulo = document.getElementById("btn-abrir-modal-articulo");
+if (btnAbrirModalArticulo) {
+  btnAbrirModalArticulo.addEventListener("click", () => {
+    if (!canManageAsAdmin()) return;
+    openModal("modal-articulo");
+  });
+}
+
+function deleteManagedArticle(itemId) {
+  const next = readManagedArticles().filter((item) => item.id !== itemId);
+  localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify(next));
+  renderManagedArticles();
+}
+
+const listaAportesPropios = document.getElementById("lista-aportes-propios");
+const listaAportesReferencias = document.getElementById("lista-aportes-referencias");
+[listaAportesPropios, listaAportesReferencias].forEach((lista) => {
+  if (!lista) return;
+  lista.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action='eliminar-articulo']");
+    if (!btn) return;
+    if (!canManageAsAdmin()) {
+      showToast("No tienes permiso para eliminar aportes.");
+      return;
+    }
+    deleteManagedArticle(btn.dataset.id);
+    showToast("Aporte eliminado correctamente.", "success");
+  });
+});
 
 const btnGuardarTemaDev = document.getElementById("btn-guardar-tema-dev");
 if (btnGuardarTemaDev) {
@@ -797,7 +837,7 @@ async function initSession(user) {
     .eq("id", user.id)
     .maybeSingle();
 
-  currentRole = resolveRoleFromProfile(perfil, user.email);
+  currentRole = resolveRoleFromProfile(perfil, user.email, user);
   currentUserName = perfil?.nombre || user.email;
   currentUserId = user.id;
   currentUserEmail = user.email || null;
@@ -813,6 +853,7 @@ async function initSession(user) {
   updateNavForRole(currentRole);
   const adminArchivoManager = document.getElementById("admin-archivo-manager");
   if (adminArchivoManager) adminArchivoManager.classList.toggle("hidden", !canManageAsAdmin());
+  renderManagedArticles();
 
   // Redirección automática tras login a la sección Equipo y proyecto.
   showView(AUTH_LANDING_VIEW);
@@ -849,7 +890,8 @@ async function restoreSession() {
   if (data.session?.user) {
     await initSession(data.session.user);
   } else {
-    updateNavForRole(null);
+  updateNavForRole(null);
+  renderManagedArticles();
     setAuthTab("login-panel");
     showView(GUEST_LANDING_VIEW);
   }
