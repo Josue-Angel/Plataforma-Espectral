@@ -665,12 +665,16 @@
         </label>
         <div class="grid-two">
           <label>URL principal
-            <input type="url" id="art-url" required />
+            <input type="url" id="art-url" placeholder="https://..." />
           </label>
           <label>URL secundaria (dataset/opcional)
             <input type="url" id="art-url-secundaria" />
           </label>
         </div>
+        <label>PDF del artículo (opcional, útil cuando no hay URL)
+          <input type="file" id="art-pdf" accept=".pdf,application/pdf" />
+        </label>
+        <p class="muted small">Debes indicar al menos una URL o subir un PDF.</p>
         <button type="submit" class="btn btn-primary">Guardar</button>
       </form>
     </div>
@@ -727,6 +731,47 @@
           <div id="chart-edad" class="bar-chart"></div>
         </div>
       </div>
+
+      <div class="card hidden" id="developer-user-management">
+        <div class="admin-alert-header">
+          <h3>Gestión de usuarios</h3>
+          <button type="button" class="btn btn-outline btn-small" id="btn-refrescar-usuarios">Actualizar</button>
+        </div>
+        <p class="muted small">Solo desarrollador: cambio de rol, suspensión temporal y eliminación completa.</p>
+        <div class="grid-three">
+          <label>Buscar usuario
+            <input type="search" id="usuario-busqueda" placeholder="Nombre o correo..." />
+          </label>
+          <label>Filtrar rol
+            <select id="usuario-filtro-rol">
+              <option value="">Todos los roles</option>
+              <option value="admin">Administrador</option>
+              <option value="desarrollador">Desarrollador</option>
+              <option value="voluntario">Voluntario</option>
+            </select>
+          </label>
+          <label>Filtrar estado
+            <select id="usuario-filtro-estado">
+              <option value="">Todos los estados</option>
+              <option value="activo">Activo</option>
+              <option value="suspendido">Suspendido</option>
+            </select>
+          </label>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-usuarios-admin"></tbody>
+          </table>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -737,12 +782,13 @@
 
   <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
   <div id="dev-edit-dock" class="dev-edit-dock hidden">
-    <button type="button" class="btn btn-primary" id="btn-dev-toggle-edit">✏️ Editar interfaz</button>
+    <button type="button" class="btn btn-primary btn-friendly-edit" id="btn-dev-toggle-edit">✏️ Editor de contenido</button>
     <button type="button" class="btn btn-danger" id="btn-dev-save-view">Guardar texto de esta vista</button>
   </div>
   <div id="dev-palette-dock" class="dev-palette-dock hidden">
-    <button type="button" class="btn btn-primary btn-palette-emoji" id="btn-dev-toggle-palette">🎨</button>
+    <button type="button" class="btn btn-primary btn-palette-emoji" id="btn-dev-toggle-palette">🎨 Configuración visual</button>
     <div id="dev-edit-controls" class="dev-edit-controls hidden">
+      <h4>Configuración visual</h4>
       <label>Color
         <select id="dev-color-theme">
           <option value="azul">Azul científico</option>
@@ -752,7 +798,7 @@
           <option value="rojo">Rojo controlado</option>
         </select>
       </label>
-      <label>Diseño
+      <label>Estilo
         <select id="dev-ui-variant">
           <option value="moderno">Moderno</option>
           <option value="cientifico">Científico</option>
@@ -766,8 +812,15 @@
           <option value="ibm">IBM Plex Sans</option>
         </select>
       </label>
-      <button type="button" class="btn btn-primary" id="btn-dev-save-theme">Guardar tema</button>
-      <button type="button" class="btn btn-outline" id="btn-dev-restore-defaults">Restaurar</button>
+      <div class="theme-preview-mini" id="theme-preview-mini">
+        <p class="preview-brand">Proyecto Espectral</p>
+        <p class="preview-muted">Laboratorio de Óptica Biomédica UPT</p>
+      </div>
+      <div class="actions-inline">
+        <button type="button" class="btn btn-primary" id="btn-dev-save-theme">Guardar cambios</button>
+        <button type="button" class="btn btn-outline" id="btn-dev-cancel-theme">Cancelar</button>
+      </div>
+      <button type="button" class="btn btn-outline" id="btn-dev-restore-defaults">Restablecer por defecto</button>
     </div>
   </div>
 
