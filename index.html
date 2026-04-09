@@ -789,6 +789,34 @@
     <button type="button" class="btn btn-primary btn-palette-emoji" id="btn-dev-toggle-palette">🎨 Configuración visual</button>
     <div id="dev-edit-controls" class="dev-edit-controls hidden">
       <h4>Configuración visual</h4>
+      <div class="style-comparator">
+        <p class="muted small">Comparador de estilos</p>
+        <div class="style-toggle-row">
+          <button type="button" class="style-chip active" data-ui-variant-card="moderno">Moderno</button>
+          <button type="button" class="style-chip" data-ui-variant-card="cientifico">Científico</button>
+          <button type="button" class="style-chip" data-ui-variant-card="informativo">Informativo</button>
+        </div>
+        <div class="style-preview-grid">
+          <article class="style-preview-card style-preview-moderno">
+            <h5>Dashboard</h5>
+            <p>Visualiza estadísticas y métricas importantes</p>
+            <div class="mini-stat">Voluntarios <strong>13</strong></div>
+            <div class="mini-stat">Edad promedio <strong>24.9</strong></div>
+          </article>
+          <article class="style-preview-card style-preview-cientifico">
+            <h5>Dashboard</h5>
+            <p>Visualiza estadísticas y métricas importantes</p>
+            <div class="mini-stat">Voluntarios <strong>13</strong></div>
+            <div class="mini-stat">Edad promedio <strong>24.9</strong></div>
+          </article>
+          <article class="style-preview-card style-preview-informativo">
+            <h5>Dashboard</h5>
+            <p>Visualiza estadísticas y métricas importantes</p>
+            <div class="mini-stat">Voluntarios <strong>13</strong></div>
+            <div class="mini-stat">Edad promedio <strong>24.9</strong></div>
+          </article>
+        </div>
+      </div>
       <label>Color
         <select id="dev-color-theme">
           <option value="azul">Azul científico</option>
@@ -808,10 +836,29 @@
       <label>Tipografía
         <select id="dev-font-family">
           <option value="inter">Inter</option>
-          <option value="source">Source Sans 3</option>
-          <option value="ibm">IBM Plex Sans</option>
+          <option value="source">Noto Sans</option>
+          <option value="ibm">IBM Plex Mono</option>
+          <option value="serif">Source Serif 4</option>
         </select>
       </label>
+      <div class="font-options" id="dev-font-options">
+        <button type="button" class="font-option active" data-font-card="inter">
+          <strong>Inter</strong>
+          <span>Moderna y legible</span>
+        </button>
+        <button type="button" class="font-option" data-font-card="source">
+          <strong>Noto Sans</strong>
+          <span>Universal y profesional</span>
+        </button>
+        <button type="button" class="font-option" data-font-card="ibm">
+          <strong>IBM Plex Mono</strong>
+          <span>Técnica y científica</span>
+        </button>
+        <button type="button" class="font-option" data-font-card="serif">
+          <strong>Source Serif</strong>
+          <span>Académica y formal</span>
+        </button>
+      </div>
       <div class="theme-preview-mini" id="theme-preview-mini">
         <p class="preview-brand">Proyecto Espectral</p>
         <p class="preview-muted">Laboratorio de Óptica Biomédica UPT</p>

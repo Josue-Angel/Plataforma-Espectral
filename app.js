@@ -124,6 +124,26 @@ function escapeHtml(value = "") {
     .replaceAll("'", "&#39;");
 }
 
+function prepareOptionCardEditableLabels() {
+  document.querySelectorAll("label.option-card").forEach((label) => {
+    const input = label.querySelector("input[type='radio']");
+    if (!input || label.querySelector(".option-label-text")) return;
+    const text = Array.from(label.childNodes)
+      .filter((node) => node.nodeType === Node.TEXT_NODE)
+      .map((node) => node.textContent || "")
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+    Array.from(label.childNodes)
+      .filter((node) => node.nodeType === Node.TEXT_NODE)
+      .forEach((node) => node.remove());
+    const span = document.createElement("span");
+    span.className = "option-label-text";
+    span.textContent = text;
+    label.appendChild(span);
+  });
+}
+
 function resolveRoleFromProfile(perfil, userEmail, authUser = null) {
   const roleFromProfile = perfil?.role ? String(perfil.role).trim().toLowerCase() : "";
   if (roleFromProfile === "admin" || roleFromProfile === "voluntario" || roleFromProfile === "desarrollador") return roleFromProfile;
@@ -615,6 +635,7 @@ async function loadGlobalDeveloperConfig() {
     if (devUiVariant) devUiVariant.value = currentSettings.uiVariant;
     if (devFontFamily) devFontFamily.value = currentSettings.fontFamily;
     updateThemePreviewCard(currentSettings);
+    syncVisualControlCards(currentSettings);
     views.forEach((view) => applyContentEditsForView(view.id));
   } catch (error) {
     console.warn("No se pudo aplicar configuración global en interfaz.", error);
@@ -675,7 +696,7 @@ function getEditableElements(viewId) {
   const view = document.getElementById(viewId);
   if (!view) return [];
   const blocked = ".table-wrapper, #form-voluntario, #form-articulo, .modal-content, .doc-link, .doi-link, .reference-links, .stat-value, .title-icon, .logo-icon";
-  return Array.from(view.querySelectorAll("h1,h2,h3,h4,p,legend,[data-heading],[data-section-label]"))
+  return Array.from(view.querySelectorAll("h1,h2,h3,h4,p,legend,[data-heading],[data-section-label],.option-label-text"))
     .filter((el) => !el.closest(blocked) && el.textContent.trim().length > 0);
 }
 
@@ -1006,6 +1027,13 @@ const btnTogglePalette = document.getElementById("btn-dev-toggle-palette");
 const btnRestoreDefaults = document.getElementById("btn-dev-restore-defaults");
 const btnCancelTheme = document.getElementById("btn-dev-cancel-theme");
 const themePreviewMini = document.getElementById("theme-preview-mini");
+const uiVariantCardButtons = Array.from(document.querySelectorAll("[data-ui-variant-card]"));
+const fontCardButtons = Array.from(document.querySelectorAll("[data-font-card]"));
+
+function syncVisualControlCards(settings) {
+  uiVariantCardButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.uiVariantCard === settings.uiVariant));
+  fontCardButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.fontCard === settings.fontFamily));
+}
 
 if (btnToggleEdit) {
   btnToggleEdit.addEventListener("click", () => {
@@ -1028,6 +1056,7 @@ if (btnTogglePalette) {
       if (devUiVariant) devUiVariant.value = pendingDevSettings.uiVariant;
       if (devFontFamily) devFontFamily.value = pendingDevSettings.fontFamily;
       updateThemePreviewCard(pendingDevSettings);
+      syncVisualControlCards(pendingDevSettings);
     }
   });
 }
@@ -1039,6 +1068,23 @@ if (btnTogglePalette) {
     const previewSettings = getSettingsFromControls();
     applyThemeSettings(previewSettings);
     updateThemePreviewCard(previewSettings);
+    syncVisualControlCards(previewSettings);
+  });
+});
+
+uiVariantCardButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    if (!devUiVariant) return;
+    devUiVariant.value = btn.dataset.uiVariantCard || "moderno";
+    devUiVariant.dispatchEvent(new Event("change"));
+  });
+});
+
+fontCardButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    if (!devFontFamily) return;
+    devFontFamily.value = btn.dataset.fontCard || "inter";
+    devFontFamily.dispatchEvent(new Event("change"));
   });
 });
 
@@ -1060,6 +1106,7 @@ if (btnSaveView) {
     pendingDevSettings = settings;
     applyDevSettings();
     updateThemePreviewCard(settings);
+    syncVisualControlCards(settings);
     showToast("Tema global actualizado.", "success");
   });
 }
@@ -1073,6 +1120,7 @@ if (btnCancelTheme) {
     if (devUiVariant) devUiVariant.value = settings.uiVariant;
     if (devFontFamily) devFontFamily.value = settings.fontFamily;
     updateThemePreviewCard(settings);
+    syncVisualControlCards(settings);
     showToast("Vista previa cancelada. Se restauró la configuración actual.", "info");
   });
 }
@@ -1098,6 +1146,7 @@ if (btnRestoreDefaults) {
     if (devUiVariant) devUiVariant.value = settings.uiVariant;
     if (devFontFamily) devFontFamily.value = settings.fontFamily;
     applyDevSettings();
+    syncVisualControlCards(settings);
     window.location.reload();
   });
 }
@@ -1299,7 +1348,7 @@ async function initSession(user) {
   updateNavForRole(currentRole);
   const adminArchivoManager = document.getElementById("admin-archivo-manager");
   if (adminArchivoManager) adminArchivoManager.classList.toggle("hidden", !canManageAsAdmin());
-  if (developerUserManagement) developerUserManagement.classList.toggle("hidden", currentRole !== "desarrollador");
+  if (developerUserManagement) developerUserManagement.classList.toggle("hidden", !canManageAsAdmin());
   renderManagedArticles();
 
   // Redirección automática tras login a la sección Equipo y proyecto.
@@ -1309,7 +1358,7 @@ async function initSession(user) {
     await cargarVoluntarios();
     await cargarAlertasAdmin();
   }
-  if (currentRole === "desarrollador") {
+  if (canManageAsAdmin()) {
     await loadUsersForDeveloperPanel();
   }
 
@@ -1317,6 +1366,7 @@ async function initSession(user) {
   if (devColorTheme) devColorTheme.value = settings.color;
   if (devUiVariant) devUiVariant.value = settings.uiVariant;
   if (devFontFamily) devFontFamily.value = settings.fontFamily;
+  syncVisualControlCards(settings);
   refreshDeveloperDock();
   await loadGlobalDeveloperConfig();
 
@@ -2237,11 +2287,20 @@ function renderUsersAdminTable() {
 }
 
 async function loadUsersForDeveloperPanel() {
-  if (currentRole !== "desarrollador") return;
-  const { data, error } = await supabaseClient
+  if (!canManageAsAdmin()) return;
+  let { data, error } = await supabaseClient
     .from("perfiles")
     .select("id, nombre, email, role, estado_acceso")
     .order("nombre", { ascending: true });
+
+  if (shouldFallbackOnSchemaError(error, "estado_acceso")) {
+    const fallback = await supabaseClient
+      .from("perfiles")
+      .select("id, nombre, email, role")
+      .order("nombre", { ascending: true });
+    data = fallback.data?.map((item) => ({ ...item, estado_acceso: "activo" })) || [];
+    error = fallback.error;
+  }
 
   if (error) {
     console.error("No se pudo cargar el panel de usuarios:", error);
@@ -2310,13 +2369,13 @@ if (btnRefrescarUsuarios) {
 if (tablaUsuariosAdmin) {
   tablaUsuariosAdmin.addEventListener("change", async (event) => {
     const select = event.target.closest("select[data-action='cambiar-rol']");
-    if (!select || currentRole !== "desarrollador") return;
+    if (!select || !canManageAsAdmin()) return;
     await updateUserRole(select.dataset.id, select.value);
   });
 
   tablaUsuariosAdmin.addEventListener("click", async (event) => {
     const btn = event.target.closest("button[data-action]");
-    if (!btn || currentRole !== "desarrollador") return;
+    if (!btn || !canManageAsAdmin()) return;
     const userId = btn.dataset.id;
     if (btn.dataset.action === "toggle-estado") {
       const user = usersAdminCache.find((item) => String(item.id) === String(userId));
@@ -2329,6 +2388,7 @@ if (tablaUsuariosAdmin) {
   });
 }
 
+prepareOptionCardEditableLabels();
 applyDevSettings();
 loadManagedArticles();
 restoreSession();
