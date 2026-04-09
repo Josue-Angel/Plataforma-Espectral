@@ -252,10 +252,21 @@ body[data-ui-variant="informativo"] .btn{box-shadow:0 2px 0 rgba(15,23,42,.18)}
 body[data-ui-variant="informativo"] .title-icon{border-radius:999px}
 
 .dev-edit-dock{position:fixed;left:1.2rem;bottom:1.2rem;z-index:1300;display:flex;flex-direction:column;gap:.55rem;max-width:320px}
-.dev-palette-dock{position:fixed;right:1.2rem;bottom:1.2rem;z-index:1300;display:flex;flex-direction:column;align-items:flex-end;gap:.55rem;max-width:320px}
-.dev-edit-controls{background:#fff;border:1px solid var(--line);border-radius:12px;padding:.75rem;display:flex;flex-direction:column;gap:.5rem;box-shadow:0 14px 30px rgba(2,6,23,.15)}
+.dev-palette-dock{position:fixed;right:1.2rem;bottom:1.2rem;z-index:1300;display:flex;flex-direction:column;align-items:flex-end;gap:.55rem;max-width:360px}
+.dev-edit-controls{background:#fff;border:1px solid var(--line);border-radius:16px;padding:1rem;display:flex;flex-direction:column;gap:.6rem;box-shadow:0 14px 30px rgba(2,6,23,.15)}
 .dev-edit-controls label{font-size:.82rem;font-weight:700}
 .dev-edit-controls select{font-size:.9rem;padding:.55rem}
 .dev-editable{outline:2px dashed var(--primary);outline-offset:2px;cursor:text}
-.btn-palette-emoji{font-size:1.4rem;line-height:1;padding:.55rem .75rem;border-radius:999px}
+.btn-palette-emoji{font-size:1.1rem;line-height:1;padding:.8rem 1rem;border-radius:999px;min-width:210px}
+.btn-friendly-edit{font-size:1rem;padding:.8rem 1rem}
+.theme-preview-mini{border:1px solid var(--line);border-radius:12px;padding:.8rem;background:linear-gradient(120deg,var(--surface),var(--surface-soft))}
+.preview-brand{display:inline-block;margin:0 0 .45rem 0;padding:.4rem .75rem;border-radius:10px;background:linear-gradient(135deg,var(--primary-2),var(--primary));color:#fff;font-weight:700}
+.preview-muted{margin:0;color:#334155;font-size:.86rem}
+.user-role-chip,.user-status-chip{display:inline-flex;padding:.22rem .6rem;border-radius:999px;font-size:.76rem;font-weight:700}
+.user-role-chip.admin{background:#efe4ff;color:#6d28d9}
+.user-role-chip.desarrollador{background:#dbeafe;color:#1d4ed8}
+.user-role-chip.voluntario{background:#dcfce7;color:#166534}
+.user-status-chip.activo{background:#dcfce7;color:#166534}
+.user-status-chip.suspendido{background:#fee2e2;color:#b91c1c}
+.user-email{display:block;color:#64748b;font-size:.8rem}
 .article-actions{margin-top:.5rem}

@@ -25,9 +25,20 @@ const DEV_CONTENT_EDITS_STORAGE_KEY = "dev-content-edits";
 const GLOBAL_CONFIG_TABLE = "configuracion_global";
 const GLOBAL_SETTINGS_KEY = "ui_settings";
 const GLOBAL_CONTENT_KEY = "content_edits";
+const GLOBAL_EMAIL_TEMPLATE_KEY = "email_template_fototipo";
 let currentViewId = "inicio";
 let isEditModeEnabled = false;
 let managedArticlesCache = [];
+let usersAdminCache = [];
+let pendingDevSettings = null;
+const DEFAULT_FOTOTIPO_EMAIL_TEMPLATE = `
+  <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0f172a">
+    <h2 style="margin:0 0 12px 0">Hola, {{nombre}}</h2>
+    <p>Tu resultado del fototipo de piel es: <strong>{{fototipo}}</strong>.</p>
+    <p>{{recomendacion}}</p>
+    <p style="margin-top:14px">Gracias por participar en Proyecto Espectral.</p>
+  </div>
+`;
 const INITIAL_ARTICLES = [
   {
     id: "art-seed-propio-1",
@@ -381,6 +392,7 @@ async function notifyVolunteerFototipo({ email, nombre, fototipo }) {
   const sent = await sendEmailNotification({
     to: normalizedEmail,
     subject: "🔬 Resultado de tu Fototipo de Piel",
+    html: buildFototipoEmailHtml({ nombre: safeName, fototipo, recomendacion: details.recomendacion }),
     fototipo,
     recomendacion: details.recomendacion,
     nombre: safeName,
@@ -530,6 +542,22 @@ function readDevSettings() {
   }
 }
 
+function readFototipoEmailTemplate() {
+  const fallback = DEFAULT_FOTOTIPO_EMAIL_TEMPLATE.trim();
+  try {
+    return String(localStorage.getItem("fototipo-email-template") || fallback).trim() || fallback;
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function buildFototipoEmailHtml({ nombre, fototipo, recomendacion }) {
+  return readFototipoEmailTemplate()
+    .replaceAll("{{nombre}}", escapeHtml(nombre || "Voluntario"))
+    .replaceAll("{{fototipo}}", escapeHtml(fototipo || "No disponible"))
+    .replaceAll("{{recomendacion}}", escapeHtml(recomendacion || ""));
+}
+
 async function requestGlobalChangeConfirmation(message) {
   return new Promise((resolve) => {
     const panel = document.createElement("div");
@@ -570,6 +598,11 @@ async function loadGlobalDeveloperConfig() {
     if (!contentResp.error && contentResp.data?.valor && typeof contentResp.data.valor === "object") {
       localStorage.setItem(DEV_CONTENT_EDITS_STORAGE_KEY, JSON.stringify(contentResp.data.valor));
     }
+
+    const emailResp = await supabaseClient.from(GLOBAL_CONFIG_TABLE).select("valor").eq("clave", GLOBAL_EMAIL_TEMPLATE_KEY).maybeSingle();
+    if (!emailResp.error && emailResp.data?.valor?.template) {
+      localStorage.setItem("fototipo-email-template", String(emailResp.data.valor.template));
+    }
   } catch (error) {
     console.warn("No se pudo cargar configuración global, se mantiene configuración local.", error);
   }
@@ -577,9 +610,11 @@ async function loadGlobalDeveloperConfig() {
   try {
     applyDevSettings();
     const currentSettings = readDevSettings();
+    pendingDevSettings = currentSettings;
     if (devColorTheme) devColorTheme.value = currentSettings.color;
     if (devUiVariant) devUiVariant.value = currentSettings.uiVariant;
     if (devFontFamily) devFontFamily.value = currentSettings.fontFamily;
+    updateThemePreviewCard(currentSettings);
     views.forEach((view) => applyContentEditsForView(view.id));
   } catch (error) {
     console.warn("No se pudo aplicar configuración global en interfaz.", error);
@@ -604,6 +639,10 @@ async function saveGlobalDeveloperConfig(key, value) {
 
 function applyDevSettings() {
   const settings = readDevSettings();
+  applyThemeSettings(settings);
+}
+
+function applyThemeSettings(settings) {
   const theme = THEME_MAP[settings.color] || THEME_MAP.azul;
   document.documentElement.style.setProperty("--primary", theme.primary);
   document.documentElement.style.setProperty("--primary-2", theme.accent);
@@ -616,6 +655,20 @@ function applyDevSettings() {
   document.documentElement.style.setProperty("--surface-soft", theme.soft);
   document.body.dataset.uiVariant = settings.uiVariant || "moderno";
   document.body.dataset.fontFamily = settings.fontFamily || "inter";
+}
+
+function getSettingsFromControls() {
+  const baseline = pendingDevSettings || readDevSettings();
+  return {
+    color: devColorTheme?.value || baseline.color,
+    uiVariant: devUiVariant?.value || baseline.uiVariant,
+    fontFamily: devFontFamily?.value || baseline.fontFamily,
+  };
+}
+
+function updateThemePreviewCard(settings) {
+  if (!themePreviewMini) return;
+  themePreviewMini.dataset.variant = settings.uiVariant;
 }
 
 function getEditableElements(viewId) {
@@ -690,10 +743,10 @@ function renderManagedArticles() {
     : "";
 
   ownList.innerHTML = propios.length
-    ? propios.map((item) => `<li class="doc-item"><strong class="doc-label">${escapeHtml(item.anio)} · Artículo:</strong> <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="doc-link">${escapeHtml(item.titulo)}</a><div class="muted small">${escapeHtml(item.autores)} · ${escapeHtml(item.fuente)}</div>${manageActions(item)}</li>`).join("")
+    ? propios.map((item) => `<li class="doc-item"><strong class="doc-label">${escapeHtml(item.anio)} · Artículo:</strong> ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="doc-link">${escapeHtml(item.titulo)}</a>` : `<span>${escapeHtml(item.titulo)}</span>`}<div class="muted small">${escapeHtml(item.autores)} · ${escapeHtml(item.fuente)}</div>${manageActions(item)}</li>`).join("")
     : "<li class='muted small'>Sin aportes propios registrados.</li>";
   refList.innerHTML = refs.length
-    ? refs.map((item) => `<li class="reference-item"><p class="reference-apa"><strong>${escapeHtml(item.autores)}</strong> (${escapeHtml(item.anio)}). <em>${escapeHtml(item.titulo)}</em> <span>${escapeHtml(item.fuente)}</span><br><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="doi-link">${escapeHtml(item.url)}</a></p>${item.url2 ? `<div class="reference-links"><a href="${escapeHtml(item.url2)}" target="_blank" rel="noopener noreferrer" class="ref-btn">Enlace adicional</a></div>` : ""}${manageActions(item)}</li>`).join("")
+    ? refs.map((item) => `<li class="reference-item"><p class="reference-apa"><strong>${escapeHtml(item.autores)}</strong> (${escapeHtml(item.anio)}). <em>${escapeHtml(item.titulo)}</em> <span>${escapeHtml(item.fuente)}</span><br>${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="doi-link">${escapeHtml(item.url)}</a>` : "<span class='muted small'>Sin enlace</span>"}</p>${item.url2 ? `<div class="reference-links"><a href="${escapeHtml(item.url2)}" target="_blank" rel="noopener noreferrer" class="ref-btn">Enlace adicional</a></div>` : ""}${manageActions(item)}</li>`).join("")
     : "<li class='muted small'>Sin referencias registradas.</li>";
 }
 
@@ -704,11 +757,16 @@ async function loadManagedArticles() {
     .order("created_at", { ascending: true });
 
   if (!error && Array.isArray(data)) {
-    managedArticlesCache = data.length ? data : [...INITIAL_ARTICLES];
+    const merged = [...INITIAL_ARTICLES];
+    data.forEach((item) => {
+      const exists = merged.some((seed) => String(seed.titulo).trim().toLowerCase() === String(item.titulo).trim().toLowerCase());
+      if (!exists) merged.push(item);
+    });
+    managedArticlesCache = merged;
     renderManagedArticles();
     return;
   }
-  managedArticlesCache = [];
+  managedArticlesCache = [...INITIAL_ARTICLES];
   renderManagedArticles();
 }
 
@@ -810,6 +868,8 @@ const tituloModalArticulo = document.getElementById("titulo-modal-articulo");
 function resetArticleModalState() {
   if (inputArticuloIdEditando) inputArticuloIdEditando.value = "";
   if (tituloModalArticulo) tituloModalArticulo.textContent = "Agregar artículo / tesis / dataset";
+  const inputPdf = document.getElementById("art-pdf");
+  if (inputPdf) inputPdf.value = "";
 }
 
 function openEditManagedArticle(itemId) {
@@ -823,6 +883,8 @@ function openEditManagedArticle(itemId) {
   document.getElementById("art-fuente").value = target.fuente || "";
   document.getElementById("art-url").value = target.url || "";
   document.getElementById("art-url-secundaria").value = target.url2 || "";
+  const inputPdf = document.getElementById("art-pdf");
+  if (inputPdf) inputPdf.value = "";
   if (tituloModalArticulo) tituloModalArticulo.textContent = "Editar artículo / tesis / dataset";
   openModal("modal-articulo");
 }
@@ -843,9 +905,24 @@ if (formArticulo) {
       url: document.getElementById("art-url").value.trim(),
       url2: document.getElementById("art-url-secundaria").value.trim(),
     };
-    if (!payload.tipo || !payload.titulo || !payload.autores || !payload.fuente || !payload.url || !payload.anio) {
+    const pdfFile = document.getElementById("art-pdf")?.files?.[0];
+    if (!payload.tipo || !payload.titulo || !payload.autores || !payload.fuente || !payload.anio) {
       showToast("Completa todos los campos obligatorios del artículo.");
       return;
+    }
+    if (!payload.url && !pdfFile) {
+      showToast("Debes proporcionar una URL o subir un PDF.");
+      return;
+    }
+    if (!payload.url && pdfFile) {
+      const safeName = `${Date.now()}_${pdfFile.name.replace(/\s+/g, "_")}`;
+      const storagePath = `articulos/${safeName}`;
+      const upload = await supabaseClient.storage.from("articulos").upload(storagePath, pdfFile, { upsert: true });
+      if (upload.error) {
+        showToast("No se pudo subir el PDF.", "error");
+        return;
+      }
+      payload.url = supabaseClient.storage.from("articulos").getPublicUrl(storagePath).data.publicUrl;
     }
     const editingId = inputArticuloIdEditando?.value;
     if (editingId) {
@@ -927,6 +1004,8 @@ const devUiVariant = document.getElementById("dev-ui-variant");
 const devFontFamily = document.getElementById("dev-font-family");
 const btnTogglePalette = document.getElementById("btn-dev-toggle-palette");
 const btnRestoreDefaults = document.getElementById("btn-dev-restore-defaults");
+const btnCancelTheme = document.getElementById("btn-dev-cancel-theme");
+const themePreviewMini = document.getElementById("theme-preview-mini");
 
 if (btnToggleEdit) {
   btnToggleEdit.addEventListener("click", () => {
@@ -941,9 +1020,27 @@ if (btnToggleEdit) {
 if (btnTogglePalette) {
   btnTogglePalette.addEventListener("click", () => {
     if (currentRole !== "desarrollador") return;
+    const willOpen = devEditControls?.classList.contains("hidden");
     devEditControls?.classList.toggle("hidden");
+    if (willOpen) {
+      pendingDevSettings = readDevSettings();
+      if (devColorTheme) devColorTheme.value = pendingDevSettings.color;
+      if (devUiVariant) devUiVariant.value = pendingDevSettings.uiVariant;
+      if (devFontFamily) devFontFamily.value = pendingDevSettings.fontFamily;
+      updateThemePreviewCard(pendingDevSettings);
+    }
   });
 }
+
+[devColorTheme, devUiVariant, devFontFamily].forEach((control) => {
+  if (!control) return;
+  control.addEventListener("change", () => {
+    if (currentRole !== "desarrollador") return;
+    const previewSettings = getSettingsFromControls();
+    applyThemeSettings(previewSettings);
+    updateThemePreviewCard(previewSettings);
+  });
+});
 
 if (btnSaveView) {
   btnSaveView.addEventListener("click", async () => {
@@ -953,19 +1050,30 @@ if (btnSaveView) {
       showToast("Cambio de tema cancelado.");
       return;
     }
-    const settings = readDevSettings();
-    settings.color = devColorTheme?.value || settings.color;
-    settings.uiVariant = devUiVariant?.value || settings.uiVariant;
-    settings.fontFamily = devFontFamily?.value || settings.fontFamily;
+    const settings = getSettingsFromControls();
     const savedThemeGlobal = await saveGlobalDeveloperConfig(GLOBAL_SETTINGS_KEY, settings);
     if (!savedThemeGlobal) {
       showToast("No se pudo aplicar el tema globalmente.", "error");
       return;
     }
     localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-    const savedGlobal = await saveGlobalDeveloperConfig(GLOBAL_SETTINGS_KEY, settings);
+    pendingDevSettings = settings;
     applyDevSettings();
-    showToast(savedGlobal ? "Tema global actualizado." : "Tema aplicado localmente (sin persistencia global).", savedGlobal ? "success" : "info");
+    updateThemePreviewCard(settings);
+    showToast("Tema global actualizado.", "success");
+  });
+}
+
+if (btnCancelTheme) {
+  btnCancelTheme.addEventListener("click", () => {
+    if (currentRole !== "desarrollador") return;
+    const settings = pendingDevSettings || readDevSettings();
+    applyThemeSettings(settings);
+    if (devColorTheme) devColorTheme.value = settings.color;
+    if (devUiVariant) devUiVariant.value = settings.uiVariant;
+    if (devFontFamily) devFontFamily.value = settings.fontFamily;
+    updateThemePreviewCard(settings);
+    showToast("Vista previa cancelada. Se restauró la configuración actual.", "info");
   });
 }
 
@@ -1026,6 +1134,8 @@ logoutBtn.addEventListener("click", async () => {
   logoutBtn.classList.add("hidden");
   const listaAlertasAdmin = document.getElementById("lista-alertas-admin");
   if (listaAlertasAdmin) listaAlertasAdmin.innerHTML = "";
+  if (developerUserManagement) developerUserManagement.classList.add("hidden");
+  usersAdminCache = [];
   updateNavForRole(null);
   setAuthTab("login-panel");
   showView(GUEST_LANDING_VIEW);
@@ -1156,7 +1266,7 @@ async function initSession(user) {
   resetSkinFormForCurrentSession();
   const { data: perfil } = await supabaseClient
     .from("perfiles")
-    .select("nombre, role, test_fototipo_completado")
+    .select("nombre, role, test_fototipo_completado, estado_acceso")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -1165,6 +1275,19 @@ async function initSession(user) {
   currentUserId = user.id;
   currentUserEmail = user.email || null;
   currentProfile = perfil || null;
+  if (normalizeUserStatus(perfil?.estado_acceso) === "suspendido" && currentRole !== "desarrollador") {
+    await supabaseClient.auth.signOut();
+    isLoggedIn = false;
+    currentRole = null;
+    currentUserId = null;
+    currentUserEmail = null;
+    currentProfile = null;
+    showToast("Tu cuenta se encuentra suspendida temporalmente. Contacta al administrador.", "error");
+    updateNavForRole(null);
+    setAuthTab("login-panel");
+    showView(GUEST_LANDING_VIEW);
+    return;
+  }
 
   const roleLabel = currentRole === "admin"
     ? "Doctora/Administrador"
@@ -1176,6 +1299,7 @@ async function initSession(user) {
   updateNavForRole(currentRole);
   const adminArchivoManager = document.getElementById("admin-archivo-manager");
   if (adminArchivoManager) adminArchivoManager.classList.toggle("hidden", !canManageAsAdmin());
+  if (developerUserManagement) developerUserManagement.classList.toggle("hidden", currentRole !== "desarrollador");
   renderManagedArticles();
 
   // Redirección automática tras login a la sección Equipo y proyecto.
@@ -1184,6 +1308,9 @@ async function initSession(user) {
   if (currentRole === "admin" || currentRole === "desarrollador") {
     await cargarVoluntarios();
     await cargarAlertasAdmin();
+  }
+  if (currentRole === "desarrollador") {
+    await loadUsersForDeveloperPanel();
   }
 
   const settings = readDevSettings();
@@ -1213,6 +1340,7 @@ async function restoreSession() {
   } else {
     await loadGlobalDeveloperConfig();
     updateNavForRole(null);
+    if (developerUserManagement) developerUserManagement.classList.add("hidden");
     renderManagedArticles();
     setAuthTab("login-panel");
     showView(GUEST_LANDING_VIEW);
@@ -1964,6 +2092,12 @@ const statTiposPiel = document.getElementById("stat-tipos-piel");
 const chartSexo = document.getElementById("chart-sexo");
 const chartPiel = document.getElementById("chart-piel");
 const chartEdad = document.getElementById("chart-edad");
+const developerUserManagement = document.getElementById("developer-user-management");
+const tablaUsuariosAdmin = document.getElementById("tabla-usuarios-admin");
+const usuarioBusqueda = document.getElementById("usuario-busqueda");
+const usuarioFiltroRol = document.getElementById("usuario-filtro-rol");
+const usuarioFiltroEstado = document.getElementById("usuario-filtro-estado");
+const btnRefrescarUsuarios = document.getElementById("btn-refrescar-usuarios");
 
 function renderBarChart(container, data) {
   container.innerHTML = "";
@@ -2051,10 +2185,147 @@ function actualizarDashboard() {
   );
 }
 
+function normalizeUserStatus(status) {
+  const clean = String(status || "").toLowerCase();
+  return clean === "suspendido" ? "suspendido" : "activo";
+}
+
+function renderUsersAdminTable() {
+  if (!tablaUsuariosAdmin) return;
+  const query = String(usuarioBusqueda?.value || "").trim().toLowerCase();
+  const roleFilter = String(usuarioFiltroRol?.value || "").trim().toLowerCase();
+  const statusFilter = String(usuarioFiltroEstado?.value || "").trim().toLowerCase();
+  const filtered = usersAdminCache.filter((user) => {
+    const fullName = String(user.nombre || "").toLowerCase();
+    const email = String(user.email || "").toLowerCase();
+    const role = String(user.role || "voluntario").toLowerCase();
+    const status = normalizeUserStatus(user.estado_acceso);
+    const matchQuery = !query || fullName.includes(query) || email.includes(query);
+    const matchRole = !roleFilter || role === roleFilter;
+    const matchStatus = !statusFilter || status === statusFilter;
+    return matchQuery && matchRole && matchStatus;
+  });
+
+  if (!filtered.length) {
+    tablaUsuariosAdmin.innerHTML = "<tr><td colspan='4' class='muted small'>No hay usuarios para mostrar.</td></tr>";
+    return;
+  }
+
+  tablaUsuariosAdmin.innerHTML = filtered.map((user) => {
+    const role = String(user.role || "voluntario").toLowerCase();
+    const status = normalizeUserStatus(user.estado_acceso);
+    const lockedRole = role === "desarrollador" || String(user.id) === String(currentUserId);
+    return `<tr>
+      <td><strong>${escapeHtml(user.nombre || "Sin nombre")}</strong><span class="user-email">${escapeHtml(user.email || "sin-correo")}</span></td>
+      <td>
+        <span class="user-role-chip ${role}">${escapeHtml(role)}</span>
+        <select data-action="cambiar-rol" data-id="${user.id}" ${lockedRole ? "disabled" : ""}>
+          <option value="voluntario" ${role === "voluntario" ? "selected" : ""}>Voluntario</option>
+          <option value="admin" ${role === "admin" ? "selected" : ""}>Administrador</option>
+          <option value="desarrollador" ${role === "desarrollador" ? "selected" : ""}>Desarrollador</option>
+        </select>
+      </td>
+      <td><span class="user-status-chip ${status}">${status}</span></td>
+      <td>
+        <div class="actions-inline">
+          <button class="btn btn-small btn-outline" data-action="toggle-estado" data-id="${user.id}" ${String(user.id) === String(currentUserId) ? "disabled" : ""}>${status === "suspendido" ? "Activar" : "Suspender"}</button>
+          <button class="btn btn-small btn-danger" data-action="eliminar-usuario" data-id="${user.id}" ${lockedRole ? "disabled" : ""}>Eliminar</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+async function loadUsersForDeveloperPanel() {
+  if (currentRole !== "desarrollador") return;
+  const { data, error } = await supabaseClient
+    .from("perfiles")
+    .select("id, nombre, email, role, estado_acceso")
+    .order("nombre", { ascending: true });
+
+  if (error) {
+    console.error("No se pudo cargar el panel de usuarios:", error);
+    if (tablaUsuariosAdmin) tablaUsuariosAdmin.innerHTML = "<tr><td colspan='4' class='muted small'>No se pudieron cargar usuarios.</td></tr>";
+    return;
+  }
+
+  usersAdminCache = Array.isArray(data) ? data : [];
+  renderUsersAdminTable();
+}
+
+async function updateUserRole(userId, role) {
+  const { error } = await supabaseClient.from("perfiles").update({ role }).eq("id", userId);
+  if (error) {
+    showToast("No se pudo actualizar el rol del usuario.", "error");
+    return;
+  }
+  showToast("Rol actualizado correctamente.", "success");
+  await loadUsersForDeveloperPanel();
+}
+
+async function toggleUserAccess(userId, nextStatus) {
+  const { error } = await supabaseClient.from("perfiles").update({ estado_acceso: nextStatus }).eq("id", userId);
+  if (error) {
+    showToast("No se pudo actualizar el estado del usuario.", "error");
+    return;
+  }
+  showToast(`Usuario ${nextStatus === "suspendido" ? "suspendido" : "activado"} correctamente.`, "success");
+  await loadUsersForDeveloperPanel();
+}
+
+async function deleteUserCompletely(userId) {
+  const target = usersAdminCache.find((item) => String(item.id) === String(userId));
+  const confirmed = window.confirm(`Se eliminará el usuario ${target?.email || ""} y sus datos relacionados. ¿Deseas continuar?`);
+  if (!confirmed) return;
+
+  await supabaseClient.from("voluntarios").delete().eq("user_id", userId);
+  await supabaseClient.from("perfiles").delete().eq("id", userId);
+  const rpcResp = await supabaseClient.rpc("admin_delete_user_account", { user_id: userId });
+  if (rpcResp.error) {
+    console.warn("No se pudo eliminar usuario auth con RPC admin_delete_user_account:", rpcResp.error);
+  }
+  showToast("Usuario eliminado de perfiles/voluntarios. Si existe RPC admin_delete_user_account también se intentó en Auth.", "info");
+  await loadUsersForDeveloperPanel();
+}
+
 const btnRefrescarAlertas = document.getElementById("btn-refrescar-alertas");
 if (btnRefrescarAlertas) {
   btnRefrescarAlertas.addEventListener("click", () => {
     cargarAlertasAdmin();
+  });
+}
+
+[usuarioBusqueda, usuarioFiltroRol, usuarioFiltroEstado].forEach((control) => {
+  if (!control) return;
+  control.addEventListener("input", renderUsersAdminTable);
+  control.addEventListener("change", renderUsersAdminTable);
+});
+
+if (btnRefrescarUsuarios) {
+  btnRefrescarUsuarios.addEventListener("click", () => {
+    loadUsersForDeveloperPanel();
+  });
+}
+
+if (tablaUsuariosAdmin) {
+  tablaUsuariosAdmin.addEventListener("change", async (event) => {
+    const select = event.target.closest("select[data-action='cambiar-rol']");
+    if (!select || currentRole !== "desarrollador") return;
+    await updateUserRole(select.dataset.id, select.value);
+  });
+
+  tablaUsuariosAdmin.addEventListener("click", async (event) => {
+    const btn = event.target.closest("button[data-action]");
+    if (!btn || currentRole !== "desarrollador") return;
+    const userId = btn.dataset.id;
+    if (btn.dataset.action === "toggle-estado") {
+      const user = usersAdminCache.find((item) => String(item.id) === String(userId));
+      const next = normalizeUserStatus(user?.estado_acceso) === "suspendido" ? "activo" : "suspendido";
+      await toggleUserAccess(userId, next);
+    }
+    if (btn.dataset.action === "eliminar-usuario") {
+      await deleteUserCompletely(userId);
+    }
   });
 }
 
