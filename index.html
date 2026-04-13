@@ -789,6 +789,17 @@
     <button type="button" class="btn btn-primary btn-palette-emoji" id="btn-dev-toggle-palette">🎨 Configuración visual</button>
     <div id="dev-edit-controls" class="dev-edit-controls hidden">
       <h4>Configuración visual</h4>
+      <p class="muted small">Todo se ajusta desde tarjetas visuales: color, estilo y tipografía.</p>
+      <div class="color-comparator">
+        <p class="muted small">Paleta de color</p>
+        <div class="color-toggle-row">
+          <button type="button" class="color-chip active" data-color-card="azul">Azul científico</button>
+          <button type="button" class="color-chip" data-color-card="verde">Verde clínico</button>
+          <button type="button" class="color-chip" data-color-card="morado">Morado sobrio</button>
+          <button type="button" class="color-chip" data-color-card="vino">Vino institucional</button>
+          <button type="button" class="color-chip" data-color-card="rojo">Rojo controlado</button>
+        </div>
+      </div>
       <div class="style-comparator">
         <p class="muted small">Comparador de estilos</p>
         <div class="style-toggle-row">
@@ -817,30 +828,6 @@
           </article>
         </div>
       </div>
-      <label>Color
-        <select id="dev-color-theme">
-          <option value="azul">Azul científico</option>
-          <option value="verde">Verde clínico</option>
-          <option value="morado">Morado sobrio</option>
-          <option value="vino">Vino institucional</option>
-          <option value="rojo">Rojo controlado</option>
-        </select>
-      </label>
-      <label>Estilo
-        <select id="dev-ui-variant">
-          <option value="moderno">Moderno</option>
-          <option value="cientifico">Científico</option>
-          <option value="informativo">Informativo</option>
-        </select>
-      </label>
-      <label>Tipografía
-        <select id="dev-font-family">
-          <option value="inter">Inter</option>
-          <option value="source">Noto Sans</option>
-          <option value="ibm">IBM Plex Mono</option>
-          <option value="serif">Source Serif 4</option>
-        </select>
-      </label>
       <div class="font-options" id="dev-font-options">
         <button type="button" class="font-option active" data-font-card="inter">
           <strong>Inter</strong>
@@ -858,10 +845,6 @@
           <strong>Source Serif</strong>
           <span>Académica y formal</span>
         </button>
-      </div>
-      <div class="theme-preview-mini" id="theme-preview-mini">
-        <p class="preview-brand">Proyecto Espectral</p>
-        <p class="preview-muted">Laboratorio de Óptica Biomédica UPT</p>
       </div>
       <div class="actions-inline">
         <button type="button" class="btn btn-primary" id="btn-dev-save-theme">Guardar cambios</button>

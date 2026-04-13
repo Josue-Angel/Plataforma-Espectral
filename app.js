@@ -31,6 +31,7 @@ let isEditModeEnabled = false;
 let managedArticlesCache = [];
 let usersAdminCache = [];
 let pendingDevSettings = null;
+let draftDevSettings = null;
 const DEFAULT_FOTOTIPO_EMAIL_TEMPLATE = `
   <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0f172a">
     <h2 style="margin:0 0 12px 0">Hola, {{nombre}}</h2>
@@ -631,9 +632,7 @@ async function loadGlobalDeveloperConfig() {
     applyDevSettings();
     const currentSettings = readDevSettings();
     pendingDevSettings = currentSettings;
-    if (devColorTheme) devColorTheme.value = currentSettings.color;
-    if (devUiVariant) devUiVariant.value = currentSettings.uiVariant;
-    if (devFontFamily) devFontFamily.value = currentSettings.fontFamily;
+    draftDevSettings = { ...currentSettings };
     updateThemePreviewCard(currentSettings);
     syncVisualControlCards(currentSettings);
     views.forEach((view) => applyContentEditsForView(view.id));
@@ -679,17 +678,19 @@ function applyThemeSettings(settings) {
 }
 
 function getSettingsFromControls() {
-  const baseline = pendingDevSettings || readDevSettings();
-  return {
-    color: devColorTheme?.value || baseline.color,
-    uiVariant: devUiVariant?.value || baseline.uiVariant,
-    fontFamily: devFontFamily?.value || baseline.fontFamily,
-  };
+  return { ...(draftDevSettings || pendingDevSettings || readDevSettings()) };
 }
 
 function updateThemePreviewCard(settings) {
   if (!themePreviewMini) return;
   themePreviewMini.dataset.variant = settings.uiVariant;
+}
+
+function setDraftDevSettings(nextSettings) {
+  draftDevSettings = { ...(draftDevSettings || pendingDevSettings || readDevSettings()), ...nextSettings };
+  applyThemeSettings(draftDevSettings);
+  updateThemePreviewCard(draftDevSettings);
+  syncVisualControlCards(draftDevSettings);
 }
 
 function getEditableElements(viewId) {
@@ -721,9 +722,12 @@ function applyContentEditsForView(viewId) {
 function toggleEditMode(enabled) {
   isEditModeEnabled = enabled;
   document.body.classList.toggle("dev-editing", enabled);
-  getEditableElements(currentViewId).forEach((el) => {
-    el.contentEditable = enabled ? "plaintext-only" : "false";
-    el.classList.toggle("dev-editable", enabled);
+  const viewIds = enabled ? [currentViewId] : Array.from(views).map((view) => view.id);
+  viewIds.forEach((viewId) => {
+    getEditableElements(viewId).forEach((el) => {
+      el.contentEditable = enabled ? "plaintext-only" : "false";
+      el.classList.toggle("dev-editable", enabled);
+    });
   });
 }
 
@@ -1027,10 +1031,12 @@ const btnTogglePalette = document.getElementById("btn-dev-toggle-palette");
 const btnRestoreDefaults = document.getElementById("btn-dev-restore-defaults");
 const btnCancelTheme = document.getElementById("btn-dev-cancel-theme");
 const themePreviewMini = document.getElementById("theme-preview-mini");
+const colorCardButtons = Array.from(document.querySelectorAll("[data-color-card]"));
 const uiVariantCardButtons = Array.from(document.querySelectorAll("[data-ui-variant-card]"));
 const fontCardButtons = Array.from(document.querySelectorAll("[data-font-card]"));
 
 function syncVisualControlCards(settings) {
+  colorCardButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.colorCard === settings.color));
   uiVariantCardButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.uiVariantCard === settings.uiVariant));
   fontCardButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.fontCard === settings.fontFamily));
 }
@@ -1040,7 +1046,6 @@ if (btnToggleEdit) {
     if (currentRole !== "desarrollador") return;
     const enabled = !isEditModeEnabled;
     toggleEditMode(enabled);
-    devEditControls?.classList.toggle("hidden", !enabled);
     btnToggleEdit.textContent = enabled ? "✅ Salir de edición" : "✏️ Editar interfaz";
   });
 }
@@ -1052,11 +1057,11 @@ if (btnTogglePalette) {
     devEditControls?.classList.toggle("hidden");
     if (willOpen) {
       pendingDevSettings = readDevSettings();
-      if (devColorTheme) devColorTheme.value = pendingDevSettings.color;
-      if (devUiVariant) devUiVariant.value = pendingDevSettings.uiVariant;
-      if (devFontFamily) devFontFamily.value = pendingDevSettings.fontFamily;
+      draftDevSettings = { ...pendingDevSettings };
       updateThemePreviewCard(pendingDevSettings);
       syncVisualControlCards(pendingDevSettings);
+    } else {
+      draftDevSettings = null;
     }
   });
 }
@@ -1065,26 +1070,29 @@ if (btnTogglePalette) {
   if (!control) return;
   control.addEventListener("change", () => {
     if (currentRole !== "desarrollador") return;
-    const previewSettings = getSettingsFromControls();
-    applyThemeSettings(previewSettings);
-    updateThemePreviewCard(previewSettings);
-    syncVisualControlCards(previewSettings);
+    setDraftDevSettings({
+      color: devColorTheme?.value,
+      uiVariant: devUiVariant?.value,
+      fontFamily: devFontFamily?.value,
+    });
+  });
+});
+
+colorCardButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    setDraftDevSettings({ color: btn.dataset.colorCard || "azul" });
   });
 });
 
 uiVariantCardButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
-    if (!devUiVariant) return;
-    devUiVariant.value = btn.dataset.uiVariantCard || "moderno";
-    devUiVariant.dispatchEvent(new Event("change"));
+    setDraftDevSettings({ uiVariant: btn.dataset.uiVariantCard || "moderno" });
   });
 });
 
 fontCardButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
-    if (!devFontFamily) return;
-    devFontFamily.value = btn.dataset.fontCard || "inter";
-    devFontFamily.dispatchEvent(new Event("change"));
+    setDraftDevSettings({ fontFamily: btn.dataset.fontCard || "inter" });
   });
 });
 
@@ -1104,6 +1112,7 @@ if (btnSaveView) {
     }
     localStorage.setItem(DEV_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
     pendingDevSettings = settings;
+    draftDevSettings = { ...settings };
     applyDevSettings();
     updateThemePreviewCard(settings);
     syncVisualControlCards(settings);
@@ -1116,9 +1125,7 @@ if (btnCancelTheme) {
     if (currentRole !== "desarrollador") return;
     const settings = pendingDevSettings || readDevSettings();
     applyThemeSettings(settings);
-    if (devColorTheme) devColorTheme.value = settings.color;
-    if (devUiVariant) devUiVariant.value = settings.uiVariant;
-    if (devFontFamily) devFontFamily.value = settings.fontFamily;
+    draftDevSettings = { ...settings };
     updateThemePreviewCard(settings);
     syncVisualControlCards(settings);
     showToast("Vista previa cancelada. Se restauró la configuración actual.", "info");
@@ -1142,9 +1149,7 @@ if (btnRestoreDefaults) {
       showToast("No se pudo restaurar globalmente.", "error");
       return;
     }
-    if (devColorTheme) devColorTheme.value = settings.color;
-    if (devUiVariant) devUiVariant.value = settings.uiVariant;
-    if (devFontFamily) devFontFamily.value = settings.fontFamily;
+    draftDevSettings = { ...settings };
     applyDevSettings();
     syncVisualControlCards(settings);
     window.location.reload();
@@ -1363,9 +1368,7 @@ async function initSession(user) {
   }
 
   const settings = readDevSettings();
-  if (devColorTheme) devColorTheme.value = settings.color;
-  if (devUiVariant) devUiVariant.value = settings.uiVariant;
-  if (devFontFamily) devFontFamily.value = settings.fontFamily;
+  draftDevSettings = { ...settings };
   syncVisualControlCards(settings);
   refreshDeveloperDock();
   await loadGlobalDeveloperConfig();
