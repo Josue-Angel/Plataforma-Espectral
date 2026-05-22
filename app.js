@@ -841,10 +841,16 @@ async function wakeSupabaseDatabase() {
 
   const maxIntentos = 4;
   for (let intento = 1; intento <= maxIntentos; intento += 1) {
-    const { error } = await supabaseClient
-      .from("perfiles")
-      .select("id", { head: true, count: "exact" })
-      .limit(1);
+    let error = null;
+    try {
+      const response = await fetch("/api/wake-supabase", { method: "POST" });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        error = new Error(payload?.error || `HTTP ${response.status}`);
+      }
+    } catch (requestError) {
+      error = requestError;
+    }
 
     if (!error) {
       wakeDbStatus.textContent = "Estado: base de datos activa y lista.";
