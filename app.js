@@ -818,6 +818,65 @@ tabButtons.forEach((btn) => {
 
 const loginForm = document.getElementById("login-form");
 const loginError = document.getElementById("login-error");
+const loginEmailInput = document.getElementById("login-email");
+const loginPasswordInput = document.getElementById("login-password");
+const dbWakeupCard = document.getElementById("db-wakeup-card");
+const wakeDbBtn = document.getElementById("wake-db-btn");
+const wakeDbStatus = document.getElementById("wake-db-status");
+const WAKE_DB_SECRET_EMAIL = "base2026";
+const WAKE_DB_SECRET_PASSWORD = "despertar";
+
+function updateWakeDbVisibilityFromSecret() {
+  if (!dbWakeupCard || !loginEmailInput || !loginPasswordInput) return;
+  const emailValue = loginEmailInput.value.trim().toLowerCase();
+  const passValue = loginPasswordInput.value.trim().toLowerCase();
+  const shouldShow = emailValue === WAKE_DB_SECRET_EMAIL && passValue === WAKE_DB_SECRET_PASSWORD;
+  dbWakeupCard.classList.toggle("hidden", !shouldShow);
+}
+
+async function wakeSupabaseDatabase() {
+  if (!wakeDbBtn || !wakeDbStatus) return;
+  wakeDbBtn.disabled = true;
+  wakeDbStatus.textContent = "Estado: intentando despertar la base de datos...";
+
+  const maxIntentos = 4;
+  for (let intento = 1; intento <= maxIntentos; intento += 1) {
+    let error = null;
+    try {
+      const response = await fetch("/api/wake-supabase", { method: "POST" });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        error = new Error(payload?.error || `HTTP ${response.status}`);
+      }
+    } catch (requestError) {
+      error = requestError;
+    }
+
+    if (!error) {
+      wakeDbStatus.textContent = "Estado: base de datos activa y lista.";
+      showToast("Base de datos activa. Ya puedes iniciar sesión.", "success");
+      wakeDbBtn.disabled = false;
+      return;
+    }
+
+    if (intento < maxIntentos) {
+      wakeDbStatus.textContent = `Estado: activando... intento ${intento + 1} de ${maxIntentos}.`;
+      await new Promise((resolve) => setTimeout(resolve, 4500));
+    } else {
+      wakeDbStatus.textContent = "Estado: no se pudo confirmar activación. Intenta de nuevo en unos segundos.";
+      showToast("No se pudo reactivar la base de datos todavía. Reintenta en unos segundos.", "error");
+    }
+  }
+
+  wakeDbBtn.disabled = false;
+}
+
+if (wakeDbBtn) {
+  wakeDbBtn.addEventListener("click", wakeSupabaseDatabase);
+}
+if (loginEmailInput) loginEmailInput.addEventListener("input", updateWakeDbVisibilityFromSecret);
+if (loginPasswordInput) loginPasswordInput.addEventListener("input", updateWakeDbVisibilityFromSecret);
+
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   loginError.classList.add("hidden");
