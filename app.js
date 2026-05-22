@@ -1,6 +1,39 @@
 (async () => {
-const FALLBACK_SUPABASE_URL = "https://bwszeozmxzwuajrywqns.supabase.co";
-const FALLBACK_SUPABASE_ANON_KEY = "public-anon-key-placeholder";
+function createUnavailableSupabaseClient(reason = "Supabase no disponible") {
+  const rejected = async () => ({ data: null, error: { message: reason, code: "SUPABASE_UNAVAILABLE" } });
+  const chain = {
+    select: rejected,
+    insert: rejected,
+    update: rejected,
+    upsert: rejected,
+    delete: rejected,
+    eq: () => chain,
+    neq: () => chain,
+    order: () => chain,
+    limit: () => chain,
+    maybeSingle: rejected,
+    single: rejected,
+  };
+
+  return {
+    from: () => chain,
+    auth: {
+      signInWithPassword: rejected,
+      signUp: rejected,
+      signOut: rejected,
+      getSession: async () => ({ data: { session: null }, error: { message: reason } }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+    },
+    storage: {
+      from: () => ({
+        upload: rejected,
+        remove: rejected,
+        list: rejected,
+        getPublicUrl: () => ({ data: { publicUrl: "" } }),
+      }),
+    },
+  };
+}
 
 async function loadSupabaseConfig() {
   if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
@@ -20,20 +53,20 @@ async function loadSupabaseConfig() {
 }
 
 let supabaseConfig;
+let supabaseAvailable = true;
 try {
   supabaseConfig = await loadSupabaseConfig();
   window.SUPABASE_URL = supabaseConfig.url;
   window.SUPABASE_ANON_KEY = supabaseConfig.anonKey;
 } catch (configError) {
   console.error("Error cargando configuración de Supabase:", configError);
-  const safeUrl = window.SUPABASE_URL || FALLBACK_SUPABASE_URL;
-  const safeAnonKey = window.SUPABASE_ANON_KEY || FALLBACK_SUPABASE_ANON_KEY;
-  window.SUPABASE_URL = safeUrl;
-  window.SUPABASE_ANON_KEY = safeAnonKey;
-  console.warn("Se aplicó configuración de respaldo para no bloquear la interfaz.");
+  supabaseAvailable = false;
+  console.warn("Supabase no está disponible; se mantiene solo la interfaz local.");
 }
 
-const supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+const supabaseClient = supabaseAvailable
+  ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
+  : createUnavailableSupabaseClient("No se pudo conectar a Supabase. Verifica SUPABASE_URL en Vercel.");
 
 const viewPermissions = {
   inicio: ["admin", "desarrollador", "voluntario"],
@@ -870,6 +903,9 @@ function updateWakeDbVisibilityFromSecret() {
 
 async function wakeSupabaseDatabase() {
   if (!wakeDbBtn || !wakeDbStatus) return;
+  if (!supabaseAvailable) {
+    wakeDbStatus.textContent = "Estado: configuración inválida en servidor (SUPABASE_URL).";
+  }
   wakeDbBtn.disabled = true;
   wakeDbStatus.textContent = "Estado: intentando despertar la base de datos...";
 
