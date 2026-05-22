@@ -1,4 +1,7 @@
 (async () => {
+const FALLBACK_SUPABASE_URL = "https://bwszeozmxzwuajrywqns.supabase.co";
+const FALLBACK_SUPABASE_ANON_KEY = "public-anon-key-placeholder";
+
 async function loadSupabaseConfig() {
   if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
     return { url: window.SUPABASE_URL, anonKey: window.SUPABASE_ANON_KEY };
@@ -23,8 +26,11 @@ try {
   window.SUPABASE_ANON_KEY = supabaseConfig.anonKey;
 } catch (configError) {
   console.error("Error cargando configuración de Supabase:", configError);
-  alert("No se pudo cargar la configuración de base de datos. Contacta al administrador.");
-  return;
+  const safeUrl = window.SUPABASE_URL || FALLBACK_SUPABASE_URL;
+  const safeAnonKey = window.SUPABASE_ANON_KEY || FALLBACK_SUPABASE_ANON_KEY;
+  window.SUPABASE_URL = safeUrl;
+  window.SUPABASE_ANON_KEY = safeAnonKey;
+  console.warn("Se aplicó configuración de respaldo para no bloquear la interfaz.");
 }
 
 const supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
