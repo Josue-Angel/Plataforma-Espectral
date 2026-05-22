@@ -1,4 +1,27 @@
-(() => {
+(async () => {
+async function loadSupabaseConfig() {
+  if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+    return { url: window.SUPABASE_URL, anonKey: window.SUPABASE_ANON_KEY };
+  }
+
+  const response = await fetch("/api/client-supabase-config");
+  if (!response.ok) throw new Error("No se pudo cargar la configuración de Supabase.");
+  const payload = await response.json();
+  if (!payload?.url || !payload?.anonKey) throw new Error("Configuración de Supabase incompleta.");
+  return payload;
+}
+
+let supabaseConfig;
+try {
+  supabaseConfig = await loadSupabaseConfig();
+  window.SUPABASE_URL = supabaseConfig.url;
+  window.SUPABASE_ANON_KEY = supabaseConfig.anonKey;
+} catch (configError) {
+  console.error("Error cargando configuración de Supabase:", configError);
+  alert("No se pudo cargar la configuración de base de datos. Contacta al administrador.");
+  return;
+}
+
 const supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
 const viewPermissions = {
