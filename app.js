@@ -1,4 +1,27 @@
-(() => {
+(async () => {
+async function loadSupabaseConfig() {
+  if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+    return { url: window.SUPABASE_URL, anonKey: window.SUPABASE_ANON_KEY };
+  }
+
+  const response = await fetch("/api/client-supabase-config");
+  if (!response.ok) throw new Error("No se pudo cargar la configuración de Supabase.");
+  const payload = await response.json();
+  if (!payload?.url || !payload?.anonKey) throw new Error("Configuración de Supabase incompleta.");
+  return payload;
+}
+
+let supabaseConfig;
+try {
+  supabaseConfig = await loadSupabaseConfig();
+  window.SUPABASE_URL = supabaseConfig.url;
+  window.SUPABASE_ANON_KEY = supabaseConfig.anonKey;
+} catch (configError) {
+  console.error("Error cargando configuración de Supabase:", configError);
+  alert("No se pudo cargar la configuración de base de datos. Contacta al administrador.");
+  return;
+}
+
 const supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
 const viewPermissions = {
@@ -818,6 +841,67 @@ tabButtons.forEach((btn) => {
 
 const loginForm = document.getElementById("login-form");
 const loginError = document.getElementById("login-error");
+const loginEmailInput = document.getElementById("login-email");
+const loginPasswordInput = document.getElementById("login-password");
+const dbWakeupCard = document.getElementById("db-wakeup-card");
+const wakeDbBtn = document.getElementById("wake-db-btn");
+const wakeDbStatus = document.getElementById("wake-db-status");
+const WAKE_DB_SECRET_EMAIL = "base2026";
+const WAKE_DB_SECRET_PASSWORD = "despertar";
+
+function updateWakeDbVisibilityFromSecret() {
+  if (!dbWakeupCard || !loginEmailInput || !loginPasswordInput) return;
+  const emailValue = loginEmailInput.value.trim().toLowerCase();
+  const passValue = loginPasswordInput.value.trim().toLowerCase();
+  const shouldShow = emailValue === WAKE_DB_SECRET_EMAIL && passValue === WAKE_DB_SECRET_PASSWORD;
+  dbWakeupCard.classList.toggle("hidden", !shouldShow);
+}
+
+async function wakeSupabaseDatabase() {
+  if (!wakeDbBtn || !wakeDbStatus) return;
+  wakeDbBtn.disabled = true;
+  wakeDbStatus.textContent = "Estado: intentando despertar la base de datos...";
+
+  const maxIntentos = 4;
+  for (let intento = 1; intento <= maxIntentos; intento += 1) {
+    let error = null;
+    let errorDetail = "";
+    try {
+      const response = await fetch("/api/wake-supabase", { method: "POST" });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        error = new Error(payload?.error || `HTTP ${response.status}`);
+        errorDetail = payload?.detail || "";
+      }
+    } catch (requestError) {
+      error = requestError;
+    }
+
+    if (!error) {
+      wakeDbStatus.textContent = "Estado: base de datos activa y lista.";
+      showToast("Base de datos activa. Ya puedes iniciar sesión.", "success");
+      wakeDbBtn.disabled = false;
+      return;
+    }
+
+    if (intento < maxIntentos) {
+      wakeDbStatus.textContent = `Estado: activando... intento ${intento + 1} de ${maxIntentos}.`;
+      await new Promise((resolve) => setTimeout(resolve, 4500));
+    } else {
+      wakeDbStatus.textContent = `Estado: no se pudo confirmar activación. ${errorDetail || "Intenta de nuevo en unos segundos."}`;
+      showToast(`No se pudo reactivar la base de datos: ${error?.message || "Error desconocido"}`, "error");
+    }
+  }
+
+  wakeDbBtn.disabled = false;
+}
+
+if (wakeDbBtn) {
+  wakeDbBtn.addEventListener("click", wakeSupabaseDatabase);
+}
+if (loginEmailInput) loginEmailInput.addEventListener("input", updateWakeDbVisibilityFromSecret);
+if (loginPasswordInput) loginPasswordInput.addEventListener("input", updateWakeDbVisibilityFromSecret);
+
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   loginError.classList.add("hidden");
