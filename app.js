@@ -2,37 +2,76 @@
 function createUnavailableSupabaseClient(reason = "Supabase no disponible") {
   const rejected = async () => ({ data: null, error: { message: reason, code: "SUPABASE_UNAVAILABLE" } });
   const chain = {
-    select: rejected,
+    select: () => chain,
     insert: rejected,
-    update: rejected,
+    update: () => chain,
     upsert: rejected,
-    delete: rejected,
+    delete: () => chain,
     eq: () => chain,
     neq: () => chain,
+    in: () => chain,
+    is: () => chain,
+    not: () => chain,
+    like: () => chain,
     order: () => chain,
     limit: () => chain,
+    range: () => chain,
+    match: () => chain,
     maybeSingle: rejected,
     single: rejected,
+    then: (resolve) => resolve({ data: null, error: { message: reason, code: "SUPABASE_UNAVAILABLE" } }),
   };
+  chain.select = () => chain;
+  chain.update = () => chain;
+  chain.delete = () => chain;
+  chain.upsert = () => chain;
+  chain.insert = () => chain;
+  chain.rpc = () => chain;
+  chain.csv = () => chain;
+  chain.abortSignal = () => chain;
+  chain.overrideTypes = () => chain;
+  chain.returns = () => chain;
+  chain.throwOnError = () => chain;
+  chain.filter = () => chain;
+  chain.textSearch = () => chain;
+  chain.contains = () => chain;
+  chain.containedBy = () => chain;
+  chain.gt = () => chain;
+  chain.gte = () => chain;
+  chain.lt = () => chain;
+  chain.lte = () => chain;
+  chain.or = () => chain;
+  chain.explain = () => chain;
 
-  return {
+  const storageRejected = async () => ({ data: null, error: { message: reason, code: "SUPABASE_UNAVAILABLE" } });
+  const authRejected = async () => ({ data: null, error: { message: reason, code: "SUPABASE_UNAVAILABLE" } });
+  const noopUnsub = { data: { subscription: { unsubscribe() {} } } };
+
+  const unavailableClient = {
     from: () => chain,
+    rpc: () => chain,
     auth: {
-      signInWithPassword: rejected,
-      signUp: rejected,
-      signOut: rejected,
-      getSession: async () => ({ data: { session: null }, error: { message: reason } }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+      signInWithPassword: authRejected,
+      signUp: authRejected,
+      signOut: authRejected,
+      getSession: async () => ({ data: { session: null }, error: { message: reason, code: "SUPABASE_UNAVAILABLE" } }),
+      getUser: async () => ({ data: { user: null }, error: { message: reason, code: "SUPABASE_UNAVAILABLE" } }),
+      onAuthStateChange: () => noopUnsub,
     },
     storage: {
       from: () => ({
-        upload: rejected,
-        remove: rejected,
-        list: rejected,
+        upload: storageRejected,
+        remove: storageRejected,
+        list: storageRejected,
+        download: storageRejected,
+        createSignedUrl: storageRejected,
+        createSignedUrls: storageRejected,
         getPublicUrl: () => ({ data: { publicUrl: "" } }),
       }),
     },
   };
+
+  return unavailableClient;
 }
 
 async function loadSupabaseConfig() {
