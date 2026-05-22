@@ -18,20 +18,26 @@ export default async function handler(req, res) {
       headers: {
         apikey: supabaseAnonKey,
         Authorization: `Bearer ${supabaseAnonKey}`,
+        Accept: "application/json",
       },
     });
 
     if (!response.ok) {
       const text = await response.text();
-      return res.status(502).json({
+      return res.status(503).json({
         ok: false,
-        error: `Supabase not ready (${response.status})`,
+        error: `Supabase upstream error (${response.status})`,
+        upstreamStatus: response.status,
         detail: text.slice(0, 250),
       });
     }
 
     return res.status(200).json({ ok: true });
   } catch (error) {
-    return res.status(502).json({ ok: false, error: error?.message || "Wake request failed" });
+    return res.status(503).json({
+      ok: false,
+      error: error?.message || "Wake request failed",
+      detail: "No se pudo alcanzar Supabase desde la función serverless.",
+    });
   }
 }

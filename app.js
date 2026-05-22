@@ -865,11 +865,13 @@ async function wakeSupabaseDatabase() {
   const maxIntentos = 4;
   for (let intento = 1; intento <= maxIntentos; intento += 1) {
     let error = null;
+    let errorDetail = "";
     try {
       const response = await fetch("/api/wake-supabase", { method: "POST" });
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
         error = new Error(payload?.error || `HTTP ${response.status}`);
+        errorDetail = payload?.detail || "";
       }
     } catch (requestError) {
       error = requestError;
@@ -886,8 +888,8 @@ async function wakeSupabaseDatabase() {
       wakeDbStatus.textContent = `Estado: activando... intento ${intento + 1} de ${maxIntentos}.`;
       await new Promise((resolve) => setTimeout(resolve, 4500));
     } else {
-      wakeDbStatus.textContent = "Estado: no se pudo confirmar activación. Intenta de nuevo en unos segundos.";
-      showToast("No se pudo reactivar la base de datos todavía. Reintenta en unos segundos.", "error");
+      wakeDbStatus.textContent = `Estado: no se pudo confirmar activación. ${errorDetail || "Intenta de nuevo en unos segundos."}`;
+      showToast(`No se pudo reactivar la base de datos: ${error?.message || "Error desconocido"}`, "error");
     }
   }
 
