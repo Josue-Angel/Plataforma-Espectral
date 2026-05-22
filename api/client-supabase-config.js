@@ -6,5 +6,27 @@ export default async function handler(req, res) {
     return res.status(500).json({ ok: false, error: "Missing SUPABASE_URL or SUPABASE_ANON_KEY" });
   }
 
-  return res.status(200).json({ ok: true, url: supabaseUrl, anonKey: supabaseAnonKey });
+  let normalizedUrl;
+  try {
+    const parsed = new URL(supabaseUrl);
+    normalizedUrl = parsed.origin;
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: "SUPABASE_URL inválida en Vercel." });
+  }
+
+  try {
+    await fetch(`${normalizedUrl}/rest/v1/`, {
+      method: "GET",
+      headers: { apikey: supabaseAnonKey, Authorization: `Bearer ${supabaseAnonKey}` },
+    });
+  } catch (error) {
+    return res.status(503).json({
+      ok: false,
+      error: "No se pudo resolver/conectar al host de Supabase.",
+      detail: error?.message || "fetch failed",
+      url: normalizedUrl,
+    });
+  }
+
+  return res.status(200).json({ ok: true, url: normalizedUrl, anonKey: supabaseAnonKey });
 }

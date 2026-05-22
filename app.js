@@ -5,8 +5,13 @@ async function loadSupabaseConfig() {
   }
 
   const response = await fetch("/api/client-supabase-config");
-  if (!response.ok) throw new Error("No se pudo cargar la configuración de Supabase.");
-  const payload = await response.json();
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const serverError = payload?.error || "No se pudo cargar la configuración de Supabase.";
+    const detail = payload?.detail ? ` Detalle: ${payload.detail}` : "";
+    const urlHint = payload?.url ? ` URL recibida: ${payload.url}` : "";
+    throw new Error(`${serverError}${detail}${urlHint}`);
+  }
   if (!payload?.url || !payload?.anonKey) throw new Error("Configuración de Supabase incompleta.");
   return payload;
 }
