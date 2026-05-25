@@ -1,5 +1,113 @@
-(() => {
-const supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+(async () => {
+function createUnavailableSupabaseClient(reason = "Supabase no disponible") {
+  const rejected = async () => ({ data: null, error: { message: reason, code: "SUPABASE_UNAVAILABLE" } });
+  const chain = {
+    select: () => chain,
+    insert: rejected,
+    update: () => chain,
+    upsert: rejected,
+    delete: () => chain,
+    eq: () => chain,
+    neq: () => chain,
+    in: () => chain,
+    is: () => chain,
+    not: () => chain,
+    like: () => chain,
+    order: () => chain,
+    limit: () => chain,
+    range: () => chain,
+    match: () => chain,
+    maybeSingle: rejected,
+    single: rejected,
+    then: (resolve) => resolve({ data: null, error: { message: reason, code: "SUPABASE_UNAVAILABLE" } }),
+  };
+  chain.select = () => chain;
+  chain.update = () => chain;
+  chain.delete = () => chain;
+  chain.upsert = () => chain;
+  chain.insert = () => chain;
+  chain.rpc = () => chain;
+  chain.csv = () => chain;
+  chain.abortSignal = () => chain;
+  chain.overrideTypes = () => chain;
+  chain.returns = () => chain;
+  chain.throwOnError = () => chain;
+  chain.filter = () => chain;
+  chain.textSearch = () => chain;
+  chain.contains = () => chain;
+  chain.containedBy = () => chain;
+  chain.gt = () => chain;
+  chain.gte = () => chain;
+  chain.lt = () => chain;
+  chain.lte = () => chain;
+  chain.or = () => chain;
+  chain.explain = () => chain;
+
+  const storageRejected = async () => ({ data: null, error: { message: reason, code: "SUPABASE_UNAVAILABLE" } });
+  const authRejected = async () => ({ data: null, error: { message: reason, code: "SUPABASE_UNAVAILABLE" } });
+  const noopUnsub = { data: { subscription: { unsubscribe() {} } } };
+
+  const unavailableClient = {
+    from: () => chain,
+    rpc: () => chain,
+    auth: {
+      signInWithPassword: authRejected,
+      signUp: authRejected,
+      signOut: authRejected,
+      getSession: async () => ({ data: { session: null }, error: { message: reason, code: "SUPABASE_UNAVAILABLE" } }),
+      getUser: async () => ({ data: { user: null }, error: { message: reason, code: "SUPABASE_UNAVAILABLE" } }),
+      onAuthStateChange: () => noopUnsub,
+    },
+    storage: {
+      from: () => ({
+        upload: storageRejected,
+        remove: storageRejected,
+        list: storageRejected,
+        download: storageRejected,
+        createSignedUrl: storageRejected,
+        createSignedUrls: storageRejected,
+        getPublicUrl: () => ({ data: { publicUrl: "" } }),
+      }),
+    },
+  };
+
+  return unavailableClient;
+}
+
+async function loadSupabaseConfig() {
+  if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+    return { url: window.SUPABASE_URL, anonKey: window.SUPABASE_ANON_KEY };
+  }
+
+  const response = await fetch("/api/client-supabase-config");
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const serverError = payload?.error || "No se pudo cargar la configuración de Supabase.";
+    const detail = payload?.detail ? ` Detalle: ${payload.detail}` : "";
+    const urlHint = payload?.url ? ` URL recibida: ${payload.url}` : "";
+    throw new Error(`${serverError}${detail}${urlHint}`);
+  }
+  if (!payload?.url || !payload?.anonKey) throw new Error("Configuración de Supabase incompleta.");
+  if (payload?.wakeFallbackUrl) window.WAKE_FALLBACK_URL = payload.wakeFallbackUrl;
+  if (payload?.wakeFallbackToken) window.WAKE_FALLBACK_TOKEN = payload.wakeFallbackToken;
+  return payload;
+}
+
+let supabaseConfig;
+let supabaseAvailable = true;
+try {
+  supabaseConfig = await loadSupabaseConfig();
+  window.SUPABASE_URL = supabaseConfig.url;
+  window.SUPABASE_ANON_KEY = supabaseConfig.anonKey;
+} catch (configError) {
+  console.error("Error cargando configuración de Supabase:", configError);
+  supabaseAvailable = false;
+  console.warn("Supabase no está disponible; se mantiene solo la interfaz local.");
+}
+
+const supabaseClient = supabaseAvailable
+  ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
+  : createUnavailableSupabaseClient("No se pudo conectar a Supabase. Verifica SUPABASE_URL en Vercel.");
 
 const viewPermissions = {
   inicio: ["admin", "desarrollador", "voluntario"],
@@ -818,6 +926,114 @@ tabButtons.forEach((btn) => {
 
 const loginForm = document.getElementById("login-form");
 const loginError = document.getElementById("login-error");
+const loginEmailInput = document.getElementById("login-email");
+const loginPasswordInput = document.getElementById("login-password");
+const dbWakeupCard = document.getElementById("db-wakeup-card");
+const wakeDbBtn = document.getElementById("wake-db-btn");
+const wakeDbStatus = document.getElementById("wake-db-status");
+const WAKE_DB_SECRET_EMAIL = "base2026";
+const WAKE_DB_SECRET_PASSWORD = "despertar";
+let dbStatusIntervalId = null;
+
+async function refreshDatabaseStatusLabel() {
+  if (!wakeDbStatus) return;
+  wakeDbStatus.textContent = "Estado: verificando...";
+  try {
+    const response = await fetch("/api/wake-supabase", { method: "POST" });
+    if (response.ok) {
+      wakeDbStatus.textContent = "Estado: activa.";
+      return;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    const detail = String(payload?.detail || "").toLowerCase();
+    const pausedHint = detail.includes("1016") || detail.includes("530") || detail.includes("timeout");
+    wakeDbStatus.textContent = pausedHint
+      ? "Estado: en pausa (inaccesible)."
+      : "Estado: inestable (con errores de conexión).";
+  } catch (error) {
+    wakeDbStatus.textContent = "Estado: inestable (sin respuesta).";
+  }
+}
+
+function updateWakeDbVisibilityFromSecret() {
+  if (!dbWakeupCard || !loginEmailInput || !loginPasswordInput) return;
+  const emailValue = loginEmailInput.value.trim().toLowerCase();
+  const passValue = loginPasswordInput.value.trim().toLowerCase();
+  const shouldShow = emailValue === WAKE_DB_SECRET_EMAIL && passValue === WAKE_DB_SECRET_PASSWORD;
+  dbWakeupCard.classList.toggle("hidden", !shouldShow);
+
+  if (shouldShow) {
+    refreshDatabaseStatusLabel();
+    if (!dbStatusIntervalId) {
+      dbStatusIntervalId = setInterval(refreshDatabaseStatusLabel, 30000);
+    }
+  } else if (dbStatusIntervalId) {
+    clearInterval(dbStatusIntervalId);
+    dbStatusIntervalId = null;
+  }
+}
+
+async function wakeSupabaseDatabase() {
+  if (!wakeDbBtn || !wakeDbStatus) return;
+  if (!supabaseAvailable) {
+    wakeDbStatus.textContent = "Estado: configuración inválida en servidor (SUPABASE_URL).";
+  }
+  wakeDbBtn.disabled = true;
+  wakeDbStatus.textContent = "Estado: intentando despertar la base de datos...";
+
+  const maxIntentos = 4;
+  for (let intento = 1; intento <= maxIntentos; intento += 1) {
+    let error = null;
+    let errorDetail = "";
+    try {
+      let response = await fetch("/api/wake-supabase", { method: "POST" });
+      let payload = {};
+
+      if (!response.ok && window.WAKE_FALLBACK_URL) {
+        response = await fetch(window.WAKE_FALLBACK_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-wake-token": window.WAKE_FALLBACK_TOKEN || "",
+          },
+        });
+      }
+
+      if (!response.ok) {
+        payload = await response.json().catch(() => ({}));
+        error = new Error(payload?.error || `HTTP ${response.status}`);
+        errorDetail = payload?.detail || "";
+      }
+    } catch (requestError) {
+      error = requestError;
+    }
+
+    if (!error) {
+      wakeDbStatus.textContent = "Estado: base de datos activa y lista.";
+      showToast("Base de datos activa. Ya puedes iniciar sesión.", "success");
+      wakeDbBtn.disabled = false;
+      return;
+    }
+
+    if (intento < maxIntentos) {
+      wakeDbStatus.textContent = `Estado: activando... intento ${intento + 1} de ${maxIntentos}.`;
+      await new Promise((resolve) => setTimeout(resolve, 4500));
+    } else {
+      wakeDbStatus.textContent = `Estado: no se pudo confirmar activación. ${errorDetail || "Intenta de nuevo en unos segundos."}`;
+      showToast(`No se pudo reactivar la base de datos: ${error?.message || "Error desconocido"}`, "error");
+    }
+  }
+
+  wakeDbBtn.disabled = false;
+}
+
+if (wakeDbBtn) {
+  wakeDbBtn.addEventListener("click", wakeSupabaseDatabase);
+}
+if (loginEmailInput) loginEmailInput.addEventListener("input", updateWakeDbVisibilityFromSecret);
+if (loginPasswordInput) loginPasswordInput.addEventListener("input", updateWakeDbVisibilityFromSecret);
+
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   loginError.classList.add("hidden");
