@@ -933,6 +933,28 @@ const wakeDbBtn = document.getElementById("wake-db-btn");
 const wakeDbStatus = document.getElementById("wake-db-status");
 const WAKE_DB_SECRET_EMAIL = "base2026";
 const WAKE_DB_SECRET_PASSWORD = "despertar";
+let dbStatusIntervalId = null;
+
+async function refreshDatabaseStatusLabel() {
+  if (!wakeDbStatus) return;
+  wakeDbStatus.textContent = "Estado: verificando...";
+  try {
+    const response = await fetch("/api/wake-supabase", { method: "POST" });
+    if (response.ok) {
+      wakeDbStatus.textContent = "Estado: activa.";
+      return;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    const detail = String(payload?.detail || "").toLowerCase();
+    const pausedHint = detail.includes("1016") || detail.includes("530") || detail.includes("timeout");
+    wakeDbStatus.textContent = pausedHint
+      ? "Estado: en pausa (inaccesible)."
+      : "Estado: inestable (con errores de conexión).";
+  } catch (error) {
+    wakeDbStatus.textContent = "Estado: inestable (sin respuesta).";
+  }
+}
 
 function updateWakeDbVisibilityFromSecret() {
   if (!dbWakeupCard || !loginEmailInput || !loginPasswordInput) return;
@@ -940,6 +962,16 @@ function updateWakeDbVisibilityFromSecret() {
   const passValue = loginPasswordInput.value.trim().toLowerCase();
   const shouldShow = emailValue === WAKE_DB_SECRET_EMAIL && passValue === WAKE_DB_SECRET_PASSWORD;
   dbWakeupCard.classList.toggle("hidden", !shouldShow);
+
+  if (shouldShow) {
+    refreshDatabaseStatusLabel();
+    if (!dbStatusIntervalId) {
+      dbStatusIntervalId = setInterval(refreshDatabaseStatusLabel, 30000);
+    }
+  } else if (dbStatusIntervalId) {
+    clearInterval(dbStatusIntervalId);
+    dbStatusIntervalId = null;
+  }
 }
 
 async function wakeSupabaseDatabase() {
