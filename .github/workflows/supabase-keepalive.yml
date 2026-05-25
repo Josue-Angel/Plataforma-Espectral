@@ -1,0 +1,44 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Cada 23 horas para evitar auto-pausa prolongada.
+    - cron: '0 */23 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar endpoint wake local
+        id: wake_local
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          STATUS=$(curl -sS -o /tmp/local_wake_body.json -w "%{http_code}" -X POST "${WAKE_LOCAL_URL}")
+          echo "local_status=${STATUS}" >> "$GITHUB_OUTPUT"
+          echo "Local status: ${STATUS}"
+          cat /tmp/local_wake_body.json || true
+        env:
+          WAKE_LOCAL_URL: ${{ secrets.WAKE_LOCAL_URL }}
+
+      - name: Llamar fallback externo si local falla
+        if: steps.wake_local.outputs.local_status != '200'
+        run: |
+          set -euo pipefail
+          STATUS=$(curl -sS -o /tmp/fallback_wake_body.json -w "%{http_code}" -X POST "${WAKE_FALLBACK_URL}" \
+            -H "x-wake-token: ${WAKE_FALLBACK_TOKEN}" \
+            -H "content-type: application/json")
+          echo "Fallback status: ${STATUS}"
+          cat /tmp/fallback_wake_body.json || true
+          if [ "${STATUS}" != "200" ]; then
+            echo "Keep-alive falló en local y fallback" >&2
+            exit 1
+          fi
+        env:
+          WAKE_FALLBACK_URL: ${{ secrets.WAKE_FALLBACK_URL }}
+          WAKE_FALLBACK_TOKEN: ${{ secrets.WAKE_FALLBACK_TOKEN }}
+
+      - name: Confirmar éxito local
+        if: steps.wake_local.outputs.local_status == '200'
+        run: echo "Keep-alive OK vía endpoint local"
