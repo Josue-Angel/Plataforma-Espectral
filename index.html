@@ -62,6 +62,12 @@
               <button type="submit" class="btn btn-primary full-width">Entrar</button>
               <p id="login-error" class="error-msg small hidden"></p>
             </form>
+            <div id="db-wakeup-card" class="card clean-card db-wakeup-card hidden">
+              <h3>¿La base de datos está pausada?</h3>
+              <p class="small muted">Si el acceso falla por inactividad, usa este botón para intentar reactivarla y vuelve a iniciar sesión.</p>
+              <button type="button" id="wake-db-btn" class="btn btn-outline full-width">Despertar base de datos</button>
+              <p id="wake-db-status" class="small muted" aria-live="polite">Estado: sin verificar.</p>
+            </div>
             <div class="volunteer-cta">
               <h3>¿Quieres ser voluntario?</h3>
               <p>Participa voluntariamente en nuestra investigación científica.</p>
@@ -857,13 +863,16 @@
   <!-- Supabase + app -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // REEMPLAZA con los datos de tu proyecto
-    window.SUPABASE_URL = 'https://bwszeozmxzwuajrywqns.supabase.co';
-    window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3c3plb3pteHp3dWFqcnl3cW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyODU2ODAsImV4cCI6MjA3OTg2MTY4MH0.XAj13G3Bwl3iy7gfnVyHddA6LMH4Yc9dnx9Im6Dx8xI';
+    // Configuración cargada desde /api/client-supabase-config (Vercel env vars).
+    window.SUPABASE_URL = window.SUPABASE_URL || '';
+    window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
     // Configuración para envío de correos con Gmail + App Password (desde función Edge en Supabase).
     window.GMAIL_USER = window.GMAIL_USER || '';
     window.GMAIL_APP_PASSWORD = window.GMAIL_APP_PASSWORD || '';
     window.SUPABASE_EMAIL_FUNCTION = window.SUPABASE_EMAIL_FUNCTION || 'send-email';
+    // Fallback de wake-up externo (Cloudflare Worker).
+    window.WAKE_FALLBACK_URL = window.WAKE_FALLBACK_URL || 'https://plataforma-espectral-wake-worker.2330239.workers.dev';
+    window.WAKE_FALLBACK_TOKEN = window.WAKE_FALLBACK_TOKEN || 'despertar_2026_plataformaespectral';
   </script>
   <script src="app.js"></script>
 </body>
