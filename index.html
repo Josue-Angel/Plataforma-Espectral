@@ -63,10 +63,15 @@
               <p id="login-error" class="error-msg small hidden"></p>
             </form>
             <div id="db-wakeup-card" class="card clean-card db-wakeup-card hidden">
-              <h3>¿La base de datos está pausada?</h3>
-              <p class="small muted">Si el acceso falla por inactividad, usa este botón para intentar reactivarla y vuelve a iniciar sesión.</p>
-              <button type="button" id="wake-db-btn" class="btn btn-outline full-width">Despertar base de datos</button>
-              <p id="wake-db-status" class="small muted" aria-live="polite">Estado: sin verificar.</p>
+              <h3>Estado de la base de datos</h3>
+              <p class="small muted">
+                La base de datos se mantiene activa con una consulta automática cada 23 horas.
+                Si detectas que el acceso no funciona, contacta a un desarrollador para validación operativa.
+              </p>
+              <p class="small muted">
+                Nota: cuando un proyecto de Supabase entra en pausa profunda, puede requerir reactivación manual desde el panel de Supabase.
+              </p>
+              <p id="wake-db-status" class="small muted" aria-live="polite">Estado: monitoreo automático habilitado.</p>
             </div>
             <div class="volunteer-cta">
               <h3>¿Quieres ser voluntario?</h3>
