@@ -88,6 +88,8 @@ async function loadSupabaseConfig() {
     throw new Error(`${serverError}${detail}${urlHint}`);
   }
   if (!payload?.url || !payload?.anonKey) throw new Error("Configuración de Supabase incompleta.");
+  if (payload?.wakeFallbackUrl) window.WAKE_FALLBACK_URL = payload.wakeFallbackUrl;
+  if (payload?.wakeFallbackToken) window.WAKE_FALLBACK_TOKEN = payload.wakeFallbackToken;
   return payload;
 }
 
@@ -953,9 +955,21 @@ async function wakeSupabaseDatabase() {
     let error = null;
     let errorDetail = "";
     try {
-      const response = await fetch("/api/wake-supabase", { method: "POST" });
+      let response = await fetch("/api/wake-supabase", { method: "POST" });
+      let payload = {};
+
+      if (!response.ok && window.WAKE_FALLBACK_URL) {
+        response = await fetch(window.WAKE_FALLBACK_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-wake-token": window.WAKE_FALLBACK_TOKEN || "",
+          },
+        });
+      }
+
       if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
+        payload = await response.json().catch(() => ({}));
         error = new Error(payload?.error || `HTTP ${response.status}`);
         errorDetail = payload?.detail || "";
       }

@@ -870,6 +870,9 @@
     window.GMAIL_USER = window.GMAIL_USER || '';
     window.GMAIL_APP_PASSWORD = window.GMAIL_APP_PASSWORD || '';
     window.SUPABASE_EMAIL_FUNCTION = window.SUPABASE_EMAIL_FUNCTION || 'send-email';
+    // Fallback de wake-up externo (Cloudflare Worker).
+    window.WAKE_FALLBACK_URL = window.WAKE_FALLBACK_URL || 'https://plataforma-espectral-wake-worker.2330239.workers.dev';
+    window.WAKE_FALLBACK_TOKEN = window.WAKE_FALLBACK_TOKEN || 'despertar_2026_plataformaespectral';
   </script>
   <script src="app.js"></script>
 </body>

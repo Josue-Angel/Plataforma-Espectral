@@ -1,6 +1,8 @@
 export default async function handler(req, res) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+  const wakeFallbackUrl = process.env.WAKE_FALLBACK_URL || "";
+  const wakeFallbackToken = process.env.WAKE_FALLBACK_TOKEN || "";
 
   if (!supabaseUrl || !supabaseAnonKey) {
     return res.status(500).json({ ok: false, error: "Missing SUPABASE_URL or SUPABASE_ANON_KEY" });
@@ -28,5 +30,11 @@ export default async function handler(req, res) {
     });
   }
 
-  return res.status(200).json({ ok: true, url: normalizedUrl, anonKey: supabaseAnonKey });
+  return res.status(200).json({
+    ok: true,
+    url: normalizedUrl,
+    anonKey: supabaseAnonKey,
+    wakeFallbackUrl,
+    wakeFallbackToken,
+  });
 }
