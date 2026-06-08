@@ -224,6 +224,10 @@ function canManageAsAdmin() {
   return currentRole === "admin" || currentRole === "desarrollador";
 }
 
+function isDeveloperRole() {
+  return currentRole === "desarrollador";
+}
+
 function escapeHtml(value = "") {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -428,7 +432,7 @@ async function hasVolunteerCompletedForm() {
   return Boolean(ultimo?.id);
 }
 
-async function sendEmailNotification({ to, subject, html, fototipo, recomendacion, nombre }) {
+async function sendEmailNotification({ to, subject, html, text, fototipo, recomendacion, nombre, attachments = [] }) {
   const normalizedTo = String(to || "").trim();
   const fnName = window.SUPABASE_EMAIL_FUNCTION || "send-email";
 
@@ -438,7 +442,9 @@ async function sendEmailNotification({ to, subject, html, fototipo, recomendacio
         to: normalizedTo,
         subject,
         html,
+        text,
         from: FROM_EMAIL,
+        attachments,
         nombre,
         fototipo,
         recomendacion,
@@ -1406,6 +1412,7 @@ logoutBtn.addEventListener("click", async () => {
   if (listaAlertasAdmin) listaAlertasAdmin.innerHTML = "";
   if (developerUserManagement) developerUserManagement.classList.add("hidden");
   usersAdminCache = [];
+  updateDeveloperFormNavigationState();
   updateNavForRole(null);
   setAuthTab("login-panel");
   showView(GUEST_LANDING_VIEW);
@@ -1421,19 +1428,7 @@ function renderReadOnlyFormResult(fototipo) {
     <h3>Formulario ya completado</h3>
     <p>Ya has realizado este formulario en tu cuenta.</p>
     <p><strong>Tu Fototipo de Piel es:</strong> ${fototipo || "No disponible"}</p>
-    <p id="resumenRecomendacionCuenta" class="muted"></p>
   `;
-
-  const recomendaciones = {
-    I: "Protección SPF 50+, evita exposición directa y usa barreras físicas.",
-    II: "Protección alta diaria con reaplicación frecuente.",
-    III: "SPF 30-50 y protección especial en horas de mayor radiación.",
-    IV: "SPF 30 y seguimiento preventivo continuo.",
-    "V y VI": "SPF 15-30 para prevenir daño acumulado y fotoenvejecimiento.",
-  };
-
-  const recEl = document.getElementById("resumenRecomendacionCuenta");
-  if (recEl) recEl.textContent = recomendaciones[fototipo] || "Mantén hábitos de protección solar adecuados.";
 
   statusCard.classList.remove("hidden");
   statusCard.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1545,6 +1540,7 @@ async function initSession(user) {
   currentUserId = user.id;
   currentUserEmail = user.email || null;
   currentProfile = perfil || null;
+  updateDeveloperFormNavigationState();
   if (normalizeUserStatus(perfil?.estado_acceso) === "suspendido" && currentRole !== "desarrollador") {
     await supabaseClient.auth.signOut();
     isLoggedIn = false;
@@ -2082,6 +2078,8 @@ function getSelectedValue(name) {
 }
 
 function validateCurrentStep(targetStep) {
+  if (isDeveloperRole()) return true;
+
   if (targetStep === 1) {
     const nombre = document.getElementById("nombreConsentimiento").value.trim();
     const aceptaPrimario = document.getElementById("aceptaConsentimiento").checked;
@@ -2209,12 +2207,42 @@ function setActiveFormStepById(stepId) {
   });
 }
 
+function updateDeveloperFormNavigationState() {
+  document.body.classList.toggle("dev-form-free-nav", isDeveloperRole());
+  const formProgress = document.querySelector(".form-progress");
+  if (!formProgress) return;
+  let note = document.getElementById("dev-form-free-nav-note");
+  if (isDeveloperRole()) {
+    if (!note) {
+      note = document.createElement("p");
+      note.id = "dev-form-free-nav-note";
+      note.className = "dev-only-form-note small";
+      note.textContent = "Modo desarrollador: puedes entrar a cualquier sección desde los pasos superiores sin validar campos. El envío final pedirá confirmación.";
+      formProgress.appendChild(note);
+    }
+  } else if (note) {
+    note.remove();
+  }
+}
+
 function nextStep(stepNumber) {
   if (!validateCurrentStep(stepNumber)) return;
 
   const nextId = `step${stepNumber}`;
   setActiveFormStepById(nextId);
 }
+
+function goToFormStepForDeveloper(stepId) {
+  if (!isDeveloperRole()) return;
+  setActiveFormStepById(stepId);
+}
+
+document.querySelectorAll(".progress-step").forEach((step) => {
+  step.addEventListener("click", () => {
+    const targetId = FORM_ORDER[Number(step.dataset.stepIndex || 0)];
+    if (targetId) goToFormStepForDeveloper(targetId);
+  });
+});
 window.nextStep = nextStep;
 
 function prevStep() {
@@ -2248,11 +2276,9 @@ function calcularFototipo(total) {
 
 function llenarInfoFototipo(tipo) {
   const desc = document.getElementById("descripcionFototipo");
-  const rec = document.getElementById("recomendacionFototipo");
   const info = getFototipoDetails(tipo);
 
-  desc.textContent = info.descripcion;
-  rec.textContent = info.recomendacion;
+  if (desc) desc.textContent = info.descripcion;
 }
 
 function mostrarResultadoBonito(tipo) {
@@ -2277,6 +2303,11 @@ async function guardarVoluntario() {
       await syncFormAccessForCurrentAccount();
       return;
     }
+  }
+
+  if (isDeveloperRole()) {
+    const confirmed = window.confirm("Perfil desarrollador: puedes navegar sin completar validaciones. ¿Confirmas que completaste lo necesario y deseas enviar este formulario?");
+    if (!confirmed) return;
   }
 
   if (!validateCurrentStep(4)) return;
@@ -2352,6 +2383,123 @@ async function guardarVoluntario() {
   }
 }
 window.guardarVoluntario = guardarVoluntario;
+
+
+function buildDashboardEmailHtml({ subject, content }) {
+  const safeSubject = escapeHtml(subject || "Comunicado Proyecto Espectral");
+  const safeContent = escapeHtml(content || "").replace(/\n/g, "<br>");
+  return `
+    <div style="margin:0;padding:24px;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#0f172a">
+      <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #dbe3ee;border-radius:16px;overflow:hidden">
+        <div style="padding:22px 26px;background:#0f3b66;color:#ffffff">
+          <h1 style="margin:0;font-size:22px;line-height:1.25">Proyecto Espectral</h1>
+          <p style="margin:6px 0 0;font-size:13px;opacity:.9">Laboratorio de Óptica Biomédica UPT</p>
+        </div>
+        <div style="padding:26px">
+          <h2 style="margin:0 0 16px;color:#0f172a;font-size:20px">${safeSubject}</h2>
+          <div style="font-size:15px;line-height:1.65;color:#1f2937">${safeContent}</div>
+          <p style="margin-top:24px;color:#64748b;font-size:12px">Este mensaje fue enviado desde el Dashboard de Proyecto Espectral.</p>
+        </div>
+      </div>
+    </div>`;
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result || "");
+      resolve(result.includes(",") ? result.split(",").pop() : result);
+    };
+    reader.onerror = () => reject(reader.error || new Error("No se pudo leer el archivo."));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function collectDashboardEmailAttachments() {
+  const input = document.getElementById("dashboard-email-attachments");
+  const files = Array.from(input?.files || []);
+  const maxTotalBytes = 8 * 1024 * 1024;
+  const totalBytes = files.reduce((acc, file) => acc + file.size, 0);
+  if (totalBytes > maxTotalBytes) {
+    throw new Error("Los adjuntos superan 8 MB en total. Reduce el tamaño antes de enviar.");
+  }
+
+  return Promise.all(files.map(async (file) => ({
+    filename: file.name,
+    contentType: file.type || "application/octet-stream",
+    content: await readFileAsBase64(file),
+    encoding: "base64",
+  })));
+}
+
+async function sendDashboardEmail({ testMode = false } = {}) {
+  if (!canManageAsAdmin()) {
+    showToast("No tienes permisos para enviar correos desde el Dashboard.", "error");
+    return;
+  }
+
+  const toInput = document.getElementById("dashboard-email-to");
+  const subjectInput = document.getElementById("dashboard-email-subject");
+  const contentInput = document.getElementById("dashboard-email-content");
+  const status = document.getElementById("dashboard-email-status");
+  const to = testMode ? String(currentUserEmail || "").trim() : String(toInput?.value || "").trim();
+  const subject = testMode ? "Prueba de correo - Proyecto Espectral" : String(subjectInput?.value || "").trim();
+  const content = testMode
+    ? "Este es un correo de prueba enviado desde el Dashboard para verificar que la Edge Function de Supabase sigue funcionando correctamente."
+    : String(contentInput?.value || "").trim();
+
+  if (!validarCorreo(to)) {
+    showToast(testMode ? "Tu usuario no tiene un correo válido para la prueba." : "Captura un correo destinatario válido.", "error");
+    return;
+  }
+  if (!subject || !content) {
+    showToast("Completa el asunto y el contenido antes de enviar.", "error");
+    return;
+  }
+
+  if (status) {
+    status.classList.remove("hidden");
+    status.textContent = "Preparando envío...";
+  }
+
+  try {
+    const attachments = testMode ? [] : await collectDashboardEmailAttachments();
+    const sent = await sendEmailNotification({
+      to,
+      subject,
+      html: buildDashboardEmailHtml({ subject, content }),
+      text: content,
+      nombre: currentUserName || "Proyecto Espectral",
+      attachments,
+    });
+
+    if (sent?.error || sent?.skipped) {
+      throw sent?.error || new Error("La Edge Function no está configurada o no respondió correctamente.");
+    }
+
+    if (status) status.textContent = `Correo enviado correctamente a ${to}.`;
+    showToast("Correo enviado correctamente.", "success");
+    if (!testMode) document.getElementById("dashboard-email-form")?.reset();
+  } catch (error) {
+    console.error("Error al enviar correo desde Dashboard:", error);
+    if (status) status.textContent = error.message || "No se pudo enviar el correo.";
+    showToast(error.message || "No se pudo enviar el correo.", "error");
+  }
+}
+
+const dashboardEmailForm = document.getElementById("dashboard-email-form");
+if (dashboardEmailForm) {
+  dashboardEmailForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await sendDashboardEmail();
+  });
+}
+
+const btnEmailTest = document.getElementById("btn-email-test");
+if (btnEmailTest) {
+  btnEmailTest.addEventListener("click", () => sendDashboardEmail({ testMode: true }));
+}
 
 // Dashboard
 const statTotal = document.getElementById("stat-total");
