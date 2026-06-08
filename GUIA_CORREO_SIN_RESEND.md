@@ -53,3 +53,26 @@ const html = body.html ?? `<p><b>Tu Fototipo de Piel es:</b> ${fototipo}</p><p>$
 Si quieres que se use el diseño moderno de tu función Edge para el correo de fototipo, **no envíes `html` desde el frontend** en ese caso.
 - `customHtml` solo debería usarse para correos administrativos u otros casos especiales.
 - Para fototipo, envía `to`, `nombre`, `fototipo`, `recomendacion` (y opcionalmente `subject`) y deja que Edge construya `finalHtml`.
+
+
+## 5) Herramienta de correo en Dashboard
+El Dashboard incluye un formulario para usuarios `admin` y `desarrollador` que permite:
+- Enviar una prueba a su propio correo para validar que la Edge Function sigue activa.
+- Enviar correos formales con asunto, contenido y adjuntos.
+- Adjuntar imágenes o documentos; el frontend los envía a la función como Base64 en `attachments`.
+
+La función Edge lista para copiar está en `supabase/functions/send-email/index.ts`. Para desplegarla:
+
+```bash
+supabase functions deploy send-email
+supabase secrets set GMAIL_USER="tu_correo@gmail.com" GMAIL_APP_PASSWORD="tu_app_password"
+```
+
+Si cambias el nombre de la función, actualiza en `index.html`:
+
+```html
+window.SUPABASE_EMAIL_FUNCTION = 'send-email';
+```
+
+## 6) Cambiar el documento de confidencialidad / consentimiento
+El PDF que se abre al inicio del formulario vive en la raíz del proyecto como `consentimiento-informado.pdf` y se referencia desde `index.html` con `./consentimiento-informado.pdf`. Para reemplazarlo, sube un PDF nuevo con el mismo nombre o cambia el `href` del enlace si quieres usar otro archivo.
