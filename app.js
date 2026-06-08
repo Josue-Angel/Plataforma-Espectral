@@ -445,6 +445,7 @@ async function sendEmailNotification({ to, subject, html, text, fototipo, recome
         text,
         from: FROM_EMAIL,
         attachments,
+        ...getEmailThemePayload(),
         nombre,
         fototipo,
         recomendacion,
@@ -527,7 +528,6 @@ async function notifyVolunteerFototipo({ email, nombre, fototipo }) {
   const sent = await sendEmailNotification({
     to: normalizedEmail,
     subject: "🔬 Resultado de tu Fototipo de Piel",
-    html: buildFototipoEmailHtml({ nombre: safeName, fototipo, recomendacion: details.recomendacion }),
     fototipo,
     recomendacion: details.recomendacion,
     nombre: safeName,
@@ -691,6 +691,37 @@ function buildFototipoEmailHtml({ nombre, fototipo, recomendacion }) {
     .replaceAll("{{nombre}}", escapeHtml(nombre || "Voluntario"))
     .replaceAll("{{fototipo}}", escapeHtml(fototipo || "No disponible"))
     .replaceAll("{{recomendacion}}", escapeHtml(recomendacion || ""));
+}
+
+function getCurrentEmailTheme() {
+  const settings = readDevSettings();
+  const theme = THEME_MAP[settings.color] || THEME_MAP.azul;
+  return {
+    colorName: settings.color || "azul",
+    primary: theme.primary,
+    accent: theme.accent,
+    dark: theme.dark || theme.primary,
+    bg: theme.bg,
+    soft: theme.soft,
+    text: theme.text,
+    muted: theme.muted,
+    line: theme.line,
+  };
+}
+
+function getEmailThemePayload() {
+  const theme = getCurrentEmailTheme();
+  return {
+    themeColorName: theme.colorName,
+    themePrimary: theme.primary,
+    themeAccent: theme.accent,
+    themeDark: theme.dark,
+    themeBg: theme.bg,
+    themeSoft: theme.soft,
+    themeText: theme.text,
+    themeMuted: theme.muted,
+    themeLine: theme.line,
+  };
 }
 
 async function requestGlobalChangeConfirmation(message) {
@@ -2386,19 +2417,23 @@ window.guardarVoluntario = guardarVoluntario;
 
 
 function buildDashboardEmailHtml({ subject, content }) {
+  const theme = getCurrentEmailTheme();
   const safeSubject = escapeHtml(subject || "Comunicado Proyecto Espectral");
   const safeContent = escapeHtml(content || "").replace(/\n/g, "<br>");
   return `
-    <div style="margin:0;padding:24px;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#0f172a">
-      <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #dbe3ee;border-radius:16px;overflow:hidden">
-        <div style="padding:22px 26px;background:#0f3b66;color:#ffffff">
-          <h1 style="margin:0;font-size:22px;line-height:1.25">Proyecto Espectral</h1>
-          <p style="margin:6px 0 0;font-size:13px;opacity:.9">Laboratorio de Óptica Biomédica UPT</p>
+    <div style="background-color: ${theme.bg}; padding: 40px 10px; font-family: sans-serif;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid ${theme.line};">
+        <div style="background-color: ${theme.dark}; padding: 20px; color: white; font-weight: bold; font-size: 20px;">
+          Proyecto Espectral
         </div>
-        <div style="padding:26px">
-          <h2 style="margin:0 0 16px;color:#0f172a;font-size:20px">${safeSubject}</h2>
-          <div style="font-size:15px;line-height:1.65;color:#1f2937">${safeContent}</div>
-          <p style="margin-top:24px;color:#64748b;font-size:12px">Este mensaje fue enviado desde el Dashboard de Proyecto Espectral.</p>
+        <div style="padding: 40px 30px; line-height: 1.6;">
+          <h1 style="color: #1a202c; font-size: 22px; margin-top: 0;">${safeSubject}</h1>
+          <div style="background-color: ${theme.soft}; border-left: 5px solid ${theme.accent}; padding: 20px; border-radius: 8px; margin: 20px 0; color: #4a5568; font-size: 15px;">
+            ${safeContent}
+          </div>
+          <p style="font-size: 12px; color: #a0aec0; border-top: 1px solid #edf2f7; padding-top: 20px;">
+            Laboratorio de Óptica Biomédica UPT
+          </p>
         </div>
       </div>
     </div>`;

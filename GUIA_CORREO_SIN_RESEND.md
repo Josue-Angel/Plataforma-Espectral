@@ -22,8 +22,9 @@ window.SUPABASE_EMAIL_FUNCTION = 'send-email';
 La función `send-email` debe leer `GMAIL_USER` y `GMAIL_APP_PASSWORD` como secretos y enviar correo con Nodemailer.
 
 Ejemplo recomendado para tu `send-email`:
-- Leer del body: `to`, `fototipo`, `recomendacion`, `nombre` (opcional `subject` y `html`).
-- Si llega `html`, usarlo directamente. Si no llega, construir HTML con `fototipo` y `recomendacion`.
+- Leer del body: `to`, `fototipo`, `recomendacion`, `nombre` (opcional `subject`, `html`, `attachments` y colores `themeDark`, `themeAccent`, `themeBg`, `themeSoft`, `themeLine`).
+- Si llega `html`, usarlo directamente. Si no llega, construir HTML con `fototipo` y `recomendacion` usando la plantilla moderna.
+- Usar los colores `theme*` para que el correo respete la paleta activa elegida desde el perfil Dev.
 
 Flujo que cubre la app:
 - Registro de voluntario -> correo al admin.
@@ -60,8 +61,9 @@ El Dashboard incluye un formulario para usuarios `admin` y `desarrollador` que p
 - Enviar una prueba a su propio correo para validar que la Edge Function sigue activa.
 - Enviar correos formales con asunto, contenido y adjuntos.
 - Adjuntar imágenes o documentos; el frontend los envía a la función como Base64 en `attachments`.
+- Respetar la paleta visual activa del sitio: si Dev cambia a Morado, Verde, Vino, etc., el encabezado y acentos del correo usan esa misma paleta.
 
-La función Edge lista para copiar está en `supabase/functions/send-email/index.ts`. Para desplegarla:
+La función Edge lista para copiar está en `supabase/functions/send-email/index.ts`. Conserva la estructura visual de tu plantilla moderna y solo agrega soporte para colores dinámicos y adjuntos. Para desplegarla:
 
 ```bash
 supabase functions deploy send-email
