@@ -405,8 +405,6 @@
           </div>
         </div>
 
-        <p class="step-tip">Recomendación: usa un correo que revises con frecuencia y ten a la mano tus datos para completar el registro sin prisas.</p>
-
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
           <button type="button" class="btn btn-primary btn-next-step" onclick="nextStep(2)">Continuar</button>
@@ -445,8 +443,6 @@
         <label class="option-card"><input type="radio" name="pecas" value="2"> Pocas</label>
         <label class="option-card"><input type="radio" name="pecas" value="3"> Algunas</label>
         <label class="option-card"><input type="radio" name="pecas" value="4"> Ninguna</label>
-
-        <p class="step-tip">Recomendación: para el día a día, lava tu rostro con un jabón suave y aplica protector solar antes de salir, incluso si está nublado.</p>
 
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
@@ -487,8 +483,6 @@
         <label class="option-card"><input type="radio" name="rostro" value="3"> Muy resistente</label>
         <label class="option-card"><input type="radio" name="rostro" value="4"> Nunca tuve problema</label>
 
-        <p class="step-tip">Recomendación: si pasarás tiempo afuera, lleva protector en tu mochila y reaplícalo cada 2-3 horas; una gorra también ayuda mucho.</p>
-
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
           <button type="button" class="btn btn-primary btn-next-step" onclick="nextStep(4)">Continuar</button>
@@ -514,7 +508,6 @@
         <label class="option-card"><input type="radio" name="regular" value="3"> Frecuentemente</label>
         <label class="option-card"><input type="radio" name="regular" value="4"> Siempre</label>
 
-        <p class="step-tip">Recomendación final: toma agua, duerme bien, hidrata tu piel después del baño y consulta a un profesional si notas cambios en manchas o lunares.</p>
 
         <div class="step-actions">
           <button type="button" class="btn btn-outline btn-prev-step" onclick="prevStep()">Regresar</button>
@@ -527,10 +520,6 @@
     <h2>Resultado de tu Análisis</h2>
     <h3 id="tipoFototipo"></h3>
     <p id="descripcionFototipo"></p>
-    <div class="recomendacion-box">
-      <h4>Recomendación Espectral</h4>
-      <p id="recomendacionFototipo"></p>
-    </div>
   </div>
 </div>
     </form>
@@ -707,6 +696,35 @@
         </div>
         <p class="muted small">Avisos automáticos cuando se registra un nuevo voluntario.</p>
         <ul id="lista-alertas-admin" class="admin-alert-list"></ul>
+      </div>
+
+      <div class="card dashboard-email-card" id="dashboard-email-tools">
+        <div class="admin-alert-header">
+          <div>
+            <h3>Envío de correo institucional</h3>
+            <p class="muted small">Disponible para administradores y desarrolladores. Usa la Edge Function de Supabase configurada en <code>window.SUPABASE_EMAIL_FUNCTION</code>.</p>
+          </div>
+          <button type="button" class="btn btn-outline btn-small" id="btn-email-test">Enviar prueba a mi correo</button>
+        </div>
+        <form id="dashboard-email-form" class="form dashboard-email-form">
+          <div class="grid-two">
+            <label>Correo destinatario
+              <input type="email" id="dashboard-email-to" placeholder="persona@empresa.com" required />
+            </label>
+            <label>Encabezado / asunto
+              <input type="text" id="dashboard-email-subject" placeholder="Confirmación de cita para mediciones" required />
+            </label>
+          </div>
+          <label>Contenido del correo
+            <textarea id="dashboard-email-content" rows="7" placeholder="Escribe el mensaje formal que recibirá la persona..." required></textarea>
+          </label>
+          <label>Imágenes o documentos adjuntos (opcional)
+            <input type="file" id="dashboard-email-attachments" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.ppt,.pptx" />
+          </label>
+          <p class="muted small">El correo se envía con un formato formal de Proyecto Espectral. Los adjuntos se convierten a Base64 y se entregan a la Edge Function.</p>
+          <button type="submit" class="btn btn-primary">Enviar correo</button>
+          <p id="dashboard-email-status" class="muted small hidden"></p>
+        </form>
       </div>
 
       <div class="stats-grid">
