@@ -326,3 +326,97 @@ body[data-ui-variant="informativo"] .title-icon{border-radius:6px}
 .consent-confirmation-panel{margin-top:1rem;padding-top:.25rem}
 
 body.session-restoring .header,body.session-restoring .main,body.session-restoring .footer{opacity:0;pointer-events:none}
+
+/* Refinamiento visual de formularios: campos limpios, compactos y consistentes */
+.form label,
+.step label,
+.dashboard-email-form label{
+  font-size:.92rem;
+  font-weight:700;
+  color:#24324a;
+  letter-spacing:-.01em;
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea{
+  width:100%;
+  min-height:46px;
+  border:1px solid #dfe4ec;
+  border-radius:10px;
+  background:#fff;
+  color:#24324a;
+  font-size:.98rem;
+  padding:.78rem .95rem;
+  box-shadow:0 1px 0 rgba(15,23,42,.02);
+  transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):hover,
+select:hover,
+textarea:hover{border-color:#c7d0df;background:#fbfcff}
+
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
+textarea:focus{
+  outline:none;
+  border-color:#7c5cc4;
+  background:#fff;
+  box-shadow:0 0 0 4px rgba(99,68,169,.12);
+}
+
+input::placeholder,
+textarea::placeholder{color:#94a3b8}
+
+input[type="file"]{
+  min-height:112px;
+  padding:1rem;
+  border:1.5px dashed #cbd5e1;
+  background:linear-gradient(180deg,#fbfdff,#f8fafc);
+  cursor:pointer;
+  color:#64748b;
+}
+
+input[type="file"]:hover{
+  border-color:#7c5cc4;
+  background:#f7f3ff;
+}
+
+input[type="file"]::file-selector-button{
+  margin-right:.8rem;
+  border:0;
+  border-radius:999px;
+  background:#ede9fe;
+  color:#5b3aa8;
+  font-weight:800;
+  padding:.65rem .95rem;
+  cursor:pointer;
+}
+
+input[type="file"]::file-selector-button:hover{background:#ddd6fe}
+
+.modal-content{
+  border-radius:18px;
+  padding:1.35rem 1.45rem;
+  border-color:#e6ebf3;
+}
+
+.modal-content h3,
+.dashboard-email-card h3{letter-spacing:-.02em}
+
+#form-articulo,
+.dashboard-email-form{gap:1.05rem}
+
+#form-articulo .grid-three{grid-template-columns:minmax(160px,.85fr) minmax(120px,.55fr) minmax(260px,1.6fr)}
+
+.dashboard-email-card{
+  border-color:#e6ebf3;
+  box-shadow:0 8px 24px rgba(15,23,42,.04);
+}
+
+.dashboard-email-form textarea{min-height:180px;line-height:1.5}
+
+@media (max-width:760px){
+  #form-articulo .grid-three{grid-template-columns:1fr}
+  input[type="file"]{min-height:92px}
+}
