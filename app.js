@@ -308,6 +308,13 @@ function isMissingRelationError(error, tableName) {
   return String(error.message || "").includes(`'public.${tableName}'`);
 }
 
+function isMissingResourceError(error) {
+  if (!error) return false;
+  const code = String(error.code || "");
+  const message = String(error.message || "").toLowerCase();
+  return code === "PGRST205" || code === "404" || message.includes("not found") || message.includes("could not find");
+}
+
 function isInvalidInputError(error) {
   if (!error) return false;
   const code = String(error.code || "");
@@ -1231,7 +1238,8 @@ if (formArticulo) {
     if (editingId) {
       const { error } = await supabaseClient.from("articulos_publicados").update(payload).eq("id", editingId);
       if (error) {
-        showToast("No se pudo actualizar globalmente el artículo.", "error");
+        const hint = isMissingResourceError(error) ? " Ejecuta supabase_articulos_publicados.sql en Supabase." : "";
+        showToast(`No se pudo actualizar globalmente el artículo.${hint}`, "error");
         return;
       }
       await loadManagedArticles();
@@ -1239,7 +1247,8 @@ if (formArticulo) {
     } else {
       const { error } = await supabaseClient.from("articulos_publicados").insert(payload);
       if (error) {
-        showToast("No se pudo guardar globalmente el artículo.", "error");
+        const hint = isMissingResourceError(error) ? " Ejecuta supabase_articulos_publicados.sql en Supabase." : "";
+        showToast(`No se pudo guardar globalmente el artículo.${hint}`, "error");
         return;
       }
       await loadManagedArticles();
@@ -1265,7 +1274,8 @@ if (btnAbrirModalArticulo) {
 async function deleteManagedArticle(itemId) {
   const { error } = await supabaseClient.from("articulos_publicados").delete().eq("id", itemId);
   if (error) {
-    showToast("No se pudo eliminar globalmente el artículo.", "error");
+    const hint = isMissingResourceError(error) ? " Ejecuta supabase_articulos_publicados.sql en Supabase." : "";
+    showToast(`No se pudo eliminar globalmente el artículo.${hint}`, "error");
     return;
   } else {
     await loadManagedArticles();
