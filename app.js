@@ -851,7 +851,7 @@ function setDraftDevSettings(nextSettings) {
 function getEditableElements(viewId) {
   const view = document.getElementById(viewId);
   if (!view) return [];
-  const blocked = ".skin-form, .table-wrapper, #form-voluntario, #form-articulo, .modal-content, .doc-link, .doi-link, .reference-links, .stat-value, .title-icon, .logo-icon";
+  const blocked = ".skin-form, .scientific-section, .table-wrapper, #form-voluntario, #form-articulo, .modal-content, .doc-link, .doi-link, .reference-links, .stat-value, .title-icon, .logo-icon";
   return Array.from(view.querySelectorAll("h1,h2,h3,h4,p,legend,[data-heading],[data-section-label],.option-label-text"))
     .filter((el) => !el.closest(blocked) && el.textContent.trim().length > 0);
 }
@@ -2301,7 +2301,9 @@ function setActiveFormStepById(stepId) {
 }
 
 function updateDeveloperFormNavigationState() {
-  document.body.classList.toggle("dev-form-free-nav", isDeveloperRole());
+  const isDev = isDeveloperRole();
+  document.body.classList.toggle("dev-form-free-nav", isDev);
+  if (isDev) unlockConsentChecks();
   const formProgress = document.querySelector(".form-progress");
   if (!formProgress) return;
   let note = document.getElementById("dev-form-free-nav-note");
@@ -2819,13 +2821,27 @@ async function deleteUserCompletely(userId) {
   const confirmed = window.confirm(`Se eliminará el usuario ${target?.email || ""} y sus datos relacionados. ¿Deseas continuar?`);
   if (!confirmed) return;
 
-  await supabaseClient.from("voluntarios").delete().eq("user_id", userId);
-  await supabaseClient.from("perfiles").delete().eq("id", userId);
+  const functionResp = await supabaseClient.functions.invoke("admin-delete-user", {
+    body: { userId },
+  });
+
+  if (!functionResp.error) {
+    showToast("Usuario eliminado correctamente de Auth y tablas relacionadas.", "success");
+    await loadUsersForDeveloperPanel();
+    return;
+  }
+
+  console.warn("No se pudo eliminar con Edge Function admin-delete-user:", functionResp.error);
   const rpcResp = await supabaseClient.rpc("admin_delete_user_account", { user_id: userId });
   if (rpcResp.error) {
     console.warn("No se pudo eliminar usuario auth con RPC admin_delete_user_account:", rpcResp.error);
+    showToast("No se pudo eliminar la cuenta de Auth. Revisa que la Edge Function admin-delete-user esté desplegada.", "error");
+    return;
   }
-  showToast("Usuario eliminado de perfiles/voluntarios. Si existe RPC admin_delete_user_account también se intentó en Auth.", "info");
+
+  await supabaseClient.from("voluntarios").delete().eq("user_id", userId);
+  await supabaseClient.from("perfiles").delete().eq("id", userId);
+  showToast("Usuario eliminado correctamente.", "success");
   await loadUsersForDeveloperPanel();
 }
 
