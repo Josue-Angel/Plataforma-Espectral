@@ -134,6 +134,7 @@ const GLOBAL_CONFIG_TABLE = "configuracion_global";
 const GLOBAL_SETTINGS_KEY = "ui_settings";
 const GLOBAL_CONTENT_KEY = "content_edits";
 const GLOBAL_EMAIL_TEMPLATE_KEY = "email_template_fototipo";
+const LAST_AUTH_VIEW_STORAGE_KEY = "last-auth-view";
 const CONSENT_DOCUMENT_URL = "./consentimiento-informado.pdf";
 const CONSENT_DOCUMENT_VERSION = "v1.0";
 const CONSENT_CONFIRMATION_PHRASE = "ACEPTO PARTICIPAR";
@@ -210,6 +211,7 @@ const INITIAL_ARTICLES = [
   },
 ];
 
+document.body.classList.add("session-restoring");
 const views = document.querySelectorAll(".view");
 const navLinks = document.querySelectorAll("#nav-links a");
 const userLabel = document.getElementById("user-label");
@@ -624,6 +626,9 @@ function showView(viewId) {
   const target = document.getElementById(viewId);
   if (target) target.classList.add("active");
   currentViewId = viewId;
+  if (isLoggedIn && viewId !== GUEST_LANDING_VIEW) {
+    localStorage.setItem(LAST_AUTH_VIEW_STORAGE_KEY, viewId);
+  }
   applyContentEditsForView(viewId);
   if (isEditModeEnabled) toggleEditMode(true);
   refreshDeveloperDock();
@@ -631,6 +636,16 @@ function showView(viewId) {
   navLinks.forEach((link) => {
     link.classList.toggle("active-link", link.dataset.view === viewId);
   });
+}
+
+function getPreferredAuthView() {
+  const savedView = localStorage.getItem(LAST_AUTH_VIEW_STORAGE_KEY);
+  if (savedView && viewPermissions[savedView]?.includes(currentRole)) return savedView;
+  return AUTH_LANDING_VIEW;
+}
+
+function finishSessionRestore() {
+  document.body.classList.remove("session-restoring");
 }
 
 function updateNavForRole(role) {
@@ -1609,8 +1624,7 @@ async function initSession(user) {
   if (developerUserManagement) developerUserManagement.classList.toggle("hidden", !canManageAsAdmin());
   renderManagedArticles();
 
-  // Redirección automática tras login a la sección Equipo y proyecto.
-  showView(AUTH_LANDING_VIEW);
+  showView(getPreferredAuthView());
 
   if (currentRole === "admin" || currentRole === "desarrollador") {
     await cargarVoluntarios();
@@ -1632,31 +1646,34 @@ async function initSession(user) {
 
 async function restoreSession() {
   const { data } = await supabaseClient.auth.getSession();
-  if (data.session?.user) {
-    try {
-      await initSession(data.session.user);
-    } catch (sessionError) {
-      console.error("Error al restaurar sesión:", sessionError);
+  try {
+    if (data.session?.user) {
+      try {
+        await initSession(data.session.user);
+      } catch (sessionError) {
+        console.error("Error al restaurar sesión:", sessionError);
+        updateNavForRole(null);
+        setAuthTab("login-panel");
+        showView(GUEST_LANDING_VIEW);
+        toggleEditMode(false);
+        refreshDeveloperDock();
+      }
+    } else {
+      await loadGlobalDeveloperConfig();
       updateNavForRole(null);
+      if (developerUserManagement) developerUserManagement.classList.add("hidden");
+      renderManagedArticles();
       setAuthTab("login-panel");
       showView(GUEST_LANDING_VIEW);
       toggleEditMode(false);
       refreshDeveloperDock();
     }
-  } else {
-    await loadGlobalDeveloperConfig();
-    updateNavForRole(null);
-    if (developerUserManagement) developerUserManagement.classList.add("hidden");
-    renderManagedArticles();
-    setAuthTab("login-panel");
-    showView(GUEST_LANDING_VIEW);
-    toggleEditMode(false);
-    refreshDeveloperDock();
+  } finally {
+    finishSessionRestore();
   }
 }
 
-// Vista inicial para invitados mientras se restaura sesión.
-showView(GUEST_LANDING_VIEW);
+// La vista permanece oculta mientras se restaura sesión para evitar parpadeo al login.
 
 const tablaVoluntarios = document.getElementById("tabla-voluntarios");
 const formVoluntario = document.getElementById("form-voluntario");
@@ -2737,7 +2754,9 @@ function renderUsersAdminTable() {
   tablaUsuariosAdmin.innerHTML = filtered.map((user) => {
     const role = String(user.role || "voluntario").toLowerCase();
     const status = normalizeUserStatus(user.estado_acceso);
-    const lockedRole = role === "desarrollador" || String(user.id) === String(currentUserId);
+    const isSelf = String(user.id) === String(currentUserId);
+    const lockedRole = isSelf;
+    const lockedDelete = role === "desarrollador" || isSelf;
     const consentAccepted = Boolean(user.consentimiento);
     const consentDate = user.consentimiento_aceptado_en ? new Date(user.consentimiento_aceptado_en).toLocaleString("es-MX") : "Pendiente";
     const consentVersion = user.consentimiento_version || CONSENT_DOCUMENT_VERSION;
@@ -2755,8 +2774,8 @@ function renderUsersAdminTable() {
       <td><span class="consent-admin-chip ${consentAccepted ? "accepted" : "pending"}">${consentAccepted ? "Aceptado" : "Pendiente"}</span><span class="user-email">${escapeHtml(consentDate)}</span><span class="user-email">${escapeHtml(consentAccepted ? consentVersion : "Sin evidencia")}</span></td>
       <td>
         <div class="actions-inline">
-          <button class="btn btn-small btn-outline" data-action="toggle-estado" data-id="${user.id}" ${String(user.id) === String(currentUserId) ? "disabled" : ""}>${status === "suspendido" ? "Activar" : "Suspender"}</button>
-          <button class="btn btn-small btn-danger" data-action="eliminar-usuario" data-id="${user.id}" ${lockedRole ? "disabled" : ""}>Eliminar</button>
+          <button class="btn btn-small btn-outline" data-action="toggle-estado" data-id="${user.id}" ${isSelf ? "disabled" : ""}>${status === "suspendido" ? "Activar" : "Suspender"}</button>
+          <button class="btn btn-small btn-danger" data-action="eliminar-usuario" data-id="${user.id}" ${lockedDelete ? "disabled" : ""}>Eliminar</button>
         </div>
       </td>
     </tr>`;
