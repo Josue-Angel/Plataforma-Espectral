@@ -325,4 +325,4 @@ body[data-ui-variant="informativo"] .title-icon{border-radius:6px}
 
 .consent-confirmation-panel{margin-top:1rem;padding-top:.25rem}
 
-body.session-restoring .main{opacity:0;pointer-events:none}
+body.session-restoring .header,body.session-restoring .main,body.session-restoring .footer{opacity:0;pointer-events:none}

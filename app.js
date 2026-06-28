@@ -2320,7 +2320,6 @@ function setActiveFormStepById(stepId) {
 function updateDeveloperFormNavigationState() {
   const isDev = isDeveloperRole();
   document.body.classList.toggle("dev-form-free-nav", isDev);
-  if (isDev) unlockConsentChecks();
   const formProgress = document.querySelector(".form-progress");
   if (!formProgress) return;
   let note = document.getElementById("dev-form-free-nav-note");
