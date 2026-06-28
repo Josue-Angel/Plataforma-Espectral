@@ -134,6 +134,11 @@ const GLOBAL_CONFIG_TABLE = "configuracion_global";
 const GLOBAL_SETTINGS_KEY = "ui_settings";
 const GLOBAL_CONTENT_KEY = "content_edits";
 const GLOBAL_EMAIL_TEMPLATE_KEY = "email_template_fototipo";
+const LAST_AUTH_VIEW_STORAGE_KEY = "last-auth-view";
+const CONSENT_DOCUMENT_URL = "./consentimiento-informado.pdf";
+const CONSENT_DOCUMENT_VERSION = "v1.0";
+const CONSENT_CONFIRMATION_PHRASE = "ACEPTO PARTICIPAR";
+const CONSENT_ACCEPTANCE_METHOD = "lectura_guiada_confirmacion_escrita";
 let currentViewId = "inicio";
 let isEditModeEnabled = false;
 let managedArticlesCache = [];
@@ -206,6 +211,7 @@ const INITIAL_ARTICLES = [
   },
 ];
 
+document.body.classList.add("session-restoring");
 const views = document.querySelectorAll(".view");
 const navLinks = document.querySelectorAll("#nav-links a");
 const userLabel = document.getElementById("user-label");
@@ -302,6 +308,13 @@ function isMissingRelationError(error, tableName) {
   return String(error.message || "").includes(`'public.${tableName}'`);
 }
 
+function isMissingResourceError(error) {
+  if (!error) return false;
+  const code = String(error.code || "");
+  const message = String(error.message || "").toLowerCase();
+  return code === "PGRST205" || code === "404" || message.includes("not found") || message.includes("could not find");
+}
+
 function isInvalidInputError(error) {
   if (!error) return false;
   const code = String(error.code || "");
@@ -351,17 +364,23 @@ function renderAdminNotificationsList(lista, items, sourceLabel = "") {
     .join("");
 }
 
-async function updateProfileCompletionState(userId, nombreConsentimiento) {
+async function updateProfileCompletionState(userId, nombreConsentimiento, consentEvidence = {}) {
+  const acceptedAt = consentEvidence.acceptedAt || new Date().toISOString();
   const payload = {
     nombre_completo: nombreConsentimiento,
     consentimiento: true,
+    consentimiento_aceptado_en: acceptedAt,
+    consentimiento_version: consentEvidence.version || CONSENT_DOCUMENT_VERSION,
+    consentimiento_documento: consentEvidence.documentUrl || CONSENT_DOCUMENT_URL,
+    consentimiento_frase: consentEvidence.confirmationText || CONSENT_CONFIRMATION_PHRASE,
+    consentimiento_metodo: consentEvidence.method || CONSENT_ACCEPTANCE_METHOD,
     test_fototipo_completado: true,
   };
 
   const { error } = await supabaseClient.from("perfiles").update(payload).eq("id", userId);
   if (!error) return;
 
-  if (shouldFallbackOnSchemaError(error, "nombre_completo") || shouldFallbackOnSchemaError(error, "consentimiento")) {
+  if (Object.keys(payload).some((column) => shouldFallbackOnSchemaError(error, column))) {
     const fallback = await supabaseClient
       .from("perfiles")
       .update({ test_fototipo_completado: true })
@@ -614,6 +633,9 @@ function showView(viewId) {
   const target = document.getElementById(viewId);
   if (target) target.classList.add("active");
   currentViewId = viewId;
+  if (isLoggedIn && viewId !== GUEST_LANDING_VIEW) {
+    localStorage.setItem(LAST_AUTH_VIEW_STORAGE_KEY, viewId);
+  }
   applyContentEditsForView(viewId);
   if (isEditModeEnabled) toggleEditMode(true);
   refreshDeveloperDock();
@@ -621,6 +643,16 @@ function showView(viewId) {
   navLinks.forEach((link) => {
     link.classList.toggle("active-link", link.dataset.view === viewId);
   });
+}
+
+function getPreferredAuthView() {
+  const savedView = localStorage.getItem(LAST_AUTH_VIEW_STORAGE_KEY);
+  if (savedView && viewPermissions[savedView]?.includes(currentRole)) return savedView;
+  return AUTH_LANDING_VIEW;
+}
+
+function finishSessionRestore() {
+  document.body.classList.remove("session-restoring");
 }
 
 function updateNavForRole(role) {
@@ -841,7 +873,7 @@ function setDraftDevSettings(nextSettings) {
 function getEditableElements(viewId) {
   const view = document.getElementById(viewId);
   if (!view) return [];
-  const blocked = ".table-wrapper, #form-voluntario, #form-articulo, .modal-content, .doc-link, .doi-link, .reference-links, .stat-value, .title-icon, .logo-icon";
+  const blocked = ".skin-form, .scientific-section, .table-wrapper, #form-voluntario, #form-articulo, .modal-content, .doc-link, .doi-link, .reference-links, .stat-value, .title-icon, .logo-icon";
   return Array.from(view.querySelectorAll("h1,h2,h3,h4,p,legend,[data-heading],[data-section-label],.option-label-text"))
     .filter((el) => !el.closest(blocked) && el.textContent.trim().length > 0);
 }
@@ -1206,7 +1238,8 @@ if (formArticulo) {
     if (editingId) {
       const { error } = await supabaseClient.from("articulos_publicados").update(payload).eq("id", editingId);
       if (error) {
-        showToast("No se pudo actualizar globalmente el artículo.", "error");
+        const hint = isMissingResourceError(error) ? " Ejecuta supabase_articulos_publicados.sql en Supabase." : "";
+        showToast(`No se pudo actualizar globalmente el artículo.${hint}`, "error");
         return;
       }
       await loadManagedArticles();
@@ -1214,7 +1247,8 @@ if (formArticulo) {
     } else {
       const { error } = await supabaseClient.from("articulos_publicados").insert(payload);
       if (error) {
-        showToast("No se pudo guardar globalmente el artículo.", "error");
+        const hint = isMissingResourceError(error) ? " Ejecuta supabase_articulos_publicados.sql en Supabase." : "";
+        showToast(`No se pudo guardar globalmente el artículo.${hint}`, "error");
         return;
       }
       await loadManagedArticles();
@@ -1240,7 +1274,8 @@ if (btnAbrirModalArticulo) {
 async function deleteManagedArticle(itemId) {
   const { error } = await supabaseClient.from("articulos_publicados").delete().eq("id", itemId);
   if (error) {
-    showToast("No se pudo eliminar globalmente el artículo.", "error");
+    const hint = isMissingResourceError(error) ? " Ejecuta supabase_articulos_publicados.sql en Supabase." : "";
+    showToast(`No se pudo eliminar globalmente el artículo.${hint}`, "error");
     return;
   } else {
     await loadManagedArticles();
@@ -1599,8 +1634,7 @@ async function initSession(user) {
   if (developerUserManagement) developerUserManagement.classList.toggle("hidden", !canManageAsAdmin());
   renderManagedArticles();
 
-  // Redirección automática tras login a la sección Equipo y proyecto.
-  showView(AUTH_LANDING_VIEW);
+  showView(getPreferredAuthView());
 
   if (currentRole === "admin" || currentRole === "desarrollador") {
     await cargarVoluntarios();
@@ -1622,31 +1656,34 @@ async function initSession(user) {
 
 async function restoreSession() {
   const { data } = await supabaseClient.auth.getSession();
-  if (data.session?.user) {
-    try {
-      await initSession(data.session.user);
-    } catch (sessionError) {
-      console.error("Error al restaurar sesión:", sessionError);
+  try {
+    if (data.session?.user) {
+      try {
+        await initSession(data.session.user);
+      } catch (sessionError) {
+        console.error("Error al restaurar sesión:", sessionError);
+        updateNavForRole(null);
+        setAuthTab("login-panel");
+        showView(GUEST_LANDING_VIEW);
+        toggleEditMode(false);
+        refreshDeveloperDock();
+      }
+    } else {
+      await loadGlobalDeveloperConfig();
       updateNavForRole(null);
+      if (developerUserManagement) developerUserManagement.classList.add("hidden");
+      renderManagedArticles();
       setAuthTab("login-panel");
       showView(GUEST_LANDING_VIEW);
       toggleEditMode(false);
       refreshDeveloperDock();
     }
-  } else {
-    await loadGlobalDeveloperConfig();
-    updateNavForRole(null);
-    if (developerUserManagement) developerUserManagement.classList.add("hidden");
-    renderManagedArticles();
-    setAuthTab("login-panel");
-    showView(GUEST_LANDING_VIEW);
-    toggleEditMode(false);
-    refreshDeveloperDock();
+  } finally {
+    finishSessionRestore();
   }
 }
 
-// Vista inicial para invitados mientras se restaura sesión.
-showView(GUEST_LANDING_VIEW);
+// La vista permanece oculta mientras se restaura sesión para evitar parpadeo al login.
 
 const tablaVoluntarios = document.getElementById("tabla-voluntarios");
 const formVoluntario = document.getElementById("form-voluntario");
@@ -2102,6 +2139,46 @@ function validarNombreCompleto(nombre) {
 function validarCorreo(correo) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(correo || "").trim());
 }
+function updateConsentConfirmationState() {
+  const nombre = document.getElementById("nombreConsentimiento")?.value.trim() || "";
+  const frase = document.getElementById("fraseConsentimiento")?.value.trim().toUpperCase() || "";
+  const aceptaPrimario = Boolean(document.getElementById("aceptaConsentimiento")?.checked);
+  const aceptaSecundario = Boolean(document.getElementById("aceptaConfidencialidad")?.checked);
+  const button = document.getElementById("btnContinuarConsentimiento");
+  const isReady = Boolean(window.__consentDocumentReviewed) && validarNombreCompleto(nombre) && aceptaPrimario && aceptaSecundario && frase === CONSENT_CONFIRMATION_PHRASE;
+  if (button) button.disabled = !isReady;
+}
+
+function unlockConsentChecks() {
+  window.__consentDocumentReviewed = true;
+  document.getElementById("consentConfirmationPanel")?.classList.remove("hidden");
+  const status = document.getElementById("consentReviewStatus");
+  if (status) {
+    status.textContent = "Documento revisado: ya puedes confirmar tu consentimiento.";
+    status.classList.add("ready");
+  }
+  updateConsentConfirmationState();
+}
+
+function setupConsentReviewFlow() {
+  window.__consentDocumentReviewed = false;
+  const viewer = document.getElementById("consentPdfViewer");
+  const watched = ["nombreConsentimiento", "fraseConsentimiento", "aceptaConsentimiento", "aceptaConfidencialidad"];
+  watched.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", updateConsentConfirmationState);
+    el.addEventListener("change", updateConsentConfirmationState);
+  });
+  if (!viewer) return;
+  const onScroll = () => {
+    const reachedBottom = viewer.scrollTop + viewer.clientHeight >= viewer.scrollHeight - 12;
+    if (reachedBottom) unlockConsentChecks();
+  };
+  viewer.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+}
+
 
 function getSelectedValue(name) {
   const selected = document.querySelector(`input[name="${name}"]:checked`);
@@ -2115,6 +2192,13 @@ function validateCurrentStep(targetStep) {
     const nombre = document.getElementById("nombreConsentimiento").value.trim();
     const aceptaPrimario = document.getElementById("aceptaConsentimiento").checked;
     const aceptaSecundario = document.getElementById("aceptaConfidencialidad").checked;
+    const frase = document.getElementById("fraseConsentimiento").value.trim().toUpperCase();
+    const documentoRevisado = Boolean(window.__consentDocumentReviewed);
+
+    if (!documentoRevisado) {
+      showToast("Debes desplazarte hasta el final del consentimiento informado antes de confirmar.");
+      return false;
+    }
 
     if (!validarNombreCompleto(nombre)) {
       showToast("Debes capturar al menos nombre y apellido.");
@@ -2123,6 +2207,11 @@ function validateCurrentStep(targetStep) {
 
     if (!aceptaPrimario || !aceptaSecundario) {
       showToast("Debes aceptar ambas casillas de consentimiento para continuar.");
+      return false;
+    }
+
+    if (frase !== CONSENT_CONFIRMATION_PHRASE) {
+      showToast(`Debes escribir exactamente: ${CONSENT_CONFIRMATION_PHRASE}`);
       return false;
     }
 
@@ -2239,7 +2328,8 @@ function setActiveFormStepById(stepId) {
 }
 
 function updateDeveloperFormNavigationState() {
-  document.body.classList.toggle("dev-form-free-nav", isDeveloperRole());
+  const isDev = isDeveloperRole();
+  document.body.classList.toggle("dev-form-free-nav", isDev);
   const formProgress = document.querySelector(".form-progress");
   if (!formProgress) return;
   let note = document.getElementById("dev-form-free-nav-note");
@@ -2374,7 +2464,14 @@ async function guardarVoluntario() {
     return;
   }
 
-  await updateProfileCompletionState(user.id, nombreConsentimiento);
+  const consentAcceptedAt = new Date().toISOString();
+  await updateProfileCompletionState(user.id, nombreConsentimiento, {
+    acceptedAt: consentAcceptedAt,
+    version: CONSENT_DOCUMENT_VERSION,
+    documentUrl: CONSENT_DOCUMENT_URL,
+    confirmationText: CONSENT_CONFIRMATION_PHRASE,
+    method: CONSENT_ACCEPTANCE_METHOD,
+  });
 
   const payload = {
     user_id: currentUserId,
@@ -2659,14 +2756,19 @@ function renderUsersAdminTable() {
   });
 
   if (!filtered.length) {
-    tablaUsuariosAdmin.innerHTML = "<tr><td colspan='4' class='muted small'>No hay usuarios para mostrar.</td></tr>";
+    tablaUsuariosAdmin.innerHTML = "<tr><td colspan='5' class='muted small'>No hay usuarios para mostrar.</td></tr>";
     return;
   }
 
   tablaUsuariosAdmin.innerHTML = filtered.map((user) => {
     const role = String(user.role || "voluntario").toLowerCase();
     const status = normalizeUserStatus(user.estado_acceso);
-    const lockedRole = role === "desarrollador" || String(user.id) === String(currentUserId);
+    const isSelf = String(user.id) === String(currentUserId);
+    const lockedRole = isSelf;
+    const lockedDelete = role === "desarrollador" || isSelf;
+    const consentAccepted = Boolean(user.consentimiento);
+    const consentDate = user.consentimiento_aceptado_en ? new Date(user.consentimiento_aceptado_en).toLocaleString("es-MX") : "Pendiente";
+    const consentVersion = user.consentimiento_version || CONSENT_DOCUMENT_VERSION;
     return `<tr>
       <td><strong>${escapeHtml(user.nombre || "Sin nombre")}</strong><span class="user-email">${escapeHtml(user.email || "sin-correo")}</span></td>
       <td>
@@ -2678,10 +2780,11 @@ function renderUsersAdminTable() {
         </select>
       </td>
       <td><span class="user-status-chip ${status}">${status}</span></td>
+      <td><span class="consent-admin-chip ${consentAccepted ? "accepted" : "pending"}">${consentAccepted ? "Aceptado" : "Pendiente"}</span><span class="user-email">${escapeHtml(consentDate)}</span><span class="user-email">${escapeHtml(consentAccepted ? consentVersion : "Sin evidencia")}</span></td>
       <td>
         <div class="actions-inline">
-          <button class="btn btn-small btn-outline" data-action="toggle-estado" data-id="${user.id}" ${String(user.id) === String(currentUserId) ? "disabled" : ""}>${status === "suspendido" ? "Activar" : "Suspender"}</button>
-          <button class="btn btn-small btn-danger" data-action="eliminar-usuario" data-id="${user.id}" ${lockedRole ? "disabled" : ""}>Eliminar</button>
+          <button class="btn btn-small btn-outline" data-action="toggle-estado" data-id="${user.id}" ${isSelf ? "disabled" : ""}>${status === "suspendido" ? "Activar" : "Suspender"}</button>
+          <button class="btn btn-small btn-danger" data-action="eliminar-usuario" data-id="${user.id}" ${lockedDelete ? "disabled" : ""}>Eliminar</button>
         </div>
       </td>
     </tr>`;
@@ -2692,21 +2795,28 @@ async function loadUsersForDeveloperPanel() {
   if (!canManageAsAdmin()) return;
   let { data, error } = await supabaseClient
     .from("perfiles")
-    .select("id, nombre, email, role, estado_acceso")
+    .select("id, nombre, email, role, estado_acceso, consentimiento, consentimiento_aceptado_en, consentimiento_version, consentimiento_metodo")
     .order("nombre", { ascending: true });
 
-  if (shouldFallbackOnSchemaError(error, "estado_acceso")) {
+  if (error && ["estado_acceso", "consentimiento", "consentimiento_aceptado_en", "consentimiento_version", "consentimiento_metodo"].some((column) => shouldFallbackOnSchemaError(error, column))) {
     const fallback = await supabaseClient
       .from("perfiles")
       .select("id, nombre, email, role")
       .order("nombre", { ascending: true });
-    data = fallback.data?.map((item) => ({ ...item, estado_acceso: "activo" })) || [];
+    data = fallback.data?.map((item) => ({
+      ...item,
+      estado_acceso: "activo",
+      consentimiento: false,
+      consentimiento_aceptado_en: null,
+      consentimiento_version: null,
+      consentimiento_metodo: null,
+    })) || [];
     error = fallback.error;
   }
 
   if (error) {
     console.error("No se pudo cargar el panel de usuarios:", error);
-    if (tablaUsuariosAdmin) tablaUsuariosAdmin.innerHTML = "<tr><td colspan='4' class='muted small'>No se pudieron cargar usuarios.</td></tr>";
+    if (tablaUsuariosAdmin) tablaUsuariosAdmin.innerHTML = "<tr><td colspan='5' class='muted small'>No se pudieron cargar usuarios.</td></tr>";
     return;
   }
 
@@ -2739,13 +2849,27 @@ async function deleteUserCompletely(userId) {
   const confirmed = window.confirm(`Se eliminará el usuario ${target?.email || ""} y sus datos relacionados. ¿Deseas continuar?`);
   if (!confirmed) return;
 
-  await supabaseClient.from("voluntarios").delete().eq("user_id", userId);
-  await supabaseClient.from("perfiles").delete().eq("id", userId);
+  const functionResp = await supabaseClient.functions.invoke("admin-delete-user", {
+    body: { userId },
+  });
+
+  if (!functionResp.error) {
+    showToast("Usuario eliminado correctamente de Auth y tablas relacionadas.", "success");
+    await loadUsersForDeveloperPanel();
+    return;
+  }
+
+  console.warn("No se pudo eliminar con Edge Function admin-delete-user:", functionResp.error);
   const rpcResp = await supabaseClient.rpc("admin_delete_user_account", { user_id: userId });
   if (rpcResp.error) {
     console.warn("No se pudo eliminar usuario auth con RPC admin_delete_user_account:", rpcResp.error);
+    showToast("No se pudo eliminar la cuenta de Auth. Revisa que la Edge Function admin-delete-user esté desplegada.", "error");
+    return;
   }
-  showToast("Usuario eliminado de perfiles/voluntarios. Si existe RPC admin_delete_user_account también se intentó en Auth.", "info");
+
+  await supabaseClient.from("voluntarios").delete().eq("user_id", userId);
+  await supabaseClient.from("perfiles").delete().eq("id", userId);
+  showToast("Usuario eliminado correctamente.", "success");
   await loadUsersForDeveloperPanel();
 }
 
@@ -2791,6 +2915,7 @@ if (tablaUsuariosAdmin) {
 }
 
 prepareOptionCardEditableLabels();
+setupConsentReviewFlow();
 applyDevSettings();
 loadManagedArticles();
 restoreSession();
