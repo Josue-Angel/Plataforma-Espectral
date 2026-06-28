@@ -851,7 +851,7 @@ function setDraftDevSettings(nextSettings) {
 function getEditableElements(viewId) {
   const view = document.getElementById(viewId);
   if (!view) return [];
-  const blocked = ".table-wrapper, #form-voluntario, #form-articulo, .modal-content, .doc-link, .doi-link, .reference-links, .stat-value, .title-icon, .logo-icon";
+  const blocked = ".skin-form, .table-wrapper, #form-voluntario, #form-articulo, .modal-content, .doc-link, .doi-link, .reference-links, .stat-value, .title-icon, .logo-icon";
   return Array.from(view.querySelectorAll("h1,h2,h3,h4,p,legend,[data-heading],[data-section-label],.option-label-text"))
     .filter((el) => !el.closest(blocked) && el.textContent.trim().length > 0);
 }
@@ -2124,9 +2124,7 @@ function updateConsentConfirmationState() {
 
 function unlockConsentChecks() {
   window.__consentDocumentReviewed = true;
-  document.getElementById("aceptaConsentimiento")?.removeAttribute("disabled");
-  document.getElementById("aceptaConfidencialidad")?.removeAttribute("disabled");
-  document.getElementById("consentChecksBox")?.classList.remove("consent-box-disabled");
+  document.getElementById("consentConfirmationPanel")?.classList.remove("hidden");
   const status = document.getElementById("consentReviewStatus");
   if (status) {
     status.textContent = "Documento revisado: ya puedes confirmar tu consentimiento.";

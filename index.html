@@ -376,22 +376,24 @@
             <p id="consentReviewStatus" class="consent-review-status" aria-live="polite">Pendiente: desplázate hasta el final del documento.</p>
           </div>
 
-          <label for="nombreConsentimiento">2. Nombre completo</label>
-          <input type="text" id="nombreConsentimiento" required placeholder="Escribe tu nombre completo" />
+          <div id="consentConfirmationPanel" class="consent-confirmation-panel hidden">
+            <label for="nombreConsentimiento">2. Nombre completo</label>
+            <input type="text" id="nombreConsentimiento" required placeholder="Escribe tu nombre completo" />
 
-          <div class="consent-box consent-box-disabled" id="consentChecksBox">
-            <label><input type="checkbox" id="aceptaConsentimiento" disabled /> He leído el consentimiento informado y acepto participar voluntariamente en este estudio.</label>
-            <label><input type="checkbox" id="aceptaConfidencialidad" disabled /> Acepto el tratamiento confidencial de mis datos e imágenes recolectadas para investigación científica.</label>
-          </div>
+            <div class="consent-box" id="consentChecksBox">
+              <label><input type="checkbox" id="aceptaConsentimiento" /> He leído el consentimiento informado y acepto participar voluntariamente en este estudio.</label>
+              <label><input type="checkbox" id="aceptaConfidencialidad" /> Acepto el tratamiento confidencial de mis datos e imágenes recolectadas para investigación científica.</label>
+            </div>
 
-          <label for="fraseConsentimiento">3. Confirmación final</label>
-          <p class="muted small">Para confirmar, escribe exactamente: <strong>ACEPTO PARTICIPAR</strong></p>
-          <input type="text" id="fraseConsentimiento" required placeholder="ACEPTO PARTICIPAR" autocomplete="off" />
+            <label for="fraseConsentimiento">3. Confirmación final</label>
+            <p class="muted small">Para confirmar, escribe exactamente: <strong>ACEPTO PARTICIPAR</strong></p>
+            <input type="text" id="fraseConsentimiento" required placeholder="ACEPTO PARTICIPAR" autocomplete="off" />
 
-          <p class="consent-note"><strong>Nota:</strong> Al continuar se registrará fecha, hora, versión del documento y método de aceptación para auditoría interna.</p>
+            <p class="consent-note"><strong>Nota:</strong> Al continuar se registrará fecha, hora, versión del documento y método de aceptación para auditoría interna.</p>
 
-          <div class="step-actions">
-            <button type="button" class="btn btn-primary" id="btnContinuarConsentimiento" onclick="nextStep(1)" disabled>Confirmar consentimiento y continuar</button>
+            <div class="step-actions">
+              <button type="button" class="btn btn-primary" id="btnContinuarConsentimiento" onclick="nextStep(1)" disabled>Confirmar consentimiento y continuar</button>
+            </div>
           </div>
         </div>
       </section>

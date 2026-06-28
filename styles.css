@@ -322,3 +322,5 @@ body[data-ui-variant="informativo"] .title-icon{border-radius:6px}
 .consent-admin-chip{display:inline-block;margin-bottom:.22rem;padding:.22rem .5rem;border-radius:999px;font-size:.75rem;font-weight:700}
 .consent-admin-chip.accepted{background:#dcfce7;color:#166534}
 .consent-admin-chip.pending{background:#fef3c7;color:#92400e}
+
+.consent-confirmation-panel{margin-top:1rem;padding-top:.25rem}
