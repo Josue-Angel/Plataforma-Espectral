@@ -358,18 +358,40 @@
           <h2>Consentimiento Informado</h2>
           <p class="muted">Por favor, confirma que has leído y comprendido la información, y que autorizas el uso de tus datos para este estudio.</p>
 
-          <label for="nombreConsentimiento">Nombre completo</label>
-          <input type="text" id="nombreConsentimiento" required placeholder="Escribe tu nombre completo" />
-
-          <div class="consent-box">
-            <label><input type="checkbox" id="aceptaConsentimiento" /> He leído el consentimiento informado y acepto participar voluntariamente en este estudio. <a href="./consentimiento-informado.pdf" target="_blank" rel="noopener noreferrer">Ver consentimiento informado (PDF)</a></label>
-            <label><input type="checkbox" id="aceptaConfidencialidad" /> Acepto el tratamiento confidencial de mis datos e imágenes recolectadas para investigación científica.</label>
+          <div class="consent-review-card" aria-labelledby="consent-review-title">
+            <div class="consent-review-header">
+              <div>
+                <h3 id="consent-review-title">1. Revisa el documento completo</h3>
+                <p class="muted small">Desplázate hasta el final del visor para habilitar la confirmación. También puedes abrir el PDF en otra pestaña.</p>
+              </div>
+              <a class="btn btn-outline btn-small" href="./consentimiento-informado.pdf" target="_blank" rel="noopener noreferrer">Abrir PDF</a>
+            </div>
+            <div id="consentPdfViewer" class="consent-pdf-viewer" tabindex="0" role="region" aria-label="Visor del consentimiento informado">
+              <iframe src="./consentimiento-informado.pdf#view=FitH" title="Consentimiento informado PDF"></iframe>
+              <div class="consent-end-marker">
+                <strong>Fin del documento.</strong>
+                <span>Ya puedes completar la confirmación electrónica.</span>
+              </div>
+            </div>
+            <p id="consentReviewStatus" class="consent-review-status" aria-live="polite">Pendiente: desplázate hasta el final del documento.</p>
           </div>
 
-          <p class="consent-note"><strong>Nota:</strong> Al continuar, declaras que participas voluntariamente en este estudio.</p>
+          <label for="nombreConsentimiento">2. Nombre completo</label>
+          <input type="text" id="nombreConsentimiento" required placeholder="Escribe tu nombre completo" />
+
+          <div class="consent-box consent-box-disabled" id="consentChecksBox">
+            <label><input type="checkbox" id="aceptaConsentimiento" disabled /> He leído el consentimiento informado y acepto participar voluntariamente en este estudio.</label>
+            <label><input type="checkbox" id="aceptaConfidencialidad" disabled /> Acepto el tratamiento confidencial de mis datos e imágenes recolectadas para investigación científica.</label>
+          </div>
+
+          <label for="fraseConsentimiento">3. Confirmación final</label>
+          <p class="muted small">Para confirmar, escribe exactamente: <strong>ACEPTO PARTICIPAR</strong></p>
+          <input type="text" id="fraseConsentimiento" required placeholder="ACEPTO PARTICIPAR" autocomplete="off" />
+
+          <p class="consent-note"><strong>Nota:</strong> Al continuar se registrará fecha, hora, versión del documento y método de aceptación para auditoría interna.</p>
 
           <div class="step-actions">
-            <button type="button" class="btn btn-primary" onclick="nextStep(1)">Continuar</button>
+            <button type="button" class="btn btn-primary" id="btnContinuarConsentimiento" onclick="nextStep(1)" disabled>Confirmar consentimiento y continuar</button>
           </div>
         </div>
       </section>
@@ -794,6 +816,7 @@
                 <th>Usuario</th>
                 <th>Rol</th>
                 <th>Estado</th>
+                <th>Consentimiento</th>
                 <th>Acciones</th>
               </tr>
             </thead>

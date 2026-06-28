@@ -134,6 +134,10 @@ const GLOBAL_CONFIG_TABLE = "configuracion_global";
 const GLOBAL_SETTINGS_KEY = "ui_settings";
 const GLOBAL_CONTENT_KEY = "content_edits";
 const GLOBAL_EMAIL_TEMPLATE_KEY = "email_template_fototipo";
+const CONSENT_DOCUMENT_URL = "./consentimiento-informado.pdf";
+const CONSENT_DOCUMENT_VERSION = "v1.0";
+const CONSENT_CONFIRMATION_PHRASE = "ACEPTO PARTICIPAR";
+const CONSENT_ACCEPTANCE_METHOD = "lectura_guiada_confirmacion_escrita";
 let currentViewId = "inicio";
 let isEditModeEnabled = false;
 let managedArticlesCache = [];
@@ -351,17 +355,23 @@ function renderAdminNotificationsList(lista, items, sourceLabel = "") {
     .join("");
 }
 
-async function updateProfileCompletionState(userId, nombreConsentimiento) {
+async function updateProfileCompletionState(userId, nombreConsentimiento, consentEvidence = {}) {
+  const acceptedAt = consentEvidence.acceptedAt || new Date().toISOString();
   const payload = {
     nombre_completo: nombreConsentimiento,
     consentimiento: true,
+    consentimiento_aceptado_en: acceptedAt,
+    consentimiento_version: consentEvidence.version || CONSENT_DOCUMENT_VERSION,
+    consentimiento_documento: consentEvidence.documentUrl || CONSENT_DOCUMENT_URL,
+    consentimiento_frase: consentEvidence.confirmationText || CONSENT_CONFIRMATION_PHRASE,
+    consentimiento_metodo: consentEvidence.method || CONSENT_ACCEPTANCE_METHOD,
     test_fototipo_completado: true,
   };
 
   const { error } = await supabaseClient.from("perfiles").update(payload).eq("id", userId);
   if (!error) return;
 
-  if (shouldFallbackOnSchemaError(error, "nombre_completo") || shouldFallbackOnSchemaError(error, "consentimiento")) {
+  if (Object.keys(payload).some((column) => shouldFallbackOnSchemaError(error, column))) {
     const fallback = await supabaseClient
       .from("perfiles")
       .update({ test_fototipo_completado: true })
@@ -2102,6 +2112,48 @@ function validarNombreCompleto(nombre) {
 function validarCorreo(correo) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(correo || "").trim());
 }
+function updateConsentConfirmationState() {
+  const nombre = document.getElementById("nombreConsentimiento")?.value.trim() || "";
+  const frase = document.getElementById("fraseConsentimiento")?.value.trim().toUpperCase() || "";
+  const aceptaPrimario = Boolean(document.getElementById("aceptaConsentimiento")?.checked);
+  const aceptaSecundario = Boolean(document.getElementById("aceptaConfidencialidad")?.checked);
+  const button = document.getElementById("btnContinuarConsentimiento");
+  const isReady = Boolean(window.__consentDocumentReviewed) && validarNombreCompleto(nombre) && aceptaPrimario && aceptaSecundario && frase === CONSENT_CONFIRMATION_PHRASE;
+  if (button) button.disabled = !isReady;
+}
+
+function unlockConsentChecks() {
+  window.__consentDocumentReviewed = true;
+  document.getElementById("aceptaConsentimiento")?.removeAttribute("disabled");
+  document.getElementById("aceptaConfidencialidad")?.removeAttribute("disabled");
+  document.getElementById("consentChecksBox")?.classList.remove("consent-box-disabled");
+  const status = document.getElementById("consentReviewStatus");
+  if (status) {
+    status.textContent = "Documento revisado: ya puedes confirmar tu consentimiento.";
+    status.classList.add("ready");
+  }
+  updateConsentConfirmationState();
+}
+
+function setupConsentReviewFlow() {
+  window.__consentDocumentReviewed = false;
+  const viewer = document.getElementById("consentPdfViewer");
+  const watched = ["nombreConsentimiento", "fraseConsentimiento", "aceptaConsentimiento", "aceptaConfidencialidad"];
+  watched.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", updateConsentConfirmationState);
+    el.addEventListener("change", updateConsentConfirmationState);
+  });
+  if (!viewer) return;
+  const onScroll = () => {
+    const reachedBottom = viewer.scrollTop + viewer.clientHeight >= viewer.scrollHeight - 12;
+    if (reachedBottom) unlockConsentChecks();
+  };
+  viewer.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+}
+
 
 function getSelectedValue(name) {
   const selected = document.querySelector(`input[name="${name}"]:checked`);
@@ -2115,6 +2167,13 @@ function validateCurrentStep(targetStep) {
     const nombre = document.getElementById("nombreConsentimiento").value.trim();
     const aceptaPrimario = document.getElementById("aceptaConsentimiento").checked;
     const aceptaSecundario = document.getElementById("aceptaConfidencialidad").checked;
+    const frase = document.getElementById("fraseConsentimiento").value.trim().toUpperCase();
+    const documentoRevisado = Boolean(window.__consentDocumentReviewed);
+
+    if (!documentoRevisado) {
+      showToast("Debes desplazarte hasta el final del consentimiento informado antes de confirmar.");
+      return false;
+    }
 
     if (!validarNombreCompleto(nombre)) {
       showToast("Debes capturar al menos nombre y apellido.");
@@ -2123,6 +2182,11 @@ function validateCurrentStep(targetStep) {
 
     if (!aceptaPrimario || !aceptaSecundario) {
       showToast("Debes aceptar ambas casillas de consentimiento para continuar.");
+      return false;
+    }
+
+    if (frase !== CONSENT_CONFIRMATION_PHRASE) {
+      showToast(`Debes escribir exactamente: ${CONSENT_CONFIRMATION_PHRASE}`);
       return false;
     }
 
@@ -2374,7 +2438,14 @@ async function guardarVoluntario() {
     return;
   }
 
-  await updateProfileCompletionState(user.id, nombreConsentimiento);
+  const consentAcceptedAt = new Date().toISOString();
+  await updateProfileCompletionState(user.id, nombreConsentimiento, {
+    acceptedAt: consentAcceptedAt,
+    version: CONSENT_DOCUMENT_VERSION,
+    documentUrl: CONSENT_DOCUMENT_URL,
+    confirmationText: CONSENT_CONFIRMATION_PHRASE,
+    method: CONSENT_ACCEPTANCE_METHOD,
+  });
 
   const payload = {
     user_id: currentUserId,
@@ -2659,7 +2730,7 @@ function renderUsersAdminTable() {
   });
 
   if (!filtered.length) {
-    tablaUsuariosAdmin.innerHTML = "<tr><td colspan='4' class='muted small'>No hay usuarios para mostrar.</td></tr>";
+    tablaUsuariosAdmin.innerHTML = "<tr><td colspan='5' class='muted small'>No hay usuarios para mostrar.</td></tr>";
     return;
   }
 
@@ -2667,6 +2738,9 @@ function renderUsersAdminTable() {
     const role = String(user.role || "voluntario").toLowerCase();
     const status = normalizeUserStatus(user.estado_acceso);
     const lockedRole = role === "desarrollador" || String(user.id) === String(currentUserId);
+    const consentAccepted = Boolean(user.consentimiento);
+    const consentDate = user.consentimiento_aceptado_en ? new Date(user.consentimiento_aceptado_en).toLocaleString("es-MX") : "Pendiente";
+    const consentVersion = user.consentimiento_version || CONSENT_DOCUMENT_VERSION;
     return `<tr>
       <td><strong>${escapeHtml(user.nombre || "Sin nombre")}</strong><span class="user-email">${escapeHtml(user.email || "sin-correo")}</span></td>
       <td>
@@ -2678,6 +2752,7 @@ function renderUsersAdminTable() {
         </select>
       </td>
       <td><span class="user-status-chip ${status}">${status}</span></td>
+      <td><span class="consent-admin-chip ${consentAccepted ? "accepted" : "pending"}">${consentAccepted ? "Aceptado" : "Pendiente"}</span><span class="user-email">${escapeHtml(consentDate)}</span><span class="user-email">${escapeHtml(consentAccepted ? consentVersion : "Sin evidencia")}</span></td>
       <td>
         <div class="actions-inline">
           <button class="btn btn-small btn-outline" data-action="toggle-estado" data-id="${user.id}" ${String(user.id) === String(currentUserId) ? "disabled" : ""}>${status === "suspendido" ? "Activar" : "Suspender"}</button>
@@ -2692,21 +2767,28 @@ async function loadUsersForDeveloperPanel() {
   if (!canManageAsAdmin()) return;
   let { data, error } = await supabaseClient
     .from("perfiles")
-    .select("id, nombre, email, role, estado_acceso")
+    .select("id, nombre, email, role, estado_acceso, consentimiento, consentimiento_aceptado_en, consentimiento_version, consentimiento_metodo")
     .order("nombre", { ascending: true });
 
-  if (shouldFallbackOnSchemaError(error, "estado_acceso")) {
+  if (error && ["estado_acceso", "consentimiento", "consentimiento_aceptado_en", "consentimiento_version", "consentimiento_metodo"].some((column) => shouldFallbackOnSchemaError(error, column))) {
     const fallback = await supabaseClient
       .from("perfiles")
       .select("id, nombre, email, role")
       .order("nombre", { ascending: true });
-    data = fallback.data?.map((item) => ({ ...item, estado_acceso: "activo" })) || [];
+    data = fallback.data?.map((item) => ({
+      ...item,
+      estado_acceso: "activo",
+      consentimiento: false,
+      consentimiento_aceptado_en: null,
+      consentimiento_version: null,
+      consentimiento_metodo: null,
+    })) || [];
     error = fallback.error;
   }
 
   if (error) {
     console.error("No se pudo cargar el panel de usuarios:", error);
-    if (tablaUsuariosAdmin) tablaUsuariosAdmin.innerHTML = "<tr><td colspan='4' class='muted small'>No se pudieron cargar usuarios.</td></tr>";
+    if (tablaUsuariosAdmin) tablaUsuariosAdmin.innerHTML = "<tr><td colspan='5' class='muted small'>No se pudieron cargar usuarios.</td></tr>";
     return;
   }
 
@@ -2791,6 +2873,7 @@ if (tablaUsuariosAdmin) {
 }
 
 prepareOptionCardEditableLabels();
+setupConsentReviewFlow();
 applyDevSettings();
 loadManagedArticles();
 restoreSession();
