@@ -62,3 +62,37 @@ with check (
   id = auth.uid()
   or public.current_user_app_role() in ('admin', 'desarrollador')
 );
+
+-- Permite que un usuario autenticado cree su propio perfil si aún no existe.
+drop policy if exists "perfiles_insert_propietario" on public.perfiles;
+create policy "perfiles_insert_propietario"
+on public.perfiles
+for insert
+to authenticated
+with check (id = auth.uid());
+
+-- Crea automáticamente el perfil base al registrar usuarios en Auth.
+create or replace function public.handle_new_auth_user_profile()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.perfiles (id, email, nombre, role, estado_acceso)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'name', new.raw_user_meta_data->>'full_name', new.email, 'Voluntario'),
+    'voluntario',
+    'activo'
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created_profile on auth.users;
+create trigger on_auth_user_created_profile
+after insert on auth.users
+for each row execute function public.handle_new_auth_user_profile();

@@ -1130,6 +1130,32 @@ loginForm.addEventListener("submit", async (e) => {
   }
 });
 
+
+async function ensureProfileForUser(user, fallbackName = "") {
+  if (!user?.id) return null;
+  const email = String(user.email || "").trim();
+  const nombre = String(fallbackName || user.user_metadata?.full_name || user.user_metadata?.name || email || "Voluntario").trim();
+  const payload = {
+    id: user.id,
+    email,
+    nombre,
+    role: "voluntario",
+    estado_acceso: "activo",
+  };
+
+  const { data, error } = await supabaseClient
+    .from("perfiles")
+    .upsert(payload, { onConflict: "id", ignoreDuplicates: true })
+    .select("nombre, role, test_fototipo_completado, estado_acceso")
+    .maybeSingle();
+
+  if (error) {
+    console.warn("No se pudo asegurar el perfil del usuario:", error);
+    return null;
+  }
+  return data;
+}
+
 const registerForm = document.getElementById("register-form");
 const regError = document.getElementById("register-error");
 const regSuccess = document.getElementById("register-success");
@@ -1157,14 +1183,13 @@ registerForm.addEventListener("submit", async (e) => {
   }
 
   if (data.user) {
-    await supabaseClient.from("perfiles").upsert({
-      id: data.user.id,
-      email,
-      nombre,
-      role: "voluntario",
-    });
+    const perfil = await ensureProfileForUser(data.user, nombre);
+    if (!perfil) {
+      console.warn("La cuenta Auth se creó, pero el perfil no pudo insertarse todavía. Se reintentará al iniciar sesión.");
+    }
 
     await notifyAdminNewVolunteer(email);
+    if (canManageAsAdmin()) await loadUsersForDeveloperPanel();
   }
 
   registerForm.reset();
@@ -1595,11 +1620,17 @@ async function syncFormAccessForCurrentAccount() {
 async function initSession(user) {
   isLoggedIn = true;
   resetSkinFormForCurrentSession();
-  const { data: perfil } = await supabaseClient
+  let { data: perfil, error: perfilError } = await supabaseClient
     .from("perfiles")
     .select("nombre, role, test_fototipo_completado, estado_acceso")
     .eq("id", user.id)
     .maybeSingle();
+
+  if ((!perfil && !perfilError) || shouldFallbackOnSchemaError(perfilError, "perfiles")) {
+    perfil = await ensureProfileForUser(user);
+  } else if (perfilError) {
+    console.error("Error al consultar perfil de usuario:", perfilError);
+  }
 
   currentRole = resolveRoleFromProfile(perfil, user.email, user);
   currentUserName = perfil?.nombre || user.email;
@@ -2162,6 +2193,15 @@ function unlockConsentChecks() {
 
 function setupConsentReviewFlow() {
   window.__consentDocumentReviewed = false;
+  const panel = document.getElementById("consentConfirmationPanel");
+  const status = document.getElementById("consentReviewStatus");
+  const button = document.getElementById("btnContinuarConsentimiento");
+  if (panel) panel.classList.add("hidden");
+  if (button) button.disabled = true;
+  if (status) {
+    status.textContent = "Pendiente: desplázate hasta el final del documento.";
+    status.classList.remove("ready");
+  }
   const viewer = document.getElementById("consentPdfViewer");
   const watched = ["nombreConsentimiento", "fraseConsentimiento", "aceptaConsentimiento", "aceptaConfidencialidad"];
   watched.forEach((id) => {
@@ -2171,12 +2211,14 @@ function setupConsentReviewFlow() {
     el.addEventListener("change", updateConsentConfirmationState);
   });
   if (!viewer) return;
+  viewer.scrollTop = 0;
   const onScroll = () => {
-    const reachedBottom = viewer.scrollTop + viewer.clientHeight >= viewer.scrollHeight - 12;
+    const hasScrollableDocument = viewer.scrollHeight > viewer.clientHeight + 24;
+    const reachedBottom = hasScrollableDocument && viewer.scrollTop + viewer.clientHeight >= viewer.scrollHeight - 12;
     if (reachedBottom) unlockConsentChecks();
   };
   viewer.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
+  viewer.querySelector("iframe")?.addEventListener("load", () => requestAnimationFrame(onScroll));
 }
 
 
