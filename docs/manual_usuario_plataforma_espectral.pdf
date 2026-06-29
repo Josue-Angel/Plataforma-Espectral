@@ -1,0 +1,814 @@
+%PDF-1.4
+%
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R 31 0 R 33 0 R 35 0 R 37 0 R 39 0 R 41 0 R 43 0 R] /Count 20 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 899 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.94 0.97 1 rg 50.0 644.0 495.0 28 re f
+0.60 0.72 0.88 RG 50.0 644.0 495.0 28 re S
+0.071 0.188 0.388 rg /F2 26 Tf 1 0 0 1 54.0 774.0 Tm (Manual de usuario completo) Tj
+0.059 0.463 0.431 rg /F2 24 Tf 1 0 0 1 54.0 740.0 Tm (Plataforma Espectral) Tj
+0.196 0.255 0.353 rg /F1 13 Tf 1 0 0 1 54.0 702.0 Tm (Gua paso a paso para voluntarios, administradores y desarrolladores) Tj
+0.353 0.353 0.353 rg /F2 12 Tf 1 0 0 1 54.0 670.0 Tm (Espacio para imagen de portada:) Tj
+0.353 0.353 0.353 rg /F1 12 Tf 1 0 0 1 54.0 652.0 Tm ([Coloca aqu una captura o diseo de portada]) Tj
+0.275 0.275 0.275 rg /F1 11 Tf 1 0 0 1 54.0 614.0 Tm (Documento generado para impresin y distribucin en PDF.) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 1 de 20) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 8 0 R >>
+endobj
+8 0 obj
+<< /Length 4252 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.071 0.188 0.388 rg /F2 20 Tf 1 0 0 1 54.0 774.0 Tm (Manual de usuario completo de la Plataforma Espectral) Tj
+0.353 0.353 0.353 rg /F1 9 Tf 1 0 0 1 66.0 736.0 Tm (Documento fuente para generar el PDF docs/manual_usuario_plataforma_espectral.pdf.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 709.0 Tm (Portada) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 681.0 Tm (Nombre del documento: Manual de usuario de la Plataforma Espectral) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 667.0 Tm (Proyecto: Plataforma de Anlisis Espectral de Lesiones Cutneas) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 653.0 Tm (Dirigido a: voluntarios, administradores y desarrolladores) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 639.0 Tm (Nivel: gua paso a paso para personas sin experiencia previa) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 625.0 Tm (Espacio para imagen de portada: [Coloca aqu una captura o diseo de portada]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 597.0 Tm (Cmo leer este manual) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 569.0 Tm (Este manual est escrito para que cualquier persona pueda usar la plataforma sin ayuda) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 555.0 Tm (previa. Cada seccin explica qu se ve en pantalla, para qu sirve y qu pasos debe seguir la) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 541.0 Tm (persona usuaria.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 521.0 Tm (Cuando encuentres el texto Espacio para captura, puedes insertar una imagen de la pantalla) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 507.0 Tm (correspondiente. La idea es que el documento final combine explicacin sencilla con capturas) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 493.0 Tm (reales de la web.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 465.0 Tm (Roles disponibles) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 437.0 Tm (La plataforma trabaja con tres roles. Cada rol tiene permisos distintos.) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 412.0 Tm (Voluntario) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 388.0 Tm (El voluntario participa en el estudio. Su uso de la plataforma es sencillo y guiado. Puede) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 374.0 Tm (crear una cuenta, iniciar sesin, leer informacin del proyecto, consultar documentos,) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 360.0 Tm (aceptar el consentimiento informado, llenar el formulario de fototipo y ver su resultado.) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 335.0 Tm (Administrador) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 311.0 Tm (El administrador revisa y organiza la informacin del proyecto. Puede ver y gestionar) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 297.0 Tm (voluntarios, consultar estadsticas, enviar correos institucionales, administrar documentos) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 283.0 Tm (cientficos y abrir el modelo de inteligencia artificial.) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 258.0 Tm (Desarrollador) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 234.0 Tm (El desarrollador mantiene la plataforma. Puede gestionar usuarios, cambiar roles, suspender) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 220.0 Tm (accesos, eliminar usuarios, revisar consentimiento, ajustar textos, cambiar apariencia y) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 206.0 Tm (verificar funciones tcnicas.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 178.0 Tm (Recomendacin antes de empezar) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 150.0 Tm (Antes de usar la plataforma, ten a la mano tu correo electrnico, una contrasea segura y, si) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 136.0 Tm (eres voluntario, tus datos personales bsicos. Si eres administrador, revisa que tengas) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 122.0 Tm (permiso para modificar registros. Si eres desarrollador, confirma que ests trabajando con la) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 108.0 Tm (cuenta correcta.) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 2 de 20) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 10 0 R >>
+endobj
+10 0 obj
+<< /Length 3929 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.071 0.188 0.388 rg /F2 20 Tf 1 0 0 1 54.0 774.0 Tm (Acceso a la plataforma) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 728.0 Tm (Pantalla de inicio) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 700.0 Tm (Al abrir la web, aparece la pantalla inicial. En ella se muestra el nombre de la plataforma,) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 686.0 Tm (una breve descripcin del proyecto y los recuadros para iniciar sesin o crear una cuenta) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 672.0 Tm (como voluntario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 652.0 Tm (Espacio para captura: [Pantalla principal]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 624.0 Tm (Crear cuenta como voluntario) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 596.0 Tm (Usa esta opcin si todava no tienes cuenta.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 576.0 Tm (1. Busca el recuadro que dice Quieres ser voluntario?.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 562.0 Tm (2. Presiona Comenzar como voluntario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 548.0 Tm (3. Escribe tu nombre completo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 534.0 Tm (4. Escribe tu correo electrnico.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 520.0 Tm (5. Escribe una contrasea de al menos 6 caracteres.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 506.0 Tm (6. Repite la contrasea.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 492.0 Tm (7. Presiona Crear cuenta.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 478.0 Tm (8. Si la plataforma pide confirmacin por correo, revisa tu bandeja de entrada.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 464.0 Tm (9. Vuelve al inicio de sesin.) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 439.0 Tm (Consejos para crear la cuenta) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 415.0 Tm (? Escribe tu nombre como quieres que aparezca en la plataforma.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 401.0 Tm (? Revisa que el correo no tenga espacios ni errores.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 387.0 Tm (? Usa una contrasea que puedas recordar, pero que no sea fcil de adivinar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 373.0 Tm (? Si las contraseas no coinciden, vuelve a escribirlas con calma.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 353.0 Tm (Espacio para captura: [Formulario de creacin de cuenta]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 325.0 Tm (Iniciar sesin) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 297.0 Tm (Usa esta opcin si ya tienes cuenta.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 277.0 Tm (1. Escribe tu correo electrnico.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 263.0 Tm (2. Escribe tu contrasea.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 249.0 Tm (3. Presiona Entrar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 235.0 Tm (4. Espera a que cargue la plataforma.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 221.0 Tm (5. Revisa que tu nombre o correo aparezca en la parte superior.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 201.0 Tm (Si no puedes entrar, revisa el correo, la contrasea y tu conexin. Si aparece un mensaje de) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 187.0 Tm (cuenta suspendida, contacta al administrador o al desarrollador.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 167.0 Tm (Espacio para captura: [Inicio de sesin]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 139.0 Tm (Cerrar sesin) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 111.0 Tm (Cuando termines, cierra tu sesin para proteger tu informacin.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 91.0 Tm (1. Ve a la parte superior derecha.) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 3 de 20) Tj
+ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 12 0 R >>
+endobj
+12 0 obj
+<< /Length 510 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 774.0 Tm (2. Presiona Cerrar sesin.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 760.0 Tm (3. Espera a que la plataforma regrese al inicio.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 740.0 Tm (Espacio para captura: [Botn Cerrar sesin]) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 4 de 20) Tj
+ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 14 0 R >>
+endobj
+14 0 obj
+<< /Length 2198 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.071 0.188 0.388 rg /F2 20 Tf 1 0 0 1 54.0 774.0 Tm (Men principal) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 736.0 Tm (El men cambia segn el rol. Esto significa que una persona voluntaria ve menos opciones que) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 722.0 Tm (un administrador o un desarrollador.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 694.0 Tm (Men del voluntario) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 666.0 Tm (? Equipo y proyecto.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 652.0 Tm (? Tesis y artculos.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 638.0 Tm (? Formularios.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 610.0 Tm (Men del administrador) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 582.0 Tm (? Equipo y proyecto.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 568.0 Tm (? Base de datos espectral.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 554.0 Tm (? Tesis y artculos.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 540.0 Tm (? Dashboard.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 526.0 Tm (? Formularios.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 512.0 Tm (? Modelo IA.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 484.0 Tm (Men del desarrollador) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 456.0 Tm (? Equipo y proyecto.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 442.0 Tm (? Base de datos espectral.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 428.0 Tm (? Tesis y artculos.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 414.0 Tm (? Dashboard.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 400.0 Tm (? Formularios.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 386.0 Tm (? Modelo IA.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 372.0 Tm (? Herramientas de contenido y apariencia.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 358.0 Tm (? Gestin de usuarios.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 338.0 Tm (Espacio para captura: [Men por rol]) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 5 de 20) Tj
+ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 16 0 R >>
+endobj
+16 0 obj
+<< /Length 3908 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.071 0.188 0.388 rg /F2 20 Tf 1 0 0 1 54.0 774.0 Tm (Gua del voluntario) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 728.0 Tm (Equipo y proyecto) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 700.0 Tm (Esta seccin presenta al equipo responsable y explica la finalidad del proyecto. Es una) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 686.0 Tm (seccin informativa.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 666.0 Tm (1. Inicia sesin.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 652.0 Tm (2. Presiona Equipo y proyecto.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 638.0 Tm (3. Lee la informacin del responsable, del rea de ingeniera y de los voluntarios.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 618.0 Tm (Espacio para captura: [Equipo y proyecto]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 590.0 Tm (Tesis y artculos) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 562.0 Tm (Esta seccin contiene documentos y referencias tiles para el proyecto.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 542.0 Tm (1. Presiona Tesis y artculos.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 528.0 Tm (2. Revisa el bloque de Produccin propia.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 514.0 Tm (3. Revisa el bloque de Referencias de otros autores.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 500.0 Tm (4. Abre el enlace o PDF que necesites consultar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 480.0 Tm (Espacio para captura: [Tesis y artculos]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 452.0 Tm (Formulario de fototipo) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 424.0 Tm (El formulario permite conocer el fototipo de piel del voluntario. Est dividido en cinco) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 410.0 Tm (partes: consentimiento informado, datos personales, informacin gentica, reaccin al sol y) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 396.0 Tm (hbitos diarios.) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 371.0 Tm (Paso 1: consentimiento informado) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 347.0 Tm (Antes de contestar el formulario, debes leer el consentimiento informado completo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 327.0 Tm (1. Entra a Formularios.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 313.0 Tm (2. Lee el documento dentro del visor.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 299.0 Tm (3. Desplzate hasta el final.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 285.0 Tm (4. Si deseas verlo en grande, presiona Abrir PDF.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 271.0 Tm (5. Escribe tu nombre completo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 257.0 Tm (6. Marca la casilla donde aceptas participar voluntariamente.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 243.0 Tm (7. Marca la casilla donde aceptas el tratamiento confidencial de tus datos e imgenes.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 229.0 Tm (8. Escribe exactamente ACEPTO PARTICIPAR.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 215.0 Tm (9. Presiona Confirmar consentimiento y continuar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 195.0 Tm (La plataforma registra la fecha, hora, versin del documento y mtodo de aceptacin para) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 181.0 Tm (control interno.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 161.0 Tm (Espacio para captura: [Consentimiento informado]) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 136.0 Tm (Paso 2: datos personales) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 112.0 Tm (Completa los datos solicitados.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 92.0 Tm (? Matrcula.) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 6 de 20) Tj
+ET
+endstream
+endobj
+17 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 18 0 R >>
+endobj
+18 0 obj
+<< /Length 3249 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 774.0 Tm (? Edad.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 760.0 Tm (? Gnero.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 746.0 Tm (? Carrera o facultad.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 732.0 Tm (? Correo institucional.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 712.0 Tm (Despus de escribir la informacin, presiona Continuar. Si quieres volver, presiona Regresar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 698.0 Tm (Si quieres detener el proceso, presiona Cancelar formulario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 678.0 Tm (Espacio para captura: [Datos personales]) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 653.0 Tm (Paso 3: informacin gentica) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 629.0 Tm (Contesta las preguntas sobre color de ojos, color natural del cabello, color de piel sin) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 615.0 Tm (bronceado y cantidad de pecas.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 595.0 Tm (Elige una sola respuesta por pregunta. Si dejas una pregunta sin responder, la plataforma) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 581.0 Tm (puede impedir que avances.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 561.0 Tm (Espacio para captura: [Informacin gentica]) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 536.0 Tm (Paso 4: reaccin al sol) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 512.0 Tm (Contesta cmo reacciona tu piel cuando se expone al sol.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 492.0 Tm (Las preguntas hablan sobre quemaduras, bronceado, reaccin despus de varias horas y) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 478.0 Tm (sensibilidad del rostro.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 458.0 Tm (Espacio para captura: [Reaccin al sol]) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 433.0 Tm (Paso 5: hbitos diarios) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 409.0 Tm (Contesta cundo fue la ltima vez que te bronceaste y si te bronceas al sol regularmente.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 389.0 Tm (Cuando termines, presiona Finalizar. La plataforma calcular tu fototipo y guardar el) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 375.0 Tm (registro.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 355.0 Tm (Espacio para captura: [Hbitos diarios]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 327.0 Tm (Resultado del fototipo) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 299.0 Tm (Al terminar, vers una tarjeta con tu resultado. El resultado muestra el tipo de fototipo y) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 285.0 Tm (una breve descripcin.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 265.0 Tm (Importante: un voluntario solo puede enviar el formulario una vez con su cuenta. Esto evita) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 251.0 Tm (registros repetidos.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 231.0 Tm (Espacio para captura: [Resultado del fototipo]) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 7 de 20) Tj
+ET
+endstream
+endobj
+19 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 20 0 R >>
+endobj
+20 0 obj
+<< /Length 3744 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.071 0.188 0.388 rg /F2 20 Tf 1 0 0 1 54.0 774.0 Tm (Gua del administrador) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 728.0 Tm (Base de datos espectral) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 700.0 Tm (Esta seccin muestra los voluntarios registrados y permite administrar sus datos.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 680.0 Tm (En la parte superior puedes encontrar el buscador, filtros, papelera y el botn Nuevo. Debajo) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 666.0 Tm (aparece la tabla de voluntarios.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 646.0 Tm (Espacio para captura: [Base de datos espectral]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 618.0 Tm (Buscar voluntarios) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 590.0 Tm (1. Entra a Base de datos espectral.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 576.0 Tm (2. Escribe una matrcula, cdigo o correo en el buscador.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 562.0 Tm (3. Revisa los resultados.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 548.0 Tm (4. Borra el texto para volver a ver todos los registros.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 528.0 Tm (Espacio para captura: [Buscador]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 500.0 Tm (Ver detalles) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 472.0 Tm (1. Busca al voluntario en la tabla.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 458.0 Tm (2. Presiona Ver detalles.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 444.0 Tm (3. Revisa matrcula, sexo, edad, carrera, fototipo, fecha de registro y correo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 430.0 Tm (4. Cierra la ventana al terminar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 410.0 Tm (Espacio para captura: [Detalles del voluntario]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 382.0 Tm (Ver archivos e imgenes) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 354.0 Tm (1. Busca al voluntario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 340.0 Tm (2. Presiona Ver imgenes.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 326.0 Tm (3. Revisa los archivos de espectros en formato .txt.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 312.0 Tm (4. Revisa las imgenes en formato .jpg, .jpeg o .png.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 298.0 Tm (5. Abre el enlace del archivo que necesites consultar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 278.0 Tm (Espacio para captura: [Archivos e imgenes]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 250.0 Tm (Registrar voluntario manualmente) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 222.0 Tm (1. Presiona Nuevo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 208.0 Tm (2. Escribe el identificador o matrcula.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 194.0 Tm (3. Selecciona sexo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 180.0 Tm (4. Escribe edad, carrera y correo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 166.0 Tm (5. Selecciona fototipo de piel.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 152.0 Tm (6. Selecciona fecha de registro.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 138.0 Tm (7. Sube espectros en formato .txt si existen.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 124.0 Tm (8. Sube imgenes en formato .jpg, .jpeg o .png si existen.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 110.0 Tm (9. Presiona Guardar voluntario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 90.0 Tm (Espacio para captura: [Nuevo voluntario]) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 8 de 20) Tj
+ET
+endstream
+endobj
+21 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 22 0 R >>
+endobj
+22 0 obj
+<< /Length 3490 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 760.0 Tm (Editar voluntario) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 732.0 Tm (1. Busca al voluntario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 718.0 Tm (2. Presiona Editar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 704.0 Tm (3. Cambia la informacin necesaria.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 690.0 Tm (4. Agrega archivos si hace falta.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 676.0 Tm (5. Presiona Guardar voluntario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 656.0 Tm (Antes de guardar, revisa con cuidado los datos. Un error puede afectar las estadsticas y la) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 642.0 Tm (informacin del estudio.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 622.0 Tm (Espacio para captura: [Editar voluntario]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 594.0 Tm (Papelera de voluntarios) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 566.0 Tm (Cuando presionas Eliminar, el voluntario se manda a la papelera durante 5 das. En ese tiempo) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 552.0 Tm (se puede restaurar.) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 527.0 Tm (Enviar a papelera) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 503.0 Tm (1. Busca el voluntario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 489.0 Tm (2. Presiona Eliminar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 475.0 Tm (3. Lee el mensaje.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 461.0 Tm (4. Presiona Mover a papelera \(5 das\).) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 436.0 Tm (Restaurar) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 412.0 Tm (1. Presiona Papelera.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 398.0 Tm (2. Busca el registro.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 384.0 Tm (3. Presiona Restaurar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 370.0 Tm (4. Verifica que vuelva a la tabla principal.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 350.0 Tm (Espacio para captura: [Papelera]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 322.0 Tm (Dashboard) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 294.0 Tm (El dashboard muestra un resumen visual del proyecto.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 274.0 Tm (Puedes ver total de voluntarios, edad promedio, porcentaje por sexo, tipos de piel presentes) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 260.0 Tm (y grficas por sexo, tipo de piel y grupo de edad.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 240.0 Tm (Espacio para captura: [Dashboard]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 212.0 Tm (Notificaciones de registro) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 184.0 Tm (El dashboard muestra avisos cuando se registra un nuevo voluntario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 164.0 Tm (1. Entra a Dashboard.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 150.0 Tm (2. Busca Notificaciones de registro.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 136.0 Tm (3. Revisa los avisos.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 122.0 Tm (4. Presiona Actualizar para recargar la lista.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 102.0 Tm (Espacio para captura: [Notificaciones]) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 9 de 20) Tj
+ET
+endstream
+endobj
+23 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 24 0 R >>
+endobj
+24 0 obj
+<< /Length 2998 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 774.0 Tm (Envo de correo institucional) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 746.0 Tm (1. Entra a Dashboard.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 732.0 Tm (2. Busca Envo de correo institucional.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 718.0 Tm (3. Escribe el correo del destinatario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 704.0 Tm (4. Escribe el asunto.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 690.0 Tm (5. Escribe el mensaje.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 676.0 Tm (6. Adjunta archivos si es necesario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 662.0 Tm (7. Presiona Enviar correo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 642.0 Tm (Puedes usar Enviar prueba a mi correo antes de mandar un correo real.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 622.0 Tm (Espacio para captura: [Correo institucional]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 594.0 Tm (Gestin de tesis, artculos y datasets) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 566.0 Tm (1. Entra a Tesis y artculos.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 552.0 Tm (2. Presiona Agregar artculo / referencia / dataset.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 538.0 Tm (3. Selecciona si es produccin propia o referencia externa.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 524.0 Tm (4. Escribe ao, ttulo, autores y fuente.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 510.0 Tm (5. Agrega URL principal o secundaria si existe.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 496.0 Tm (6. Si no hay URL, sube un PDF.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 482.0 Tm (7. Presiona Guardar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 462.0 Tm (Para editar, presiona Editar en el documento. Para eliminar, presiona Eliminar y confirma si) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 448.0 Tm (la plataforma lo solicita.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 428.0 Tm (Espacio para captura: [Gestin de documentos]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 400.0 Tm (Modelo IA) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 372.0 Tm (La seccin Modelo IA abre una interfaz externa para clasificacin de lesiones de piel.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 352.0 Tm (1. Presiona Modelo IA.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 338.0 Tm (2. Espera a que cargue el recuadro.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 324.0 Tm (3. Sigue las instrucciones internas del modelo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 304.0 Tm (Si tarda en cargar, espera unos segundos y revisa la conexin a internet.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 284.0 Tm (Espacio para captura: [Modelo IA]) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 10 de 20) Tj
+ET
+endstream
+endobj
+25 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 26 0 R >>
+endobj
+26 0 obj
+<< /Length 3548 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.071 0.188 0.388 rg /F2 20 Tf 1 0 0 1 54.0 774.0 Tm (Gua del desarrollador) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 728.0 Tm (Gestin de usuarios) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 700.0 Tm (La gestin de usuarios aparece dentro del dashboard. Permite buscar usuarios, filtrar por rol) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 686.0 Tm (o estado, cambiar rol, suspender, activar, revisar consentimiento y eliminar usuarios.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 666.0 Tm (Espacio para captura: [Gestin de usuarios]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 638.0 Tm (Cambiar roles) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 610.0 Tm (1. Entra a Dashboard.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 596.0 Tm (2. Busca Gestin de usuarios.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 582.0 Tm (3. Localiza al usuario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 568.0 Tm (4. Abre la lista de rol.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 554.0 Tm (5. Selecciona voluntario, administrador o desarrollador.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 540.0 Tm (6. Espera la confirmacin.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 520.0 Tm (No cambies roles sin autorizacin. Un rol incorrecto puede dar acceso a informacin sensible.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 500.0 Tm (Espacio para captura: [Cambio de rol]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 472.0 Tm (Suspender o activar usuarios) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 444.0 Tm (Para suspender, busca al usuario y presiona Suspender. Para activar una cuenta suspendida,) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 430.0 Tm (presiona Activar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 410.0 Tm (Una cuenta suspendida no puede entrar a la plataforma, salvo que sea una cuenta de) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 396.0 Tm (desarrollador.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 376.0 Tm (Espacio para captura: [Suspender o activar]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 348.0 Tm (Eliminar usuarios) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 320.0 Tm (1. Busca al usuario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 306.0 Tm (2. Presiona Eliminar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 292.0 Tm (3. Lee el mensaje de confirmacin.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 278.0 Tm (4. Confirma solo si tienes autorizacin.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 258.0 Tm (La plataforma protege la cuenta actual y las cuentas de desarrollador para evitar) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 244.0 Tm (eliminaciones accidentales desde este botn.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 224.0 Tm (Espacio para captura: [Eliminar usuario]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 196.0 Tm (Revisar consentimiento) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 168.0 Tm (La columna Consentimiento muestra si el usuario ya acept el documento. Tambin puede mostrar) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 154.0 Tm (fecha y versin del consentimiento aceptado.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 134.0 Tm (Espacio para captura: [Consentimiento en usuarios]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 106.0 Tm (Editor de contenido) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 11 de 20) Tj
+ET
+endstream
+endobj
+27 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 28 0 R >>
+endobj
+28 0 obj
+<< /Length 3661 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 774.0 Tm (El desarrollador puede activar el editor de contenido para ajustar textos visibles.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 754.0 Tm (1. Abre la vista que quieres revisar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 740.0 Tm (2. Presiona Editor de contenido.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 726.0 Tm (3. Cambia el texto necesario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 712.0 Tm (4. Presiona Guardar texto de esta vista.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 698.0 Tm (5. Revisa el resultado.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 678.0 Tm (Espacio para captura: [Editor de contenido]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 650.0 Tm (Configuracin visual) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 622.0 Tm (El desarrollador puede cambiar color, estilo y tipografa.) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 597.0 Tm (Colores disponibles) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 573.0 Tm (? Azul cientfico.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 559.0 Tm (? Verde clnico.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 545.0 Tm (? Morado sobrio.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 531.0 Tm (? Vino institucional.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 517.0 Tm (? Rojo controlado.) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 492.0 Tm (Estilos disponibles) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 468.0 Tm (? Moderno.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 454.0 Tm (? Cientfico.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 440.0 Tm (? Informativo.) Tj
+0.122 0.227 0.420 rg /F2 12 Tf 1 0 0 1 54.0 415.0 Tm (Tipografas disponibles) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 391.0 Tm (? Inter.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 377.0 Tm (? Noto Sans.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 363.0 Tm (? IBM Plex Mono.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 349.0 Tm (? Source Serif.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 329.0 Tm (Presiona Guardar cambios para aplicar la apariencia. Usa Cancelar si no deseas guardar. Usa) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 315.0 Tm (Restablecer por defecto para volver al diseo inicial.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 295.0 Tm (Espacio para captura: [Configuracin visual]) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 267.0 Tm (Panel de desarrollador) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 239.0 Tm (El panel de desarrollador permite cambiar apariencia y editar contenido sensible.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 219.0 Tm (Funciones disponibles:) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 199.0 Tm (? Cambiar color global.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 185.0 Tm (? Cambiar diseo de tesis y artculos.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 171.0 Tm (? Cambiar diseo del dashboard.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 157.0 Tm (? Editar ttulo de Equipo y proyecto.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 143.0 Tm (? Editar texto de Quines somos?.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 129.0 Tm (? Editar la primera pregunta del formulario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 115.0 Tm (? Editar el nombre de la seccin Dashboard.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 101.0 Tm (? Confirmar cambios con contrasea.) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 12 de 20) Tj
+ET
+endstream
+endobj
+29 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 30 0 R >>
+endobj
+30 0 obj
+<< /Length 322 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 774.0 Tm (Espacio para captura: [Panel de desarrollador]) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 13 de 20) Tj
+ET
+endstream
+endobj
+31 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 32 0 R >>
+endobj
+32 0 obj
+<< /Length 1418 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.071 0.188 0.388 rg /F2 20 Tf 1 0 0 1 54.0 774.0 Tm (Mensajes comunes) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 728.0 Tm (Cuenta creada) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 700.0 Tm (La cuenta fue registrada. Si se requiere confirmacin, revisa tu correo.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 672.0 Tm (Las contraseas no coinciden) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 644.0 Tm (Las dos contraseas no son iguales. Vuelve a escribirlas.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 616.0 Tm (Cuenta suspendida) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 588.0 Tm (Tu acceso fue pausado. Contacta al administrador o al desarrollador.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 560.0 Tm (Formulario ya realizado) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 532.0 Tm (Tu cuenta ya envi el formulario. No se permite enviarlo otra vez.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 504.0 Tm (No se pudo guardar la informacin) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 476.0 Tm (Puede haber un problema de conexin, permisos o base de datos. Revisa los datos y pide apoyo) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 462.0 Tm (tcnico.) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 14 de 20) Tj
+ET
+endstream
+endobj
+33 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 34 0 R >>
+endobj
+34 0 obj
+<< /Length 2256 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.071 0.188 0.388 rg /F2 20 Tf 1 0 0 1 54.0 774.0 Tm (Lista de capturas recomendadas) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 736.0 Tm (1. Pantalla principal.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 722.0 Tm (2. Crear cuenta.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 708.0 Tm (3. Iniciar sesin.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 694.0 Tm (4. Men por rol.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 680.0 Tm (5. Equipo y proyecto.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 666.0 Tm (6. Tesis y artculos.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 652.0 Tm (7. Consentimiento informado.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 638.0 Tm (8. Datos personales.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 624.0 Tm (9. Informacin gentica.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 610.0 Tm (10. Reaccin al sol.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 596.0 Tm (11. Hbitos diarios.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 582.0 Tm (12. Resultado de fototipo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 568.0 Tm (13. Base de datos espectral.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 554.0 Tm (14. Detalles del voluntario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 540.0 Tm (15. Archivos e imgenes.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 526.0 Tm (16. Registrar o editar voluntario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 512.0 Tm (17. Papelera.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 498.0 Tm (18. Dashboard.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 484.0 Tm (19. Correo institucional.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 470.0 Tm (20. Gestin de documentos.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 456.0 Tm (21. Modelo IA.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 442.0 Tm (22. Gestin de usuarios.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 428.0 Tm (23. Configuracin visual.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 414.0 Tm (24. Panel de desarrollador.) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 15 de 20) Tj
+ET
+endstream
+endobj
+35 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 36 0 R >>
+endobj
+36 0 obj
+<< /Length 716 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.071 0.188 0.388 rg /F2 20 Tf 1 0 0 1 54.0 774.0 Tm (Cierre) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 736.0 Tm (Este manual permite que una persona nueva entienda la plataforma desde cero. El voluntario) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 722.0 Tm (tiene un camino guiado. El administrador puede gestionar informacin y documentos. El) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 708.0 Tm (desarrollador puede mantener usuarios, contenido, apariencia y funciones tcnicas.) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 16 de 20) Tj
+ET
+endstream
+endobj
+37 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 38 0 R >>
+endobj
+38 0 obj
+<< /Length 3251 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.071 0.188 0.388 rg /F2 20 Tf 1 0 0 1 54.0 774.0 Tm (Gua rpida por situacin) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 728.0 Tm (Si eres voluntario y es tu primera vez) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 700.0 Tm (1. Crea tu cuenta.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 686.0 Tm (2. Inicia sesin.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 672.0 Tm (3. Lee la seccin Equipo y proyecto.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 658.0 Tm (4. Consulta Tesis y artculos si quieres conocer el contexto del estudio.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 644.0 Tm (5. Entra a Formularios.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 630.0 Tm (6. Lee el consentimiento informado completo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 616.0 Tm (7. Acepta el consentimiento solo si ests de acuerdo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 602.0 Tm (8. Llena el formulario de fototipo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 588.0 Tm (9. Revisa tu resultado.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 574.0 Tm (10. Cierra sesin.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 546.0 Tm (Si eres administrador y vas a revisar registros) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 518.0 Tm (1. Inicia sesin.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 504.0 Tm (2. Entra a Base de datos espectral.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 490.0 Tm (3. Usa el buscador para localizar registros concretos.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 476.0 Tm (4. Abre detalles antes de editar.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 462.0 Tm (5. Revisa archivos e imgenes cuando sea necesario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 448.0 Tm (6. Usa el dashboard para consultar el resumen general.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 434.0 Tm (7. Evita eliminar registros sin confirmacin del equipo responsable.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 420.0 Tm (8. Si un registro fue enviado a papelera por error, resturalo antes de que pasen 5 das.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 392.0 Tm (Si eres desarrollador y vas a hacer mantenimiento) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 364.0 Tm (1. Inicia sesin con una cuenta autorizada.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 350.0 Tm (2. Revisa primero el estado general de usuarios.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 336.0 Tm (3. No cambies roles si no existe una solicitud clara.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 322.0 Tm (4. Antes de suspender o eliminar usuarios, confirma el motivo.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 308.0 Tm (5. Si cambias apariencia o textos, revisa la vista antes y despus.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 294.0 Tm (6. Despus de un ajuste visual, verifica que el texto siga siendo legible.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 280.0 Tm (7. Revisa que Supabase y las funciones Edge estn disponibles si algo falla.) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 17 de 20) Tj
+ET
+endstream
+endobj
+39 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 40 0 R >>
+endobj
+40 0 obj
+<< /Length 2277 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.071 0.188 0.388 rg /F2 20 Tf 1 0 0 1 54.0 774.0 Tm (Buenas prcticas de seguridad) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 728.0 Tm (Para todas las personas usuarias) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 700.0 Tm (? No compartas tu contrasea.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 686.0 Tm (? No dejes tu sesin abierta en computadoras compartidas.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 672.0 Tm (? Cierra sesin cuando termines.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 658.0 Tm (? Revisa los datos antes de enviarlos.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 644.0 Tm (? Si ves informacin incorrecta, avisa al responsable del proyecto.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 616.0 Tm (Para administradores) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 588.0 Tm (? No descargues ni compartas datos sin autorizacin.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 574.0 Tm (? No subas archivos que no correspondan al voluntario.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 560.0 Tm (? Usa nombres claros para documentos y referencias.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 546.0 Tm (? Revisa dos veces antes de mover un registro a la papelera.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 532.0 Tm (? Mantn comunicacin con el equipo si detectas datos duplicados.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 504.0 Tm (Para desarrolladores) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 476.0 Tm (? Evita cambios directos en produccin sin revisin.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 462.0 Tm (? Documenta cambios importantes.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 448.0 Tm (? No elimines usuarios sin respaldo o aprobacin.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 434.0 Tm (? Verifica que las reglas de acceso sean correctas.) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 70.0 420.0 Tm (? Mantn la configuracin tcnica fuera de documentos pblicos si contiene datos) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 84.0 406.0 Tm (sensibles.) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 18 de 20) Tj
+ET
+endstream
+endobj
+41 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 42 0 R >>
+endobj
+42 0 obj
+<< /Length 2926 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.071 0.188 0.388 rg /F2 20 Tf 1 0 0 1 54.0 774.0 Tm (Solucin de problemas) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 728.0 Tm (No puedo crear mi cuenta) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 700.0 Tm (Revisa que el correo sea vlido, que la contrasea tenga al menos 6 caracteres y que las dos) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 686.0 Tm (contraseas sean iguales. Si el problema sigue, pide apoyo tcnico.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 658.0 Tm (No puedo iniciar sesin) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 630.0 Tm (Revisa el correo y la contrasea. Si el mensaje indica que la cuenta est suspendida,) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 616.0 Tm (contacta al administrador. Si la plataforma no responde, puede existir un problema temporal) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 602.0 Tm (con la base de datos.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 574.0 Tm (No puedo avanzar en el consentimiento) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 546.0 Tm (Asegrate de desplazarte hasta el final del documento. Despus marca las dos casillas y) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 532.0 Tm (escribe exactamente ACEPTO PARTICIPAR.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 504.0 Tm (No puedo finalizar el formulario) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 476.0 Tm (Revisa que todas las preguntas estn contestadas. Tambin confirma que hayas llenado los) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 462.0 Tm (datos personales obligatorios.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 434.0 Tm (No aparecen voluntarios en la base de datos) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 406.0 Tm (Revisa si hay texto en el buscador. Si lo hay, brralo. Despus actualiza la pgina o vuelve) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 392.0 Tm (a cargar la seccin. Si sigue sin aparecer informacin, solicita revisin tcnica.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 364.0 Tm (No se enva el correo institucional) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 336.0 Tm (Revisa el destinatario, el asunto y el contenido. Si hay archivos adjuntos, prueba enviar sin) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 322.0 Tm (adjuntos. Si el problema contina, el desarrollador debe revisar la funcin de correo.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 294.0 Tm (El Modelo IA no carga) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 266.0 Tm (Espera unos segundos, revisa internet y vuelve a abrir la seccin. Como el modelo se carga) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 252.0 Tm (desde un servicio externo, puede tardar ms que el resto de la plataforma.) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 19 de 20) Tj
+ET
+endstream
+endobj
+43 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 44 0 R >>
+endobj
+44 0 obj
+<< /Length 1693 >>
+stream
+BT
+0.07 0.19 0.39 rg 0 792 595 50 re f
+1 1 1 rg /F2 11 Tf 54 812 Td (Plataforma Espectral  Manual de usuario) Tj
+0.04 0.46 0.43 rg 0 788 595 4 re f
+0.071 0.188 0.388 rg /F2 20 Tf 1 0 0 1 54.0 774.0 Tm (Glosario sencillo) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 728.0 Tm (Fototipo) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 700.0 Tm (Clasificacin que ayuda a describir cmo reacciona la piel ante el sol.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 672.0 Tm (Consentimiento informado) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 644.0 Tm (Documento donde se explica el estudio y se pide autorizacin para participar.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 616.0 Tm (Dashboard) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 588.0 Tm (Pantalla con datos resumidos y grficas.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 560.0 Tm (Papelera) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 532.0 Tm (Lugar temporal donde quedan registros eliminados antes de borrarse de forma permanente.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 504.0 Tm (Rol) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 476.0 Tm (Tipo de permiso que tiene una cuenta dentro de la plataforma.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 448.0 Tm (Supabase) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 420.0 Tm (Servicio donde se guardan datos, archivos y funciones usadas por la plataforma.) Tj
+0.059 0.463 0.431 rg /F2 15 Tf 1 0 0 1 54.0 392.0 Tm (Funcin Edge) Tj
+0.137 0.176 0.255 rg /F1 10 Tf 1 0 0 1 54.0 364.0 Tm (Funcin tcnica que ejecuta tareas especiales, como enviar correos o eliminar usuarios.) Tj
+0.35 0.35 0.35 rg /F1 8 Tf 1 0 0 1 54 38 Tm (Pgina 20 de 20) Tj
+ET
+endstream
+endobj
+xref
+0 45
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000253 00000 n 
+0000000323 00000 n 
+0000000398 00000 n 
+0000000534 00000 n 
+0000001483 00000 n 
+0000001619 00000 n 
+0000005922 00000 n 
+0000006059 00000 n 
+0000010040 00000 n 
+0000010178 00000 n 
+0000010739 00000 n 
+0000010877 00000 n 
+0000013127 00000 n 
+0000013265 00000 n 
+0000017225 00000 n 
+0000017363 00000 n 
+0000020664 00000 n 
+0000020802 00000 n 
+0000024598 00000 n 
+0000024736 00000 n 
+0000028278 00000 n 
+0000028416 00000 n 
+0000031466 00000 n 
+0000031604 00000 n 
+0000035204 00000 n 
+0000035342 00000 n 
+0000039055 00000 n 
+0000039193 00000 n 
+0000039566 00000 n 
+0000039704 00000 n 
+0000041174 00000 n 
+0000041312 00000 n 
+0000043620 00000 n 
+0000043758 00000 n 
+0000044525 00000 n 
+0000044663 00000 n 
+0000047966 00000 n 
+0000048104 00000 n 
+0000050433 00000 n 
+0000050571 00000 n 
+0000053549 00000 n 
+0000053687 00000 n 
+trailer << /Size 45 /Root 1 0 R >>
+startxref
+55432
+%%EOF
