@@ -465,3 +465,40 @@ input[type="file"]::file-selector-button:hover{background:#ddd6fe}
 .btn-cancel-form{display:flex;margin:.9rem auto 0;background:#fff;color:#ba1a1a;border:1px solid rgba(186,26,26,.28);border-radius:9px;font-size:.86rem;padding:.62rem 1rem;box-shadow:none}
 .btn-cancel-form:hover{background:#fff5f5;border-color:#ba1a1a}
 @media (max-width:640px){.step-actions{grid-template-columns:1fr}.step-actions .btn{width:100%}}
+
+/* Evita que URLs largas se salgan de tarjetas de tesis/artículos */
+.scientific-section .card,
+.scientific-section .doc-item,
+.scientific-section .reference-item,
+.scientific-section .reference-apa{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.scientific-section a{overflow-wrap:anywhere;word-break:break-word}
+
+/* Login únicamente: layout limpio con logo amplio y tarjeta derecha moderna */
+body:not(.logged-in) .header{display:none}
+#inicio .hero{position:relative;grid-template-columns:minmax(0,1.25fr) minmax(360px,.75fr);gap:3rem;align-items:center;min-height:calc(100vh - 90px);padding:2.2rem 0 1.2rem}
+#inicio .hero::before,#inicio .hero::after{content:"";position:absolute;border-radius:999px;filter:blur(60px);pointer-events:none;z-index:-1}
+#inicio .hero::before{width:420px;height:420px;right:-120px;top:-80px;background:rgba(99,68,169,.08)}
+#inicio .hero::after{width:360px;height:360px;left:-130px;bottom:-120px;background:rgba(225,222,237,.42)}
+#inicio .hero-logo{width:min(560px,100%);height:auto;display:block;margin:0 0 .4rem -1.2rem;object-fit:contain}
+#inicio .hero-text{align-self:center;padding-top:0}
+#inicio .hero-text h1{font-size:clamp(2.45rem,4.5vw,4.9rem);max-width:760px;margin:.1rem 0 .9rem;color:#4b2a90;letter-spacing:-.04em;line-height:1.05}
+#inicio .hero-text p{font-size:clamp(1.02rem,1.55vw,1.28rem);max-width:640px;color:#494552;line-height:1.65;margin-bottom:1rem}
+#inicio .hero-text::after{content:"⚗️  Laboratorio de Óptica Biomédica";display:inline-flex;margin-top:.45rem;color:#4b2a90;font-weight:700;font-size:.95rem}
+#inicio .auth-layout{justify-content:center;align-items:center}
+#inicio .auth-card{max-width:430px;border-radius:16px;border:1px solid #e6eaf0;box-shadow:0 18px 45px rgba(15,23,42,.08);background:#fff;overflow:hidden}
+#inicio .auth-panel h2{font-size:1.65rem;padding:1.8rem 1.8rem 0;margin-bottom:.25rem;color:#181c1e;letter-spacing:-.025em}
+#inicio .auth-panel h2::after{content:"Bienvenido de nuevo al laboratorio";display:block;margin-top:.28rem;font-size:.78rem;font-weight:600;color:#64748b;letter-spacing:0}
+#inicio .auth-panel .form{padding:1.2rem 1.8rem 1.4rem;gap:1rem}
+#inicio .form label{font-size:.82rem;color:#494552;gap:.4rem;padding:0 .1rem}
+#inicio .form input:not([type="checkbox"]):not([type="radio"]){min-height:46px;background:#f1f4f6;border-color:#dfe4ec;border-radius:8px;font-size:.92rem;padding:.72rem .9rem}
+#inicio .form input:not([type="checkbox"]):not([type="radio"]):focus{background:#fff;border-color:#6344a9;box-shadow:0 0 0 4px rgba(99,68,169,.1)}
+#inicio .auth-panel .btn-primary,#inicio .auth-panel .btn-accent{min-height:46px;border-radius:8px;background:#6344a9;box-shadow:0 8px 18px rgba(99,68,169,.22);font-size:.92rem;transition:transform .16s ease,filter .16s ease}
+#inicio .auth-panel .btn-primary:hover,#inicio .auth-panel .btn-accent:hover{filter:brightness(1.05)}
+#inicio .auth-panel .btn-primary:active,#inicio .auth-panel .btn-accent:active{transform:scale(.98)}
+#inicio .volunteer-cta{background:#f1f4f6;border-top:1px solid #e6eaf0;padding:1.45rem 1.8rem 1.6rem}
+#inicio .volunteer-cta h3{font-size:1.25rem;color:#181c1e;margin-bottom:.35rem;letter-spacing:-.02em}
+#inicio .volunteer-cta p{font-size:.9rem;color:#494552;margin-bottom:1rem;line-height:1.55}
+#inicio .volunteer-cta .btn{background:#e1deed;color:#6344a9;box-shadow:none;font-size:.88rem;min-height:44px}
+#inicio #register-panel h2::after{content:"Crea tu acceso como voluntario"}
+@media (max-width:1024px){#inicio .hero{grid-template-columns:1fr;gap:1.8rem;align-items:start}#inicio .hero-logo{width:min(460px,100%);margin-left:0}#inicio .auth-layout{justify-content:flex-start}#inicio .auth-card{max-width:560px}}
+@media (max-width:640px){#inicio .hero{padding-top:1rem}#inicio .hero-text h1{font-size:2.35rem}#inicio .auth-card{max-width:100%}#inicio .auth-panel h2,#inicio .auth-panel .form,#inicio .volunteer-cta{padding-left:1.25rem;padding-right:1.25rem}}

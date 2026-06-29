@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 260" role="img" aria-labelledby="title desc">
+  <title id="title">Plataforma Espectral</title>
+  <desc id="desc">Logotipo horizontal de Plataforma Espectral con lupa y muestra espectral.</desc>
+  <defs>
+    <linearGradient id="g" x1="40" y1="220" x2="235" y2="25" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4b2a90"/><stop offset="1" stop-color="#7e5fc7"/>
+    </linearGradient>
+    <linearGradient id="blob" x1="96" y1="172" x2="176" y2="84" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4b2a90"/><stop offset="1" stop-color="#d1bcff"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#g)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M62 78V55a21 21 0 0 1 21-21h24" stroke-width="9"/>
+    <path d="M166 34h24a21 21 0 0 1 21 21v23" stroke-width="9"/>
+    <path d="M211 166v24a21 21 0 0 1-21 21h-24" stroke-width="9"/>
+    <circle cx="133" cy="124" r="68" stroke-width="11"/>
+    <circle cx="133" cy="124" r="53" stroke-width="5"/>
+    <path d="M84 174 45 213" stroke-width="15"/>
+  </g>
+  <g stroke="#7e5fc7" stroke-width="1.4" opacity=".35"><path d="M91 94h82M84 112h96M84 130h96M91 148h82"/><path d="M101 78v92M119 72v104M137 72v104M155 78v92"/></g>
+  <path d="M103 153c-19-8-15-34 2-41 16-7 8-40 34-42 21-2 22 27 36 29 26 4 24 34 5 42-18 8-14 36-38 35-16-1-19-15-39-23Z" fill="url(#blob)"/>
+  <path d="M158 86c10 1 13 14 23 17 6 2 7 11 0 15-10 6-31-6-30-22 0-6 3-10 7-10Z" fill="#7e5fc7" opacity=".72"/>
+  <text x="272" y="112" font-family="Inter, Manrope, Arial, sans-serif" font-size="58" font-weight="700" fill="#5b4a92">Plataforma</text>
+  <text x="272" y="178" font-family="Inter, Manrope, Arial, sans-serif" font-size="58" font-weight="700" fill="#5b4a92">Espectral</text>
+</svg>
